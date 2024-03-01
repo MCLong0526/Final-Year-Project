@@ -12,10 +12,7 @@ export const routes = [
         path: 'account-settings',
         component: () => import('@/pages/account-settings.vue'),
       },
-      {
-        path: 'test',
-        component: () => import('@/pages/test.vue'),
-      },
+      
       {
         path: 'typography',
         component: () => import('@/pages/typography.vue'),
@@ -35,6 +32,14 @@ export const routes = [
       {
         path: 'form-layouts',
         component: () => import('@/pages/form-layouts.vue'),
+      },
+      {
+        path: 'test',
+        component: () => import('@/pages/test.vue'),
+      },
+      {
+        path: 'user-table',
+        component: () => import('@/pages/user-table.vue'),
       },
     ],
   },

@@ -22,6 +22,14 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
 
   <VerticalNavLink
     :item="{
+      title: 'User Table',
+      icon: 'ri-folder-user-line',
+      to: '/user-table',
+    }"
+  />
+
+  <VerticalNavLink
+    :item="{
       title: 'Tables',
       icon: 'ri-table-alt-line',
       to: '/tables',
