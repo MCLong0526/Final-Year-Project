@@ -20,5 +20,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::controller(UserController::class)->prefix('users')->group(function () {
     Route::get('/', 'index');
+    Route::post('/store', 'store');
 
 });
