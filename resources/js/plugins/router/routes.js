@@ -38,8 +38,8 @@ export const routes = [
         component: () => import('@/pages/test.vue'),
       },
       {
-        path: 'user-table',
-        component: () => import('@/pages/user-table.vue'),
+        path: 'user-management',
+        component: () => import('@/pages/user-management.vue'),
       },
     ],
   },

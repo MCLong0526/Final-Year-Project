@@ -26,5 +26,6 @@ declare module 'vue' {
     ThemeSwitcher: typeof import('./resources/js/@core/components/ThemeSwitcher.vue')['default']
     TimesheetComponent: typeof import('./resources/js/components/TimesheetComponent.vue')['default']
     UpgradeToPro: typeof import('./resources/js/components/UpgradeToPro.vue')['default']
+    UserTable: typeof import('./resources/js/components/User/UserTable.vue')['default']
   }
 }
