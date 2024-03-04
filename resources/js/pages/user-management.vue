@@ -26,20 +26,26 @@ const password = ref('')
 const isPasswordVisible = ref(false)
 const confirmPassword = ref('')
 const isConfirmPasswordVisible = ref(false)
+const isAddAlert = ref(false)
+const usernameForAlert = ref('')
 
 const createUser = () =>{
+  usernameForAlert.value = username.value
   axios.post('/api/users/store', {
     username: username.value,
     phone_number: phone_number.value,
     email: email.value,
-    password: password.value
+    password: password.value,
+    
   }).then(()=>{
     registerDialog.value = false;
+    isAddAlert.value = true;
     username.value = '';
     phone_number.value = '';
     email.value = '';
     password.value = '';
     confirmPassword.value = '';
+    usernameForAlert.value = '';
     usersLoad();
   }).catch((error)=>{
     console.log(error);
@@ -184,6 +190,16 @@ usersLoad()
       </VCardText>
     </VCard>
   </VDialog>
+
+   <!--Snackbar-->
+   <VSnackbar
+      v-model="isAddAlert"
+      location="top end"
+      variant="flat"
+      color="success"
+    >
+      User <strong>{{ usernameForAlert }}</strong> has been successfully registered.
+    </VSnackbar>
 
 </template>
 

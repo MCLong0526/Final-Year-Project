@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -34,6 +35,12 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         $user = User::create($request->validated());
+
+        // Find the role with role_id = 2
+        $role = Role::where('role_id', 2)->firstOrFail();
+
+        // Attach the role to the user
+        $user->roles()->attach($role);
 
         return $this->success(data: $user, message: 'User created successfully');
     }

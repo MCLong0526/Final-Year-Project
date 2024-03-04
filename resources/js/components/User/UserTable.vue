@@ -15,6 +15,7 @@ const props = defineProps({
 
 const clickedUser = ref(null);
 const deleteDialog = ref(false);
+const isDeleteAlert = ref(false)
 
 const onClickDeleteUser = (userSelected) => {
   clickedUser.value = userSelected;
@@ -28,6 +29,7 @@ const deleteUser = () => {
   axios.delete(`/api/users/delete/${clickedUser.value.user_id}`)
     .then(() => {
       deleteDialog.value = false;
+      isDeleteAlert.value = true;
       props.usersLoad();
     })
     .catch((error) => {
@@ -190,5 +192,15 @@ const deleteUser = () => {
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <!--Snackbar-->
+  <VSnackbar
+      v-model="isDeleteAlert"
+      location="top end"
+      variant="flat"
+      color="error"
+    >
+      User <strong>{{ clickedUser.username }}</strong> has been successfully deleted.
+    </VSnackbar>
 </template>
 
