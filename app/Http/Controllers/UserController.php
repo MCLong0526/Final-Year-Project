@@ -34,7 +34,15 @@ class UserController extends Controller
      */
     public function store(UserRequest $request)
     {
-        $user = User::create($request->validated());
+        // Set default avatar path
+        $defaultAvatarPath = 'images/avatars/avatar-1.png';
+
+        $data = $request->validated();
+
+        // Set default avatar path
+        $data['avatar'] = $defaultAvatarPath;
+
+        $user = User::create($data);
 
         // Find the role with role_id = 2
         $role = Role::where('role_id', 2)->firstOrFail();

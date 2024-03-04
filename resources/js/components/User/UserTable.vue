@@ -82,9 +82,17 @@ const deleteUser = () => {
         <td class="text-center">
           {{ item.user_id }}
         </td>
-        <td class="font-weight-medium text-high-emphasis text-center text-truncate">
-          {{ item.username }}
-        </td>
+        <td class="font-weight-medium text-high-emphasis text-center text-truncate" style="display: flex; align-items: center;">
+    <VAvatar size="32"
+             :color="item.avatar ? '' : 'primary'"
+             :class="`${!item.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
+             :variant="!item.avatar ? 'tonal' : undefined"
+             style="margin-inline-end: 8px;">
+        <VImg :src="item.avatar"/>
+    </VAvatar>
+    {{ item.username }}
+</td>
+
         <td class="text-center">
           {{ item.phone_number }}
         </td>
