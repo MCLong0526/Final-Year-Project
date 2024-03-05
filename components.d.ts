@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AppBarSearch: typeof import('./resources/js/@core/components/AppBarSearch.vue')['default']
     AvatarGroup: typeof import('./resources/js/components/AvatarGroup.vue')['default']
     CardStatisticsHorizontal: typeof import('./resources/js/@core/components/cards/CardStatisticsHorizontal.vue')['default']
     CardStatisticsVertical: typeof import('./resources/js/@core/components/cards/CardStatisticsVertical.vue')['default']
@@ -26,6 +27,7 @@ declare module 'vue' {
     ThemeSwitcher: typeof import('./resources/js/@core/components/ThemeSwitcher.vue')['default']
     TimesheetComponent: typeof import('./resources/js/components/TimesheetComponent.vue')['default']
     UpgradeToPro: typeof import('./resources/js/components/UpgradeToPro.vue')['default']
+    UserProfileHeader: typeof import('./resources/js/components/Profile/UserProfileHeader.vue')['default']
     UserTable: typeof import('./resources/js/components/User/UserTable.vue')['default']
   }
 }

@@ -41,6 +41,10 @@ export const routes = [
         path: 'user-management',
         component: () => import('@/pages/user-management.vue'),
       },
+      {
+        path: 'user-profile',
+        component: () => import('@/pages/user-profile.vue'),
+      },
     ],
   },
   {
