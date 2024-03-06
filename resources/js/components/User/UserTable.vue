@@ -1,6 +1,7 @@
 <script setup>
+import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
-import { defineProps } from 'vue';
+import { defineProps, ref } from 'vue';
 
 const props = defineProps({
   users: {
@@ -11,21 +12,42 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  roles: {
+    type: Object,
+    required: true,
+  },
 });
 
 const clickedUser = ref(null);
 const deleteDialog = ref(false);
-const isDeleteAlert = ref(false)
+const isDeleteAlert = ref(false);
+const editDialog = ref(false);
+const isEditAlert = ref(false);
+const deactivatedDialog = ref(false);
 
+const deactivatedButton = (status) => {
+  if (status === 'active') {
+    //change status to inactive
+    clickedUser.value.status = 'inactive';
+    deactivatedDialog.value = true;
+  }
+};
+
+
+// edit and delete button function
 const onClickDeleteUser = (userSelected) => {
   clickedUser.value = userSelected;
   deleteDialog.value = true;
-
 };
 
+const onClickEditUser = (userSelected) => {
+  //use object.assign to prevent table and form data from being linked
+  clickedUser.value = Object.assign({},userSelected);
+  editDialog.value = true;
+};
+
+// called api to delete user
 const deleteUser = () => {
-  
-  //user_id is the primary key of the user table, need to write user_id = clickedUser.user_id
   axios.delete(`/api/users/delete/${clickedUser.value.user_id}`)
     .then(() => {
       deleteDialog.value = false;
@@ -37,6 +59,41 @@ const deleteUser = () => {
     });
 
 };
+
+// called api to edit user
+const editUser = () => {
+  //move out the data of the user roles, because now the roles is in the array proxy
+  clickedUser.value.roles = clickedUser.value.roles.map((role) => role.role_id);
+
+  axios.put(`/api/users/update/${clickedUser.value.user_id}`, {
+    username: clickedUser.value.username,
+    email: clickedUser.value.email,
+    phone_number: clickedUser.value.phone_number,
+    status: clickedUser.value.status,
+    roles: clickedUser.value.roles,
+  })
+    .then(() => {
+      editDialog.value = false;
+      isEditAlert.value = true;
+      props.usersLoad();
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
+// count roles
+const countRoles = (roles) => {
+  return roles.length;
+};
+
+// customize validator
+const emailValidator = (v) => {
+  const regex = /^[0-9]{5}@siswa\.unimas\.my$/;
+  return regex.test(v) || 'Email format is invalid';
+};
+
+const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be valid';
 
 </script>
 
@@ -65,6 +122,10 @@ const deleteUser = () => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-shield-check-line" />
+          Roles
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-shield-check-line" />
           Status
         </th>
         <th class="text-uppercase text-center">
@@ -83,21 +144,31 @@ const deleteUser = () => {
           {{ item.user_id }}
         </td>
         <td class="font-weight-medium text-high-emphasis text-center text-truncate" style="display: flex; align-items: center;">
-    <VAvatar size="32"
-             :color="item.avatar ? '' : 'primary'"
-             :class="`${!item.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
-             :variant="!item.avatar ? 'tonal' : undefined"
-             style="margin-inline-end: 8px;">
-        <VImg :src="item.avatar"/>
-    </VAvatar>
-    {{ item.username }}
-</td>
+        <VAvatar size="32"
+                :color="item.avatar ? '' : 'primary'"
+                :class="`${!item.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
+                :variant="!item.avatar ? 'tonal' : undefined"
+                style="margin-inline-end: 8px;">
+            <VImg :src="item.avatar"/>
+        </VAvatar>
+        {{ item.username }}
+      </td>
 
         <td class="text-center">
           {{ item.phone_number }}
         </td>
         <td class="text-center">
           {{ item.email }}
+        </td>
+        <td class="text-center">
+          <VBadge
+            :content="countRoles(item.roles)"
+            inline
+          >
+            <VAvatar size="30">
+              <VIcon icon="ri-user-star-line" />
+            </VAvatar>
+        </VBadge>
         </td>
         <td class="text-center">
           <VChip
@@ -126,9 +197,9 @@ const deleteUser = () => {
         <td class="text-center">
           <VBtn
             color="info"
-           
             style="margin-inline: 15px 3px"
             size="small"
+            @click="onClickEditUser(item)"
           >
             <VIcon
               icon="ri-pencil-line"
@@ -201,14 +272,254 @@ const deleteUser = () => {
     </VCard>
   </VDialog>
 
+  <!--Edit User-->
+  <VDialog
+    v-model="editDialog"
+    max-width="600"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Edit User Information">
+
+      <VCardText>
+        <VForm 
+        ref="refForm" 
+        @submit.prevent>
+        <VRow>
+          <!-- 👉 First Name -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Username</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="clickedUser.username"
+                  prepend-inner-icon="ri-user-line"
+            
+                  placeholder="John"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+           <!-- 👉 Status -->
+           <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="status">Status</label>
+              </VCol>
+              <VBtn
+                v-if="clickedUser.status === 'active'"
+                color="success"
+                variant="tonal"
+                rounded="pill"
+                @click="deactivatedButton(clickedUser.status)"
+              >
+                Active
+                <VIcon
+                  icon="ri-checkbox-circle-line"
+                  style="margin-inline-start: 5px;"
+                />
+                <VTooltip
+                  activator="parent"
+                  open-delay="500"
+                  location="end"
+                >
+                  Click to deactivate account
+                </VTooltip>
+              </VBtn>
+              <VBtn
+                v-else
+                color="error"
+                variant="tonal"
+                rounded="pill"
+                @click="clickedUser.status = 'active'"
+              >
+                Inactive
+                <VIcon
+                  icon="ri-close-circle-line"
+                  style="margin-inline-start: 5px;"
+                />
+                <VTooltip
+                  activator="parent"
+                  open-delay="500"
+                  location="end"
+                >
+                  Click to reactivate account
+                </VTooltip>
+              </VBtn>
+            </VRow>
+          </VCol>
+
+          <!-- 👉 Email -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="emailHorizontalIcons">Email</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="clickedUser.email"
+                  prepend-inner-icon="ri-mail-line"
+            
+                  type="email"
+                  placeholder="12345@siswa.unimas.my"
+                  :rules="[requiredValidator, emailValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!-- 👉 Mobile -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="mobileHorizontalIcons">Mobile</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                  <VTextField
+                    v-model="clickedUser.phone_number"
+                    prepend-inner-icon="ri-smartphone-line"
+             
+                    placeholder="0123456789"
+                    :rules="[requiredValidator, phoneValidator]"
+                  />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!-- 👉 Role -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="rolesIcons">Role</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+              <VCombobox
+                v-model="clickedUser.roles"
+                multiple
+                chips
+                :items="roles"
+                item-title="name"
+            
+                placeholder="Select role"
+                return-object
+                label="Roles"
+                clearable
+              />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!-- 👉 submit and reset button -->
+          <VCol
+            offset-md="3"
+            cols="12"
+            md="9"
+            class="d-flex gap-4"
+          >
+          <VBtn
+              type="submit"
+              @click="$refs.refForm.validate().then(() => editUser())"
+            >
+              Edit
+            </VBtn>
+            <VBtn
+              color="secondary"
+              type="reset"
+              variant="tonal"
+            >
+              Reset
+            </VBtn>
+          </VCol>
+        </VRow>
+      </VForm>
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+  <!--Deactivate Dialog-->
+  <VDialog
+    v-model="deactivatedDialog"
+    persistent
+    class="v-dialog-sm"
+  >
+
+    <!-- Dialog Content -->
+    <VCard title="Account Status">
+
+      <VCardText>
+        <VAlert
+          color="error"
+          icon="ri-alert-line"
+          variant="tonal"
+        >
+          This account have been deactivated.
+        </VAlert>
+      </VCardText>
+
+      <VCardActions>
+        <VSpacer />
+        
+        <VBtn 
+          color="error"
+          @click="deactivatedDialog = false"
+        >
+          I accept
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
   <!--Snackbar-->
-  <VSnackbar
+    <VSnackbar
       v-model="isDeleteAlert"
       location="top end"
       variant="flat"
       color="error"
     >
       User <strong>{{ clickedUser.username }}</strong> has been successfully deleted.
+    </VSnackbar>
+
+    <VSnackbar
+      v-model="isEditAlert"
+      location="top end"
+      variant="flat"
+      color="info"
+    >
+      User <strong>{{ clickedUser.username }}</strong> information has been successfully edited.
     </VSnackbar>
 </template>
 

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserRequest;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -14,8 +13,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        //get all the user data
-        $users = User::get();
+        //get all the user data, and the roles associated with the user
+        $users = User::with('roles')->get();
 
         return $this->success(data: $users, message: 'Users retrieved successfully');
         //return response()->json(['message' => 'Users retrieved successfully', 'data' => $users]);
@@ -72,9 +71,20 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UserRequest $request, string $id)
     {
-        //
+        $data = $request->validated();
+
+        $user = User::findOrFail($id);
+        $user->update($data);
+
+        // Check if 'roles' data is present in the request and if it's an array
+        if (isset($data['roles']) || is_array($data['roles'])) {
+
+            $user->roles()->sync($data['roles']);
+        }
+
+        return $this->success(data: $user, message: 'User updated successfully');
     }
 
     /**

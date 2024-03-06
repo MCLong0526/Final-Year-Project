@@ -7,11 +7,21 @@ import { VForm } from 'vuetify/components/VForm';
 const refForm = ref()
 
 const users = ref([]);
+const roles = ref([]);
 
 const usersLoad = () =>{
   axios.get('/api/users').then(({data})=>{
     users.value = data.data;
     //console.log(users.value);
+  }).catch((error)=>{
+    console.log(error);
+  })
+}
+
+const rolesLoad = () =>{
+  axios.get('/api/roles').then(({data})=>{
+    roles.value = data.data;
+    //console.log(roles.value);
   }).catch((error)=>{
     console.log(error);
   })
@@ -52,8 +62,7 @@ const createUser = () =>{
   })
 }
 
-//const requiredValidator = (v) => !!v || 'Field is required'
-
+// customize validator
 const emailValidator = (v) => {
   const regex = /^[0-9]{5}@siswa\.unimas\.my$/;
   return regex.test(v) || 'Email format is invalid';
@@ -62,6 +71,7 @@ const emailValidator = (v) => {
 const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be valid';
 
 usersLoad()
+rolesLoad()
 </script>
 
 <template>
@@ -79,6 +89,7 @@ usersLoad()
   <TableUser
     :users="users"
     :usersLoad="usersLoad"
+    :roles="roles"
   />
 </div>
 
@@ -86,107 +97,196 @@ usersLoad()
     v-model="registerDialog"
     max-width="600"
   >
-
     <!-- Dialog Content -->
-    <VCard title="User Profile">
+    <VCard title="Register New User">
 
       <VCardText>
         <VForm 
         ref="refForm" 
         @submit.prevent>
-    <VRow>
-      <VCol cols="12">
-        <VTextField
-          v-model="username"
-          prepend-inner-icon="ri-user-line"
-          label="Username"
-          placeholder="John"
-          :rules="[requiredValidator]"
-        />
-      </VCol>
 
-      <VCol cols="12">
-        <VTextField
-          v-model="email"
-          prepend-inner-icon="ri-mail-line"
-          label="Email"
-          type="email"
-          placeholder="12345@siswa.unimas.my"
-          :rules="[requiredValidator, emailValidator]"
-        />
-      </VCol>
+        <VRow>
+          <!-- 👉 First Name -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Username</label>
+              </VCol>
 
-      <VCol cols="12">
-        <VTextField
-          v-model="phone_number"
-          prepend-inner-icon="ri-smartphone-line"
-          label="Mobile"
-          placeholder="0123456789"
-          :rules="[requiredValidator, phoneValidator]"
-        />
-      </VCol>
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="username"
+                  prepend-inner-icon="ri-user-line"
+            
+                  placeholder="John"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
 
-      <VCol cols="12">
-        <VTextField
-          v-model="password"
-          prepend-inner-icon="ri-lock-line"
-          label="Password"
-          autocomplete="on"
-          :type="isPasswordVisible ? 'text' : 'password'"
-          :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
-          placeholder="············"
-          :rules="[requiredValidator, passwordValidator]"
-          hint="Your password must be 8-20 characters long."
-          @click:append-inner="isPasswordVisible = !isPasswordVisible"
-        />
-      </VCol>
-      <VCol cols="12">
-        <VTextField
-          v-model="confirmPassword"
-          prepend-inner-icon="ri-lock-fill"
-          label="Confirm Password"
-          :type="isConfirmPasswordVisible ? 'text' : 'password'"
-          placeholder="Confirm Password"
-          :append-inner-icon="confirmPassword ? 'ri-eye-off-line' : 'ri-eye-line'"
-          :rules="[requiredValidator, passwordValidator, confirmedValidator(confirmPassword, password)]"
-          autocomplete="on"
-          @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
-        />
-      </VCol>
+           <!-- 👉 Status -->
+           <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="status">Status</label>
+              </VCol>
+              <VChip
+                color="success"
+                prepend-icon="ri-checkbox-circle-line"
+                style="cursor: not-allowed;"
+              >
+                Active
+              </VChip>
+            </VRow>
+          </VCol>
 
-      <VCol cols="12" sm="4">
-        <VBtn
-          color="error"
-          @click="registerDialog=false"
+          <!-- 👉 Email -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="emailHorizontalIcons">Email</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="email"
+                  prepend-inner-icon="ri-mail-line"
+            
+                  type="email"
+                  placeholder="12345@siswa.unimas.my"
+                  :rules="[requiredValidator, emailValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!-- 👉 Mobile -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="mobileHorizontalIcons">Mobile</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                  <VTextField
+                    v-model="phone_number"
+                    prepend-inner-icon="ri-smartphone-line"
+             
+                    placeholder="0123456789"
+                    :rules="[requiredValidator, phoneValidator]"
+                  />
+              </VCol>
+            </VRow>
+          </VCol>
+
+         
+
+          <!-- 👉 Password -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="passwordHorizontalIcons">Password</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                  <VTextField
+                    v-model="password"
+                    prepend-inner-icon="ri-lock-line"
+
+                    autocomplete="on"
+                    :type="isPasswordVisible ? 'text' : 'password'"
+                    :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
+                    placeholder="············"
+                    :rules="[requiredValidator, passwordValidator]"
+                    hint="Your password must be 8-20 characters long."
+                    @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!-- 👉 Password -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="passwordHorizontalIcons">Confirm Password</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="confirmPassword"
+                  prepend-inner-icon="ri-lock-fill"
+         
+                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
+                  placeholder="············"
+                  :append-inner-icon="confirmPassword ? 'ri-eye-off-line' : 'ri-eye-line'"
+                  :rules="[requiredValidator, passwordValidator, confirmedValidator(confirmPassword, password)]"
+                  autocomplete="on"
+                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
           
-        >
-         Close
-        </VBtn>
-      </VCol>
-    
-        <VCol cols="12" sm="4">
-        <VBtn
-          color="secondary"
-          type="reset"
-          variant="tonal"
-          style="margin-inline-start: 44px;"
-        >
-          Reset
-        </VBtn>
-      </VCol>
-        <VCol cols="12" sm="4">
+
+          <!-- 👉 submit and reset button -->
+          <VCol
+            offset-md="3"
+            cols="12"
+            md="9"
+            class="d-flex gap-4"
+          >
           <VBtn
-          type="submit"
-          class="me-4"
-          @click="$refs.refForm.validate().then(() => createUser())"
-          style="margin-inline-start: 85px;"
-        >
-          Submit
-        </VBtn>
-        
-      </VCol>
-    </VRow>
-  </VForm>
+              type="submit"
+              @click="$refs.refForm.validate().then(() => createUser())"
+            >
+              Submit
+            </VBtn>
+            <VBtn
+              color="secondary"
+              type="reset"
+              variant="tonal"
+            >
+              Reset
+            </VBtn>
+          </VCol>
+        </VRow>
+      </VForm>
       </VCardText>
     </VCard>
   </VDialog>
