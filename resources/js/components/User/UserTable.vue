@@ -121,7 +121,7 @@ const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be 
           Email
         </th>
         <th class="text-uppercase text-center">
-          <VIcon icon="ri-shield-check-line" />
+          <VIcon icon="ri-user-star-line" />
           Roles
         </th>
         <th class="text-uppercase text-center">

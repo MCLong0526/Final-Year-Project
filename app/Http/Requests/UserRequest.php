@@ -36,7 +36,7 @@ class UserRequest extends FormRequest
                 'password' => 'required|string|min:8',
                 'phone_number' => 'required|string',
                 'status' => 'required|string',
-                'roles' => 'required|array',
+
             ];
         }
     }

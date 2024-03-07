@@ -13,11 +13,28 @@ class UserController extends Controller
      */
     public function index()
     {
-        //get all the user data, and the roles associated with the user
-        $users = User::with('roles')->get();
+        $userPerPage = request()->input('per_page', 10);
+
+        $users = User::with('roles')
+            ->when(request()->filled('search'), function ($query) {
+                $query->where('username', 'like', '%'.request('search').'%')
+                    ->orWhere('email', 'like', '%'.request('search').'%');
+            })
+            //filter the users by role id
+            ->when(request()->filled('role'), function ($query) {
+                $query->whereHas('roles', function ($query) {
+                    $query->whereIn('role_user.role_id', explode(',', request('role')));
+                });
+            })
+            //filter the users by status, use explode to convert the comma separated string to an array
+            ->when(request()->filled('status'), function ($query) {
+                $query->whereIn('status', explode(',', request('status')));
+            })
+
+            ->paginate($userPerPage);
 
         return $this->success(data: $users, message: 'Users retrieved successfully');
-        //return response()->json(['message' => 'Users retrieved successfully', 'data' => $users]);
+
     }
 
     /**
@@ -43,11 +60,8 @@ class UserController extends Controller
 
         $user = User::create($data);
 
-        // Find the role with role_id = 2
-        $role = Role::where('role_id', 2)->firstOrFail();
-
-        // Attach the role to the user
-        $user->roles()->attach($role);
+        // attach role_id = 2 to the user
+        $user->roles()->attach(Role::where('role_id', 2)->first());
 
         return $this->success(data: $user, message: 'User created successfully');
     }

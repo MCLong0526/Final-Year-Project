@@ -2,31 +2,13 @@
 import { confirmedValidator, passwordValidator, requiredValidator } from '@/@core/utils/validators';
 import TableUser from '@/components/User/UserTable.vue';
 import axios from 'axios';
+import { debounce } from 'lodash';
 import { ref } from 'vue';
 import { VForm } from 'vuetify/components/VForm';
-const refForm = ref()
 
+const refForm = ref()
 const users = ref([]);
 const roles = ref([]);
-
-const usersLoad = () =>{
-  axios.get('/api/users').then(({data})=>{
-    users.value = data.data;
-    //console.log(users.value);
-  }).catch((error)=>{
-    console.log(error);
-  })
-}
-
-const rolesLoad = () =>{
-  axios.get('/api/roles').then(({data})=>{
-    roles.value = data.data;
-    //console.log(roles.value);
-  }).catch((error)=>{
-    console.log(error);
-  })
-}
-
 //create user
 const registerDialog = ref(false)
 const username = ref('')
@@ -38,14 +20,60 @@ const confirmPassword = ref('')
 const isConfirmPasswordVisible = ref(false)
 const isAddAlert = ref(false)
 const usernameForAlert = ref('')
+const rowPerPage = ref(5)
+const currentPage = ref(1)
+const totalPages = ref(0)
+const searchValue = ref('')
+const roleSearch = ref([])
+const statusSearch = ref([])
+const statusValues = [
+  { name: 'Active', value: 'active' },
+  { name: 'Inactive', value: 'inactive' },
+]
+
+const usersLoad = debounce(() =>{
+ 
+  //get the user using the rowPerPage, don direct get all users
+  let requestURL='/api/users?per_page='+rowPerPage.value+'&page='+currentPage.value;
+  if(searchValue.value && searchValue.value.length > 2){
+    requestURL += '&search='+searchValue.value;
+  }
+  if(roleSearch.value && roleSearch.value.length > 0){
+    requestURL += '&role='+roleSearch.value.map((role) => role.role_id).join(',');
+  }
+  if(statusSearch.value.value){
+    //only get the value of the statusSearch and it is an array
+    requestURL += '&status='+statusSearch.value.value;
+  }
+  axios.get(requestURL).then(({data})=>{
+    totalPages.value = Math.ceil(data.data.total / rowPerPage.value);
+    users.value = data.data.data;
+    
+    //console.log(users.value);
+  }).catch((error)=>{
+    console.log(error);
+  })
+}, 800)
+
+
+const rolesLoad = () =>{
+  axios.get('/api/roles').then(({data})=>{
+    roles.value = data.data;
+    //console.log(roles.value);
+  }).catch((error)=>{
+    console.log(error);
+  })
+}
 
 const createUser = () =>{
   usernameForAlert.value = username.value
+  
   axios.post('/api/users/store', {
     username: username.value,
     phone_number: phone_number.value,
     email: email.value,
     password: password.value,
+    status: 'active',
     
   }).then(()=>{
     registerDialog.value = false;
@@ -62,6 +90,26 @@ const createUser = () =>{
   })
 }
 
+// watch the changes of the rowPerPage and currentPage
+watch([rowPerPage, currentPage], ([newRowPerPage, newCurrentPage]) => {
+  usersLoad()
+})
+
+// watch the changes of the searchValue
+watch(searchValue, (newSearchValue) => {
+  usersLoad()
+})
+
+// watch the changes of the roleSearch
+watch(roleSearch, (newRoleSearch) => {
+  usersLoad()
+})
+
+// watch the changes of the statusSearch
+watch(statusSearch, (newStatusSearch) => {
+  usersLoad()
+})
+
 // customize validator
 const emailValidator = (v) => {
   const regex = /^[0-9]{5}@siswa\.unimas\.my$/;
@@ -75,22 +123,94 @@ rolesLoad()
 </script>
 
 <template>
-  
-  <div class="mb-5">
-  <VBtn @click="registerDialog=true">
-      Register User
-      <VIcon
-        end
-        icon="ri-registered-line"
+
+<VRow>
+    <VCol cols="12" md="4">
+      <VCombobox
+        v-model="roleSearch"
+        multiple
+        chips
+        :items="roles"
+        prepend-inner-icon="ri-user-star-line"
+        item-title="name"
+        placeholder="Select role"
+        return-object
+        label="Roles"
+        clearable
       />
-    </VBtn>
-</div>
+    </VCol>
+    <VCol cols="12" md="4">
+      <VCombobox
+        v-model="statusSearch"
+        :items="statusValues"
+        prepend-inner-icon="ri-shield-check-line"
+        item-title="name"
+        placeholder="Select Status"
+        return-object
+        label="Status"
+        clearable
+        @click:clear="statusSearch = []"
+  
+      />
+    </VCol>
+  </VRow>
+  
+  <VRow>
+    <VCol cols="12" md="3">
+      <div class="mb-5">
+        <VBtn @click="registerDialog=true">
+          Register User
+          <v-icon
+            end
+            icon="ri-registered-line"
+          />
+        </VBtn>
+      </div>
+    </VCol>
+    <VCol cols="12" md="3"/>
+    <VCol cols="12" md="3"/>
+    <VCol cols="12" md="3">
+      <VTextField
+        v-model="searchValue"
+        placeholder="Search"
+        label="Search username or email"
+        clearable
+        dense
+      />
+    </VCol>
+  </VRow>
+
+
 <div class="table-style">
   <TableUser
     :users="users"
     :usersLoad="usersLoad"
     :roles="roles"
   />
+  <VCardText style="background-color: white;">
+    
+    <VRow>
+      <VCol cols="12" md="2">
+        <VCombobox
+          v-model="rowPerPage"
+          :items="[5, 10, 15, 20]"
+          label="Rows per page"
+          dense
+        />
+      </VCol>
+      <VCol cols="12" md="6"/>
+        
+      <VCol cols="12" md="4">
+        <VPagination
+          v-model="currentPage"
+          variant="outlined"
+          :length="totalPages"
+          rounded="circle"
+        />
+      </VCol>
+    </VRow>
+    
+  </VCardText>
 </div>
 
 <VDialog
