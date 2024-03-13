@@ -1,5 +1,5 @@
 export const routes = [
-  { path: '/', redirect: '/test' },
+  { path: '/', redirect: '/login' },
   {
     path: '/',
     component: () => import('@/layouts/default.vue'),
@@ -45,6 +45,7 @@ export const routes = [
         path: 'user-profile',
         component: () => import('@/pages/user-profile.vue'),
       },
+  
     ],
   },
   {

@@ -27,6 +27,13 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
       to: '/user-management',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'Login',
+      icon: 'ri-login-box-line',
+      to: '/login',
+    }"
+  />
 
   
 

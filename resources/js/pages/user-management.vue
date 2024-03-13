@@ -187,7 +187,8 @@ rolesLoad()
     :usersLoad="usersLoad"
     :roles="roles"
   />
-  <VCardText style="background-color: white;">
+
+  <VCardText style="background-color: white">
     
     <VRow>
       <VCol cols="12" md="2">
