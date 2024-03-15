@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 /*
 Route::middleware('auth:sanctum')->group(function () {
 
+
 });*/
 
 Route::controller(UserController::class)->prefix('users')->group(function () {
@@ -25,6 +26,7 @@ Route::controller(UserController::class)->prefix('users')->group(function () {
     Route::post('/store', 'store');
     Route::delete('/delete/{user_id}', 'destroy');
     Route::put('/update/{user_id}', 'update');
+
 });
 
 Route::controller(RoleController::class)->prefix('roles')->group(function () {
@@ -33,7 +35,10 @@ Route::controller(RoleController::class)->prefix('roles')->group(function () {
 });
 
 Route::controller(AuthController::class)->prefix('auth')->group(function () {
-    Route::post('/authenticate', 'authenticate');
     Route::post('/logout', 'logout');
-
+    Route::get('/get-user', 'getCurrentLoggedUser');
+    Route::post('/save-token', 'saveToken');
+    Route::post('/authenticate', 'authenticate');
+    Route::post('/save-token', 'saveToken');
+    Route::get('/get-user-by-token', 'getUserByToken');
 });

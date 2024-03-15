@@ -1,11 +1,14 @@
 <script setup>
 import { passwordValidator, requiredValidator } from '@/@core/utils/validators';
 import { useAuthStore } from '@/plugins/store/AuthStore';
-import logo from '@images/logos/UnimasLogo.png';
+import logo from '@images/logos/LOGO1.png';
+import { ref } from 'vue';
 import { useTheme } from 'vuetify';
 import { VForm } from 'vuetify/components/VForm';
 
 const authStore = useAuthStore()
+
+const {user } = useAuthStore()
 
 const email = ref('')
 const password = ref('')
@@ -21,11 +24,12 @@ const authThemeMask = computed(() => {
 const login = async () => {
  await authStore.login(email.value, password.value)
  if (authStore.isLoggedIn==true) {
+    await authStore.getCurrentLoggedUser()
     router.replace(route.query.to ? String(route.query.to) : '/test')
-  }
-  
-}
 
+
+  }
+}
 
 // customize validator
 const emailValidator = (v) => {
@@ -34,6 +38,7 @@ const emailValidator = (v) => {
 };
 
 const isPasswordVisible = ref(false)
+
 </script>
 
 <template>

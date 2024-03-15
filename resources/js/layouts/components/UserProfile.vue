@@ -1,19 +1,62 @@
 <script setup>
 import { useAuthStore } from '@/plugins/store/AuthStore';
-import avatar1 from '@images/avatars/avatar-1.png';
+import axios from 'axios';
 import { useRouter } from 'vue-router';
-
-const authStore = useAuthStore();
+import avatar1 from '/resources/images/avatars/avatar-1.png';
+ 
 const router = useRouter();
+const authStore = useAuthStore();
+
+const user = ref([]);
+const hasError = ref(false);
 
 const logout = () => {
   authStore.logout();
+  //remove all the auth data from local storage
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  //redirect to login page
   router.push('/login');
 };
+
+// get the authenticated user
+const getUser = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Token not found');
+    }
+
+    const response = await axios.get('/api/auth/get-user-by-token', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    user.value = response.data.user;
+  } catch (error) {
+    hasError.value = true;
+
+    
+    await getUser2();
+    console.error(error);
+  }
+};
+
+const getUser2 = () => {
+  if(hasError.value==true){
+    window.location.reload();
+  }
+}
+getUser();
+
+
 </script>
 
 <template>
   <VBadge
+    
     dot
     location="bottom right"
     offset-x="3"
@@ -26,12 +69,12 @@ const logout = () => {
       color="primary"
       variant="tonal"
     >
-      <VImg :src="avatar1" />
+      <VImg :src="user.avatar ?? avatar1" />
 
       <!-- SECTION Menu -->
       <VMenu
         activator="parent"
-        width="230"
+        width="240"
         location="bottom end"
         offset="14px"
       >
@@ -41,6 +84,7 @@ const logout = () => {
             <template #prepend>
               <VListItemAction start>
                 <VBadge
+                  v-if="user.status === 'active'"
                   dot
                   location="bottom right"
                   offset-x="3"
@@ -51,16 +95,34 @@ const logout = () => {
                     color="primary"
                     variant="tonal"
                   >
-                    <VImg :src="avatar1" />
+                    <VImg :src="user.avatar" />
+                  </VAvatar>
+                </VBadge>
+                <VBadge
+                  v-else
+                  dot
+                  location="bottom right"
+                  offset-x="3"
+                  offset-y="3"
+                  color="error"
+                >
+                  <VAvatar
+                    color="primary"
+                    variant="tonal"
+                  >
+                    <VImg :src="user.avatar" />
                   </VAvatar>
                 </VBadge>
               </VListItemAction>
             </template>
 
             <VListItemTitle class="font-weight-semibold">
-              John Doe
+              {{ user.username }}
             </VListItemTitle>
-            <VListItemSubtitle>Admin</VListItemSubtitle>
+            <VListItemSubtitle>
+              <span class="text-small">{{ user.email }}</span>
+    
+            </VListItemSubtitle>
           </VListItem>
           <VDivider class="my-2" />
 

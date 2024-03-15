@@ -1,10 +1,11 @@
 <script setup>
-import Footer from '@/layouts/components/Footer.vue'
-import NavItems from '@/layouts/components/NavItems.vue'
-import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
-import UserProfile from '@/layouts/components/UserProfile.vue'
-import logo from '@images/logo.svg?raw'
-import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
+import Footer from '@/layouts/components/Footer.vue';
+import NavItems from '@/layouts/components/NavItems.vue';
+import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue';
+import UserProfile from '@/layouts/components/UserProfile.vue';
+import UnimasLogo from '@images/logos/LOGO1.png';
+import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
+
 </script>
 
 <template>
@@ -44,7 +45,9 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 
         <NavbarThemeSwitcher class="me-2" />
 
+
         <UserProfile />
+
       </div>
     </template>
 
@@ -53,12 +56,13 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
         to="/"
         class="app-logo app-title-wrapper"
       >
-        <div
-          class="d-flex"
-          v-html="logo"
-        />
+        <img
+          class="app-logo-img"
+          :src="UnimasLogo"
+          alt="Unimas Logo"
+          height="70"
         
-
+        />
 
         <h1 class="font-weight-medium leading-normal text-xl text-uppercase">
           UNIMAS
