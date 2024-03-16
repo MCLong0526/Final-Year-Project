@@ -1,6 +1,11 @@
 <script setup>
 
+import { useAuthStore } from '@/plugins/store/AuthStore';
 import DefaultLayoutWithVerticalNav from './components/DefaultLayoutWithVerticalNav.vue';
+
+const authStore = useAuthStore()
+
+authStore.getCurrentLoggedUser()
 </script>
 
 <template>

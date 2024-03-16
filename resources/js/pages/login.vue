@@ -1,7 +1,7 @@
 <script setup>
 import { passwordValidator, requiredValidator } from '@/@core/utils/validators';
 import { useAuthStore } from '@/plugins/store/AuthStore';
-import logo from '@images/logos/LOGO1.png';
+import logo from '@images/logos/logoUni.png';
 import { ref } from 'vue';
 import { useTheme } from 'vuetify';
 import { VForm } from 'vuetify/components/VForm';
@@ -23,10 +23,10 @@ const authThemeMask = computed(() => {
 
 const login = async () => {
  await authStore.login(email.value, password.value)
+
  if (authStore.isLoggedIn==true) {
     await authStore.getCurrentLoggedUser()
     router.replace(route.query.to ? String(route.query.to) : '/test')
-
 
   }
 }
@@ -55,7 +55,8 @@ const isPasswordVisible = ref(false)
               :src="logo"
               alt="Materio"
               class="mr-2"
-              height="100"
+              height="160"
+              width="200"
             />
             
           </div>

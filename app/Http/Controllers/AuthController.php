@@ -74,21 +74,14 @@ class AuthController extends Controller
         $credentials = $loginRequest->validated();
 
         if (Auth::attempt($credentials)) {
+            $loginRequest->session()->regenerate();
 
             $user = User::with('roles')->find(Auth::id());
             $token = hash('sha256', Str::random(80));
 
-            // Save the token in the user's record (if you need to store it in the database)
-            //check if the user has a token
-            if ($user->api_token) {
-                //update the token
-                $user->api_token = $token;
-                $user->save();
-            } else {
-                //create a new token
-                $user->api_token = $token;
-                $user->save();
-            }
+            //create a new token
+            $user->api_token = $token;
+            $user->save();
 
             return response()->json([
                 'user' => $user,
@@ -125,14 +118,5 @@ class AuthController extends Controller
         }
 
         return response()->json(['user' => $user]);
-    }
-
-    public function saveToken(Request $request)
-    {
-        $user = Auth::user();
-        $user->api_token = $request->token;
-        $user->save();
-
-        return response()->json(['message' => 'Token saved successfully']);
     }
 }

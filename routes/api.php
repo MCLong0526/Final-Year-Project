@@ -15,30 +15,26 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-/*
+
 Route::middleware('auth:sanctum')->group(function () {
+    Route::controller(UserController::class)->prefix('users')->group(function () {
+        Route::get('/', 'index');
+        Route::post('/store', 'store');
+        Route::delete('/delete/{user_id}', 'destroy');
+        Route::put('/update/{user_id}', 'update');
 
+    });
 
-});*/
+    Route::controller(RoleController::class)->prefix('roles')->group(function () {
+        Route::get('/', 'index');
 
-Route::controller(UserController::class)->prefix('users')->group(function () {
-    Route::get('/', 'index');
-    Route::post('/store', 'store');
-    Route::delete('/delete/{user_id}', 'destroy');
-    Route::put('/update/{user_id}', 'update');
-
-});
-
-Route::controller(RoleController::class)->prefix('roles')->group(function () {
-    Route::get('/', 'index');
+    });
 
 });
 
 Route::controller(AuthController::class)->prefix('auth')->group(function () {
-    Route::post('/logout', 'logout');
-    Route::get('/get-user', 'getCurrentLoggedUser');
-    Route::post('/save-token', 'saveToken');
     Route::post('/authenticate', 'authenticate');
-    Route::post('/save-token', 'saveToken');
+    Route::get('/get-user', 'getCurrentLoggedUser');
     Route::get('/get-user-by-token', 'getUserByToken');
+    Route::post('/logout', 'logout');
 });

@@ -1,9 +1,8 @@
 <script setup>
-import Footer from '@/layouts/components/Footer.vue';
 import NavItems from '@/layouts/components/NavItems.vue';
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue';
 import UserProfile from '@/layouts/components/UserProfile.vue';
-import UnimasLogo from '@images/logos/LOGO1.png';
+import UnimasLogo from '@images/logos/logoUni.png';
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
 </script>
@@ -84,10 +83,7 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
     <!-- 👉 Pages -->
     <slot />
 
-    <!-- 👉 Footer -->
-    <template #footer>
-      <Footer />
-    </template>
+    
   </VerticalNavLayout>
 </template>
 

@@ -15,7 +15,7 @@ export const useAuthStore = defineStore('user', () => {
 
   });
 
-  const roles = computed(() => user.value.roles);
+  const deviceToken = ref(null)
   const isLoggedIn = ref(false);
 
   function $reset() {
@@ -30,11 +30,13 @@ export const useAuthStore = defineStore('user', () => {
       status:null,
     };
     isLoggedIn.value = false;
+    deviceToken.value = null;
   }
 
 
   async function login(email, password) {
     try {
+
       const response = await axios.post('/api/auth/authenticate', { email, password });
       const userData = response.data;
   
@@ -55,24 +57,10 @@ export const useAuthStore = defineStore('user', () => {
       localStorage.setItem('token', userData.token);
 
       isLoggedIn.value = true;
+
+  
   
       return [userData, null];
-    } catch (error) {
-      return [null, error];
-    }
-  }
-  
-
-  //save token to user table
-  async function saveToken(token) {
-    try {
-      const response = await axios.post('/api/auth/save-token', { token });
-      
-      if (response.status === 200) {
-        return [response.data, null];
-      } else {
-        throw new Error('Failed to save token');
-      }
     } catch (error) {
       return [null, error];
     }
@@ -85,7 +73,6 @@ export const useAuthStore = defineStore('user', () => {
     // Remove the old token from localStorage
       localStorage.removeItem('token');
       isLoggedIn.value = false;
-      localStorage.removeItem('user');
       //resetAllStoreState()
       $reset()
     } 
@@ -95,13 +82,14 @@ export const useAuthStore = defineStore('user', () => {
   }
 
   async function getCurrentLoggedUser() {
+    
     try {
       if(isLoggedIn.value === false){
         const response = await axios.get('/api/auth/get-user')
         user.value = response.data.data
         isLoggedIn.value = true
-        
       }
+      
     } 
     catch(error) {
       console.error(error)
@@ -110,5 +98,5 @@ export const useAuthStore = defineStore('user', () => {
 
 
 
-  return { user, roles, $reset, login, isLoggedIn, logout, getCurrentLoggedUser};
+  return { user,deviceToken, $reset, login, isLoggedIn, logout, getCurrentLoggedUser};
 });
