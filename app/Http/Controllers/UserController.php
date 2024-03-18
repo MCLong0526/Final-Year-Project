@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserProfileRequest;
 use App\Http\Requests\UserRequest;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -83,9 +85,55 @@ class UserController extends Controller
         //
     }
 
+    public function editPassword(Request $request)
+    {
+        $data = $request->validate([
+            'password' => 'required|string|min:8',
+        ]);
+
+        $user = User::findOrFail(Auth::id());
+        $user->update(['password' => bcrypt($data['password'])]);
+
+        return $this->success(data: $user, message: 'User password updated successfully');
+    }
+
+    // Update the user profile picture
+    public function updateAvatar(Request $request, string $id)
+    {
+        $user = User::findOrFail($id);
+        // Check if the request contains a file named 'avatar'
+        if ($request->hasFile('avatar')) {
+
+            $avatar = $request->file('avatar');
+
+            // Store the uploaded file in the 'public/images/avatars' directory
+            $avatarPath = $avatar->store('images/avatars', 'public');
+
+            // Update the user's avatar path in the database
+            $user->update(['avatar' => $avatarPath]);
+
+            return $this->success(data: $user, message: 'User profile picture updated successfully');
+        }
+
+        return $this->error(message: 'Avatar file not found in the request');
+    }
+
+    // user can edit their details
+    public function editProfile(UserProfileRequest $request, string $id)
+    {
+        $data = $request->validated();
+
+        $user = User::findOrFail($id);
+        $user->update($data);
+
+        return $this->success(data: $user, message: 'User profile updated successfully');
+    }
+
     /**
      * Update the specified resource in storage.
      */
+
+    // Admin can update user details and roles
     public function update(UserRequest $request, string $id)
     {
         $data = $request->validated();

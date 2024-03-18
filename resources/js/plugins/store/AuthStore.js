@@ -50,9 +50,7 @@ export const useAuthStore = defineStore('user', () => {
         status: userData.user.status,
         token: userData.token,
       };
-      // Remove the old token from localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+
       // Save the new token to localStorage
       localStorage.setItem('token', userData.token);
 
@@ -70,8 +68,6 @@ export const useAuthStore = defineStore('user', () => {
   async function logout() {
     try {
       await axios.post('/api/auth/logout')
-    // Remove the old token from localStorage
-      localStorage.removeItem('token');
       isLoggedIn.value = false;
       //resetAllStoreState()
       $reset()

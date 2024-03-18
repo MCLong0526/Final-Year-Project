@@ -22,6 +22,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/store', 'store');
         Route::delete('/delete/{user_id}', 'destroy');
         Route::put('/update/{user_id}', 'update');
+        Route::put('/update-profile/{user_id}', 'editProfile');
+        Route::put('/update-password', 'editPassword');
 
     });
 
@@ -30,11 +32,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 
+    Route::controller(AuthController::class)->prefix('auth')->group(function () {
+        Route::get('/get-user', 'getCurrentLoggedUser');
+        Route::get('/get-user-by-token', 'getUserByToken');
+        Route::post('/logout', 'logout');
+    });
+
 });
 
 Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::post('/authenticate', 'authenticate');
-    Route::get('/get-user', 'getCurrentLoggedUser');
-    Route::get('/get-user-by-token', 'getUserByToken');
-    Route::post('/logout', 'logout');
+
 });

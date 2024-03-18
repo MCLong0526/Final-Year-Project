@@ -94,9 +94,9 @@ class AuthController extends Controller
 
     public function logout()
     {
-        Auth::guard('web')->logout();
+        Auth::logout();
 
-        return $this->success(message: 'Logout successful');
+        return redirect('/login')->with('success', 'Logout successful');
     }
 
     public function getCurrentLoggedUser()
@@ -111,7 +111,7 @@ class AuthController extends Controller
 
     public function getUserByToken(Request $request)
     {
-        $user = User::where('api_token', $request->bearerToken())->first();
+        $user = User::with('roles')->where('api_token', $request->bearerToken())->first();
 
         if (! $user) {
             return response()->json(['error' => 'User not found'], 404);

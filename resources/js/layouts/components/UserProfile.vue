@@ -36,19 +36,11 @@ const getUser = async () => {
 
     user.value = response.data.user;
   } catch (error) {
-    hasError.value = true;
 
-    
-    await getUser2();
     console.error(error);
   }
 };
 
-const getUser2 = () => {
-  if(hasError.value==true){
-    window.location.reload();
-  }
-}
 getUser();
 
 

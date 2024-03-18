@@ -20,6 +20,7 @@ declare module 'vue' {
     MyTimeComponent: typeof import('./resources/js/components/MyTimeComponent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Security: typeof import('./resources/js/components/Profile/Security.vue')['default']
     TableTeam: typeof import('./resources/js/components/TableTeam.vue')['default']
     TableUser: typeof import('./resources/js/components/TableUser.vue')['default']
     TableWorkCategory: typeof import('./resources/js/components/TableWorkCategory.vue')['default']

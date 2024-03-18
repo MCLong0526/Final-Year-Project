@@ -1,42 +1,66 @@
 <template>
-  <div>
-    <UserProfileHeader class="mb-5" />
-    
-    <VTabs
-    v-model="currentTab"
-    class="v-tabs-pill"
-  >
-    <VTab prepend-icon="ri-profile-line">
-      Profile
-    </VTab>
-    <VTab prepend-icon="ri-lock-unlock-line">
-      Security
-    </VTab>
-    <VTab prepend-icon="ri-notification-line">
-      Notification
-    </VTab>
-  </VTabs>
+  <div style="display: flex;">
+    <div style="inline-size: 50%;">
+      <UserProfileHeader class="mb-5" />
+    </div>
+    <VSpacer class="mx-5" />
 
-  <VWindow
-    v-model="currentTab"
-    class="mt-5"
-  >
-    <VWindowItem
-      v-for="item in 3"
-      :key="item"
-    >
-      {{ tabItemContent }}
-    </VWindowItem>
-  </VWindow>
+
+    <div style="inline-size: 50%;">
+      <VTabs
+        v-model="currentTab"
+        class="v-tabs-pill justify-end"
+      >
+        <VTab 
+          value="personal-info"
+          prepend-icon="ri-profile-line">
+          Profile
+        </VTab>
+        <VTab 
+          value="security"
+          prepend-icon="ri-lock-unlock-line">
+          Security
+        </VTab>
+        <VTab 
+          value="notification"
+          prepend-icon="ri-notification-line">
+          Notification
+        </VTab>
+      </VTabs>
+
+      <VWindow
+        v-model="currentTab"
+        class="mt-5"
+      >
+        <VWindowItem
+         value="personal-info"
+        >
+          a
+        </VWindowItem>
+        <VWindowItem
+         value="security"
+        >
+          <Security />
+          
+        </VWindowItem>
+        <VWindowItem
+         value="notification"
+        >
+          c
+        </VWindowItem>
+      </VWindow>
+    </div>
   </div>
+
 </template>
+
 
 <script setup>
 import UserProfileHeader from '@/components/Profile/UserProfileHeader.vue';
+import Security from '@/components/Profile/Security.vue';
 
 
-const currentTab = ref(0)
-const tabItemContent = 'Biscuit cheesecake gingerbread oat cake tiramisu. Marzipan tiramisu jelly-o muffin biscuit jelly cake pie. Chocolate cookie candy croissant brownie cupcake powder cheesecake. Biscuit sesame snaps biscuit topping tiramisu croissant.'
-
+const currentTab = ref('personal-info');
 
 </script>
+
