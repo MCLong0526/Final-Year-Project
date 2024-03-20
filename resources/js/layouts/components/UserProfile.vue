@@ -37,6 +37,9 @@ const getUser = async () => {
     user.value = response.data.user;
   } catch (error) {
 
+    //go to error page
+    router.push('/error-unauthorized');
+
     console.error(error);
   }
 };

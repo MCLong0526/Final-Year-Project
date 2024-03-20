@@ -1,19 +1,19 @@
-<script setup>
-import { passwordValidator, requiredValidator } from '@/@core/utils/validators';
+<script setup>import { passwordValidator, requiredValidator } from '@/@core/utils/validators';
 import { useAuthStore } from '@/plugins/store/AuthStore';
 import logo from '@images/logos/logoUni.png';
 import { ref } from 'vue';
 import { useTheme } from 'vuetify';
 import { VForm } from 'vuetify/components/VForm';
 
-const authStore = useAuthStore()
 
-const {user } = useAuthStore()
+const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
 const route = useRoute()
 const router = useRouter()
+const errorMessages = ref('')
+const hasErrorAlert = ref(false)
 
 const vuetifyTheme = useTheme()
 
@@ -26,9 +26,15 @@ const login = async () => {
 
  if (authStore.isLoggedIn==true) {
     await authStore.getCurrentLoggedUser()
-    router.replace(route.query.to ? String(route.query.to) : '/test')
+    router.replace(route.query.to ? String(route.query.to) : '/dashboard')
 
   }
+  else {
+    errorMessages.value = authStore.errorMessages
+    console.log(authStore.errorMessages)
+    hasErrorAlert.value=true;
+  }
+  
 }
 
 // customize validator
@@ -102,10 +108,19 @@ const isPasswordVisible = ref(false)
                 @click:append-inner="isPasswordVisible = !isPasswordVisible"
               />
 
+              <VAlert
+                v-if="hasErrorAlert"
+                type="error"
+                variant="tonal"
+                closable
+                class="mt-2"
+              >
+             
+                {{ errorMessages }}
+              </VAlert>
+
               <!-- remember me checkbox -->
               <div class="d-flex align-center justify-space-between flex-wrap mt-1 mb-4">
-             
-
                 <a
                   class="ms-2 mb-1"
                   href="javascript:void(0)"

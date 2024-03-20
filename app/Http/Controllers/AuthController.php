@@ -89,7 +89,7 @@ class AuthController extends Controller
             ]);
         }
 
-        return response()->json(['error' => 'Incorrect username or password. Please try again.'], 401);
+        return response()->json(['error' => 'Incorrect username or password.'], 401);
     }
 
     public function logout()
@@ -103,6 +103,9 @@ class AuthController extends Controller
     {
         $user = User::with('roles')->find(Auth::id());
 
+        // Add the avatar path to the user data
+        $user['avatar'] = asset('storage/'.$user->avatar);
+
         return $this->success(
             data: $user,
             message: 'User found'
@@ -112,6 +115,9 @@ class AuthController extends Controller
     public function getUserByToken(Request $request)
     {
         $user = User::with('roles')->where('api_token', $request->bearerToken())->first();
+
+        // Add the avatar path to the user data
+        $user['avatar'] = asset('storage/'.$user->avatar);
 
         if (! $user) {
             return response()->json(['error' => 'User not found'], 404);

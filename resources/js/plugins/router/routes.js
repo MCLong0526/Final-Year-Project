@@ -8,31 +8,7 @@ export const routes = [
       {
         path: 'dashboard',
         component: () => import('@/pages/dashboard.vue'),
-      },
-      {
-        path: 'account-settings',
-        component: () => import('@/pages/account-settings.vue'),
-      },
-      
-      {
-        path: 'typography',
-        component: () => import('@/pages/typography.vue'),
-      },
-      {
-        path: 'icons',
-        component: () => import('@/pages/icons.vue'),
-      },
-      {
-        path: 'cards',
-        component: () => import('@/pages/cards.vue'),
-      },
-      {
-        path: 'tables',
-        component: () => import('@/pages/tables.vue'),
-      },
-      {
-        path: 'form-layouts',
-        component: () => import('@/pages/form-layouts.vue'),
+        meta: { requiresAuth: true },
       },
       {
         path: 'test',
@@ -42,14 +18,18 @@ export const routes = [
       {
         path: 'user-management',
         component: () => import('@/pages/user-management.vue'),
-        //meta: { requiresAuth: true },
-        
+        meta: { requiresAuth: true },
       },
       {
         path: 'user-profile',
         component: () => import('@/pages/user-profile.vue'),
-        
+        meta: { requiresAuth: true },
       },
+      {
+        path: 'life-moment-post',
+        component: () => import('@/pages/life-moment-post.vue'),
+        meta: { requiresAuth: true },
+      }
   
     ],
   },

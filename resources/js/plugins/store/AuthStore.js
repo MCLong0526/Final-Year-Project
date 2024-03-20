@@ -12,11 +12,13 @@ export const useAuthStore = defineStore('user', () => {
     phone_number: null,
     user_id: null,
     status:null,
+    password: null,
 
   });
 
   const deviceToken = ref(null)
   const isLoggedIn = ref(false);
+  const errorMessages = ref(null);
 
   function $reset() {
     user.value = {
@@ -28,6 +30,7 @@ export const useAuthStore = defineStore('user', () => {
       phone_number: null,
       user_id: null,
       status:null,
+      password: null,
     };
     isLoggedIn.value = false;
     deviceToken.value = null;
@@ -39,7 +42,6 @@ export const useAuthStore = defineStore('user', () => {
 
       const response = await axios.post('/api/auth/authenticate', { email, password });
       const userData = response.data;
-  
       user.value = {
         username: userData.user.username,
         email: userData.user.email,
@@ -49,6 +51,7 @@ export const useAuthStore = defineStore('user', () => {
         user_id: userData.user.user_id,
         status: userData.user.status,
         token: userData.token,
+        password: userData.user.password,
       };
 
       // Save the new token to localStorage
@@ -60,6 +63,7 @@ export const useAuthStore = defineStore('user', () => {
   
       return [userData, null];
     } catch (error) {
+      errorMessages.value = error.response.data.error;
       return [null, error];
     }
   }
@@ -94,5 +98,5 @@ export const useAuthStore = defineStore('user', () => {
 
 
 
-  return { user,deviceToken, $reset, login, isLoggedIn, logout, getCurrentLoggedUser};
+  return { user,deviceToken, $reset, login, isLoggedIn, logout, getCurrentLoggedUser, errorMessages};
 });

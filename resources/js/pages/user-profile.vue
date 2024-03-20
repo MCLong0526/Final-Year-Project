@@ -11,11 +11,7 @@
         v-model="currentTab"
         class="v-tabs-pill justify-end"
       >
-        <VTab 
-          value="personal-info"
-          prepend-icon="ri-profile-line">
-          Profile
-        </VTab>
+      
         <VTab 
           value="security"
           prepend-icon="ri-lock-unlock-line">
@@ -33,11 +29,6 @@
         class="mt-5"
       >
         <VWindowItem
-         value="personal-info"
-        >
-          a
-        </VWindowItem>
-        <VWindowItem
          value="security"
         >
           <Security />
@@ -46,7 +37,13 @@
         <VWindowItem
          value="notification"
         >
-          c
+        <VChip
+          class="d-inline-flex"
+          color="primary"
+          dark
+        
+        >
+          Notification for orders</VChip>
         </VWindowItem>
       </VWindow>
     </div>
@@ -56,8 +53,8 @@
 
 
 <script setup>
-import UserProfileHeader from '@/components/Profile/UserProfileHeader.vue';
 import Security from '@/components/Profile/Security.vue';
+import UserProfileHeader from '@/components/Profile/UserProfileHeader.vue';
 
 
 const currentTab = ref('personal-info');

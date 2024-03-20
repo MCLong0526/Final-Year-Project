@@ -14,6 +14,7 @@ declare module 'vue' {
     CardStatisticsWithImages: typeof import('./resources/js/@core/components/cards/CardStatisticsWithImages.vue')['default']
     ConfirmationDialog: typeof import('./resources/js/components/ConfirmationDialog.vue')['default']
     CreateButton: typeof import('./resources/js/components/CreateButton.vue')['default']
+    CustomSnackbar: typeof import('./resources/js/components/SnackBarAlert/CustomSnackbar.vue')['default']
     ErrorHeader: typeof import('./resources/js/components/ErrorHeader.vue')['default']
     Export: typeof import('./resources/js/components/Export.vue')['default']
     MoreBtn: typeof import('./resources/js/@core/components/MoreBtn.vue')['default']

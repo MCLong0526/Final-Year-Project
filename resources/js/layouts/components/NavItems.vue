@@ -1,6 +1,6 @@
-<script setup>
-import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTitle.vue';
+<script setup>import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTitle.vue';
 import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
+
 </script>
 
 <template>
@@ -10,7 +10,13 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
       heading: 'Apps & Pages',
     }"
   />
- 
+  <VerticalNavLink
+    :item="{
+      title: 'Dashboard',
+      icon: 'ri-dashboard-line',
+      to: '/dashboard',
+    }"
+  />
 
   <VerticalNavLink
     :item="{
@@ -27,6 +33,14 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
       to: '/user-management',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'Life Moment Post',
+      icon: 'ri-chat-smile-line',
+      to: '/life-moment-post',
+    }"
+  />
+  
   
 
   

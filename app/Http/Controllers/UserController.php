@@ -8,6 +8,8 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -88,7 +90,8 @@ class UserController extends Controller
     public function editPassword(Request $request)
     {
         $data = $request->validate([
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|min:8',
         ]);
 
         $user = User::findOrFail(Auth::id());
@@ -97,20 +100,33 @@ class UserController extends Controller
         return $this->success(data: $user, message: 'User password updated successfully');
     }
 
-    // Update the user profile picture
-    public function updateAvatar(Request $request, string $id)
+    public function editAvatar(Request $request, string $id)
     {
         $user = User::findOrFail($id);
-        // Check if the request contains a file named 'avatar'
-        if ($request->hasFile('avatar')) {
 
-            $avatar = $request->file('avatar');
+        if ($request->has('avatar')) {
 
-            // Store the uploaded file in the 'public/images/avatars' directory
-            $avatarPath = $avatar->store('images/avatars', 'public');
+            //if request avatar is started with 'image/avatars/...' then direct save the image
+            if (strpos($request->input('avatar'), 'images/avatars/') === 0) {
+                $user->update(['avatar' => $request->input('avatar')]);
+
+                return $this->success(data: $user, message: 'User profile picture updated successfully');
+            }
+
+            $avatarData = $request->input('avatar');
+
+            // Remove the data URL prefix and decode the base64 data
+            $avatarData = substr($avatarData, strpos($avatarData, ',') + 1);
+            $avatarData = base64_decode($avatarData);
+
+            // Generate a unique file name
+            $avatarFileName = 'avatar_'.$user->id.'_'.time().'.png';
+
+            // Store the avatar image
+            Storage::disk('public')->put('images/avatars/'.$avatarFileName, $avatarData);
 
             // Update the user's avatar path in the database
-            $user->update(['avatar' => $avatarPath]);
+            $user->update(['avatar' => 'images/avatars/'.$avatarFileName]);
 
             return $this->success(data: $user, message: 'User profile picture updated successfully');
         }
@@ -161,5 +177,19 @@ class UserController extends Controller
 
         return $this->success(message: 'User deleted successfully');
 
+    }
+
+    //get current logged user password
+    public function checkPassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+        ]);
+
+        $user = auth()->user();
+
+        return response()->json([
+            'password_match' => Hash::check($request->current_password, $user->password),
+        ]);
     }
 }

@@ -6,6 +6,7 @@ import { debounce } from 'lodash';
 import { ref } from 'vue';
 import { VForm } from 'vuetify/components/VForm';
 
+
 const refForm = ref()
 const users = ref([]);
 const roles = ref([]);
@@ -26,6 +27,8 @@ const totalPages = ref(0)
 const searchValue = ref('')
 const roleSearch = ref([])
 const statusSearch = ref([])
+const errorMessages = ref('')
+const hasErrorAlert = ref(false)
 const statusValues = [
   { name: 'Active', value: 'active' },
   { name: 'Inactive', value: 'inactive' },
@@ -48,6 +51,10 @@ const usersLoad = debounce(() =>{
   axios.get(requestURL).then(({data})=>{
     totalPages.value = Math.ceil(data.data.total / rowPerPage.value);
     users.value = data.data.data;
+    
+    users.value.forEach((user) => {
+      user.avatar = 'http://127.0.0.1:8000/storage/' + user.avatar;
+    });
     
     //console.log(users.value);
   }).catch((error)=>{
@@ -86,6 +93,8 @@ const createUser = () =>{
     usernameForAlert.value = '';
     usersLoad();
   }).catch((error)=>{
+    hasErrorAlert.value = true;
+    errorMessages.value = error.response.data.message;
     console.log(error);
   })
 }
@@ -187,8 +196,9 @@ rolesLoad()
     :usersLoad="usersLoad"
     :roles="roles"
   />
+</div>
 
-  <VCardText style="background-color: white">
+  <VCardText>
     
     <VRow>
       <VCol cols="12" md="2">
@@ -199,9 +209,9 @@ rolesLoad()
           dense
         />
       </VCol>
-      <VCol cols="12" md="6"/>
+      <VCol cols="12" md="7"/>
         
-      <VCol cols="12" md="4">
+      <VCol cols="12" md="3">
         <VPagination
           v-model="currentPage"
           variant="outlined"
@@ -212,7 +222,7 @@ rolesLoad()
     </VRow>
     
   </VCardText>
-</div>
+
 
 <VDialog
     v-model="registerDialog"
@@ -416,10 +426,22 @@ rolesLoad()
    <VSnackbar
       v-model="isAddAlert"
       location="top end"
-      variant="flat"
+      transition="scale-transition"
       color="success"
     >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
       User <strong>{{ usernameForAlert }}</strong> has been successfully registered.
+    </VSnackbar>
+
+    <!--Snackbar-->
+    <VSnackbar
+      v-model="hasErrorAlert"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+    <VIcon size="20" class="me-2">ri-alert-line</VIcon>
+      {{ errorMessages }}
     </VSnackbar>
 
 </template>

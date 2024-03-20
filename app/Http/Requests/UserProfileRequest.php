@@ -24,9 +24,8 @@ class UserProfileRequest extends FormRequest
         return [
             'username' => 'required|string|unique:users,username',
             'email' => 'required|email|unique:users,email,'.$this->user_id.',user_id',
-
             'phone_number' => 'required|string',
-            'avatar' => 'required|string',
+
         ];
     }
 }

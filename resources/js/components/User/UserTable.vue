@@ -3,6 +3,7 @@ import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
 import { defineProps, ref } from 'vue';
 
+
 const props = defineProps({
   users: {
     type: Object,
@@ -24,6 +25,8 @@ const isDeleteAlert = ref(false);
 const editDialog = ref(false);
 const isEditAlert = ref(false);
 const deactivatedDialog = ref(false);
+const hasErrorAlert = ref(false);
+const errorMessages = ref('');
 
 const deactivatedButton = (status) => {
   if (status === 'active') {
@@ -55,6 +58,8 @@ const deleteUser = () => {
       props.usersLoad();
     })
     .catch((error) => {
+      hasErrorAlert.value = true;
+      errorMessages.value = error.response.data.message;
       console.log(error);
     });
 
@@ -78,6 +83,8 @@ const editUser = () => {
       props.usersLoad();
     })
     .catch((error) => {
+      hasErrorAlert.value = true;
+      errorMessages.value = error.response.data.message;
       console.log(error);
     });
 };
@@ -145,11 +152,12 @@ const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be 
         </td>
         <td class="font-weight-medium text-high-emphasis text-center text-truncate" style="display: flex; align-items: center;">
         <VAvatar size="32"
-                :color="item.avatar ? '' : 'primary'"
-                :class="`${!item.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
-                :variant="!item.avatar ? 'tonal' : undefined"
-                style="margin-inline-end: 8px;">
-            <VImg :src="item.avatar"/>
+            :color="item.avatar ? '' : 'primary'"
+            :class="`${!item.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
+            :variant="!item.avatar ? 'tonal' : undefined"
+            style="margin-inline-end: 8px;">
+            <VImg
+            :src="item.avatar"/>
         </VAvatar>
         {{ item.username }}
       </td>
@@ -504,22 +512,33 @@ const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be 
   </VDialog>
 
   <!--Snackbar-->
-    <VSnackbar
+  <VSnackbar
       v-model="isDeleteAlert"
       location="top end"
-      variant="flat"
-      color="error"
+      transition="scale-transition"
+      color="success"
     >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
       User <strong>{{ clickedUser.username }}</strong> has been successfully deleted.
     </VSnackbar>
 
     <VSnackbar
       v-model="isEditAlert"
       location="top end"
-      variant="flat"
-      color="info"
+      transition="scale-transition"
+      color="success"
     >
       User <strong>{{ clickedUser.username }}</strong> information has been successfully edited.
+    </VSnackbar>
+
+    <VSnackbar
+      v-model="hasErrorAlert"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+      <VIcon size="20" class="me-2">ri-alert-line</VIcon>
+      {{ errorMessages }}
     </VSnackbar>
 </template>
 

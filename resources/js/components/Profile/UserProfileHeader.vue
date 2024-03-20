@@ -1,18 +1,32 @@
 <script setup>
-const user = ref({});
+import avatar1 from '/resources/images/avatars/avatar-1.png';
+import avatar2 from '/resources/images/avatars/avatar-2.png';
+import avatar3 from '/resources/images/avatars/avatar-3.png';
+import avatar4 from '/resources/images/avatars/avatar-4.png';
+import avatar5 from '/resources/images/avatars/avatar-5.png';
+import avatar6 from '/resources/images/avatars/avatar-6.png';
+import avatar7 from '/resources/images/avatars/avatar-7.png';
+import avatar8 from '/resources/images/avatars/avatar-8.png';
+
+
 import { requiredValidator } from '@/@core/utils/validators';
+import axios from 'axios';
+
 
 let csrfToken = '';
 
 const rules = [fileList => !fileList || !fileList.length || fileList[0].size < 5000000 || 'Avatar size should be less than 5 MB!']
-
-import axios from 'axios';
-
+const user = ref({});
 const items = ref([]);
 const authUser = ref({});
 const editDialog = ref(false);
 const isEditAlert = ref(false);
-const profileButton = ref(false);
+const isProfileUpload = ref(false);
+const isProfileUpload2 = ref(false);
+const isProfileAlert = ref(false);
+const hasErrorAlert = ref(false);
+const errorMessages = ref('');
+
 
 // get the authenticated user
 const getUser = async () => {
@@ -33,7 +47,12 @@ const getUser = async () => {
     user.value.created_at = new Date(user.value.created_at).toDateString();
     user.value.status = user.value.status === 'active' ? 'Active' : 'Inactive';
 
-
+    // Add avatar URL if it exists
+    if (user.value.avatar) {
+      let avatarPath = user.value.avatar.startsWith('http') ? user.value.avatar : `/storage/${user.value.avatar}`;
+      user.value.avatarUrl = avatarPath;
+  
+    }
     items.value = [
       {
         title: 'User ID',
@@ -94,7 +113,7 @@ const editUserProfile = () => {
     username: authUser.value.username,
     email: authUser.value.email,
     phone_number: authUser.value.phone_number,
-    avatar: authUser.value.avatar,
+
   })
     .then((response) => {
       editDialog.value = false;
@@ -102,9 +121,101 @@ const editUserProfile = () => {
       getUser();
     })
     .catch((error) => {
+      hasErrorAlert.value = true;
+      errorMessages.value = error.response.data.message;
       console.error(error);
     });
 };
+
+const refInputEl = ref(null)
+
+const changeAvatar = file => {
+  const fileReader = new FileReader()
+  const { files } = file.target
+  if (files && files.length) {
+    fileReader.readAsDataURL(files[0])
+    fileReader.onload = () => {
+      if (typeof fileReader.result === 'string') {
+        user.value.avatar = fileReader.result
+        // PASS THE FILE TO THE FUNCTION
+        console.log(fileReader.result)
+        saveAvatar(fileReader.result)
+      }
+    }
+  }
+}
+
+// save avatar to database
+const saveAvatar = (avatar) => {
+  axios.put(`/api/users/update-avatar/${user.value.user_id}`, {
+    avatar: avatar,
+  })
+    .then((response) => {
+      isProfileUpload.value = false;
+      isProfileUpload2.value = false;
+      isProfileAlert.value = true;
+      getUser();
+      // wait 2 second then refresh the page
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
+    })
+    .catch((error) => {
+      hasErrorAlert.value = true;
+      errorMessages.value = error.response.data.message;
+      console.error(error);
+    });
+};
+
+// for change avatar
+const avatars = [
+  {
+    avatar: avatar1,
+    name: 'Avatar 1',
+    value: 'images/avatars/avatar-1.png'
+    
+  },
+  {
+    avatar: avatar2,
+    name: 'Avatar 2',
+    value: 'images/avatars/avatar-2.png'
+
+  },
+  {
+    avatar: avatar3,
+    name: 'Avatar 3',
+    value: 'images/avatars/avatar-3.png'
+  },
+  {
+    avatar: avatar4,
+    name: 'Avatar 4',
+    value: 'images/avatars/avatar-4.png'
+  },
+  {
+    avatar: avatar5,
+    name: 'Avatar 5',
+    value: 'images/avatars/avatar-5.png'
+  },
+  {
+    avatar: avatar6,
+    name: 'Avatar 6',
+    value: 'images/avatars/avatar-6.png'
+  },
+  {
+    avatar: avatar7,
+    name: 'Avatar 7',
+    value: 'images/avatars/avatar-7.png'
+  },
+  {
+    avatar: avatar8,
+    name: 'Avatar 8',
+    value: 'images/avatars/avatar-8.png'
+  }
+]
+
+
+
 
 // customize validator
 const emailValidator = (v) => {
@@ -125,22 +236,29 @@ getUser();
     
       <VCardText class="d-flex flex-column align-items-center gap-y-4">
         <div class="text-center">
-          
           <VBadge
             location="bottom end"
             color="secondary"
             icon="ri-pencil-line"
-            
+            @click="isProfileUpload=true"
           >
-            <VAvatar
-              rounded
-              size="100"
-              :image="user.avatar"
-              class="user-profile-avatar mx-auto"
+          <VAvatar size="100" class="user-profile-avatar mx-auto">
+          <VImg
+            :src="user.avatarUrl"
+          />
+
+          </VAvatar>  
+            <input
+              ref="refInputEl"
+              type="file"
+              name="file"
+              accept=".jpeg,.png,.jpg,GIF"
+              hidden
+              @input="changeAvatar"
             />
-            
           </VBadge>
-          
+
+
         </div>
         
         <div class="user-profile-info text-center">
@@ -300,18 +418,125 @@ getUser();
     </VCard>
   </VDialog>
 
-  <!--Snackbar-->
-  <VSnackbar
+
+  
+
+  <!-- Dialog -->
+  <VDialog
+    v-model="isProfileUpload"
+    class="v-dialog-sm"
+  >
+    <VCard title="Upload Profile Picture">
+
+      <VCardText>
+        <VAlert
+          border="start"
+          color="secondary"
+          variant="tonal"
+        >
+        You can upload your own profile picture or use system avatars.
+        </VAlert>
+        
+      </VCardText>
+
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="info"
+          @click="refInputEl?.click()"
+        >
+          Upload Avatar
+        </VBtn>
+        <VBtn @click="isProfileUpload2 = !isProfileUpload2">
+          Use System Avatar
+        </VBtn>
+        
+        
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <!-- Dialog 2 -->
+  <VDialog
+    v-model="isProfileUpload2"
+    scrollable
+    max-width="300"
+  >
+    <VCard title="Choose Avatar">
+  
+
+      <VList
+        lines="two"
+        border
+        rounded
+        style="block-size: 300px;"
+      >
+        <template
+          v-for="(avatar, index) of avatars"
+          :key="avatar.name"
+        >
+          <VListItem >
+            <template #prepend>
+              <VAvatar :image="avatar.avatar" />
+            </template>
+            <VListItemTitle>
+              {{ avatar.name }}
+            </VListItemTitle>
+            <template #append>
+              <VBtn
+                color="primary"
+                @click="saveAvatar(avatar.value)"
+              >
+                Use
+              </VBtn></template> <VSpacer />
+
+          </VListItem>
+          <VDivider v-if="index !== avatars.length - 1" />
+        </template>
+      </VList>
+      <VCardActions>
+        <VSpacer />
+        <VBtn 
+          style="margin-block-start: 5px;"
+          @click="isProfileUpload2 = false">
+          Back
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+    <!--Snackbar-->
+    <VSnackbar
       v-model="isEditAlert"
       location="top end"
       transition="scale-transition"
       color="success"
       
     >
-    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
-      User <strong>{{ authUser.username }}</strong> has been successfully edited.
+      <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+        User information has been successfully edited.
       
     </VSnackbar>
+    <VSnackbar
+      v-model="isProfileAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+      
+    >
+      <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+        Profile picture has been successfully edited.
+    </VSnackbar>
+    <VSnackbar
+      v-model="hasErrorAlert"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+      <VIcon size="20" class="me-2">ri-alert-line</VIcon>
+      {{ errorMessages }}
+    </VSnackbar>
+
 
   </div>
 </template>
