@@ -40,6 +40,13 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
       to: '/life-moment-post',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'Selling Item',
+      icon: 'ri-shopping-cart-2-line',
+      to: '/selling-item',
+    }"
+  />
   
   
 

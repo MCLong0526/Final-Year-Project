@@ -1,7 +1,7 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
-import { defineProps, ref } from 'vue';
+import { ref } from 'vue';
 
 
 const props = defineProps({

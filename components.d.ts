@@ -17,6 +17,8 @@ declare module 'vue' {
     CustomSnackbar: typeof import('./resources/js/components/SnackBarAlert/CustomSnackbar.vue')['default']
     ErrorHeader: typeof import('./resources/js/components/ErrorHeader.vue')['default']
     Export: typeof import('./resources/js/components/Export.vue')['default']
+    ItemList: typeof import('./resources/js/components/Item/ItemList.vue')['default']
+    ItemTable: typeof import('./resources/js/components/Item/ItemTable.vue')['default']
     MoreBtn: typeof import('./resources/js/@core/components/MoreBtn.vue')['default']
     MyTimeComponent: typeof import('./resources/js/components/MyTimeComponent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

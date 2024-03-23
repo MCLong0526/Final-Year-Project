@@ -29,6 +29,11 @@ export const routes = [
         path: 'life-moment-post',
         component: () => import('@/pages/life-moment-post.vue'),
         meta: { requiresAuth: true },
+      },
+      {
+        path: 'selling-item',
+        component: () => import('@/pages/selling-item.vue'),
+        meta: { requiresAuth: true },
       }
   
     ],

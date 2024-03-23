@@ -1,0 +1,664 @@
+<script setup>
+import { requiredValidator } from '@/@core/utils/validators';
+import ItemList from '@/components/Item/ItemList.vue';
+import TableItem from '@/components/Item/ItemTable.vue';
+import axios from 'axios';
+import { debounce } from 'lodash';
+import { ref } from 'vue';
+
+
+const user = ref([]);
+const addNewDialog = ref(false);
+const name = ref('');
+const description = ref('');
+const price = ref('');
+const condition = ref(null);
+const type = ref(null);
+const items = ref([]);
+const rowPerPage = ref(5);
+const rowPerPageAllItems = ref(9);
+const currentPage = ref(1);
+const currentPageAllItems = ref(1);
+const totalPages = ref(0);
+const totalPagesAllItems = ref(0);
+const searchValue = ref('');
+const addPictureBox = ref(false);
+const images = ref([]);
+const allItems = ref([]);
+const typeSearch = ref([]);
+const conditionSearch = ref(null);
+const searchValueAllItems = ref('');
+
+const conditions = [
+  'New',
+  'Used (Like New)',
+  'Used (Good)',
+  'For parts or not working',
+];
+
+const types = [
+  'Fashion',
+  'Electronics',
+  'Furniture',
+  'Vehicles',
+  'Musical Instruments',
+  'Sports Equipment',
+  'Home Appliances',
+  'Books and Stationery',
+  'Health and Beauty',
+  'Toys and Games',
+  'Food and Beverages',
+  'Home Decor',
+  'Others',
+];
+
+const getUser = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Token not found');
+    }
+
+    const response = await axios.get('/api/auth/get-user-by-token', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    user.value = response.data.user;
+  } catch (error) {
+
+    //go to error page
+    router.push('/error-unauthorized');
+
+    console.error(error);
+  }
+};
+
+const allItemLoad = debounce(() => {
+  let requestURL='/api/items/get-all-items?per_page='+rowPerPageAllItems.value+'&page='+currentPageAllItems.value;
+  if(typeSearch.value && typeSearch.value.length > 0){
+    requestURL += '&type='+typeSearch.value;
+  }
+  if(conditionSearch.value){
+    requestURL += '&condition='+conditionSearch.value;
+  }
+  if(searchValueAllItems.value && searchValueAllItems.value.length > 2){
+    requestURL += '&search='+searchValueAllItems.value;
+  }
+  axios.get(requestURL).then(({data}) => {
+    totalPagesAllItems.value = Math.ceil(data.data.total / rowPerPageAllItems.value);
+    allItems.value = data.data.data;
+
+    allItems.value.forEach((item) => {
+      item.pictures.forEach((picture) => {
+        picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+      });
+    });
+
+  }).catch((error) => {
+    console.log(error);
+  });
+}, 1000);
+
+
+const itemsLoad = debounce(() => {
+  let requestURL='/api/items/get-auth-items?per_page='+rowPerPage.value+'&page='+currentPage.value;
+  if(searchValue.value && searchValue.value.length > 2){
+    requestURL += '&search='+searchValue.value;
+  }
+  axios.get(requestURL).then(({data}) => {
+    
+    totalPages.value = Math.ceil(data.data.total / rowPerPage.value);
+    items.value = data.data.data;
+    items.value.forEach((item) => {
+      item.pictures.forEach((picture) => {
+        picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+      });
+    });
+  }).catch((error) => {
+    console.log(error);
+  });
+}, 1000);
+
+
+const createItem = () => {
+  axios.post('/api/items/store', {
+    user_id: user.value.user_id,
+    name: name.value,
+    description: description.value,
+    price: price.value,
+    condition: condition.value,
+    type: type.value,
+    images: images.value,
+  }).then((response) => {
+    name.value = '';
+    description.value = '';
+    price.value = '';
+    condition.value = '';
+    type.value = '';
+    addNewDialog.value = false;
+    images.value = [];
+    addPictureBox.value = false;
+    itemsLoad();
+    allItemLoad();
+
+    console.log(response);
+  }).catch((error) => {
+    console.log(error);
+  });
+};
+
+
+
+//image part:
+const handleDrop = (event) => {
+  event.preventDefault();
+  const files = event.dataTransfer.files;
+  handleFiles(files);
+};
+
+const handleFiles = (files) => {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        images.value.push({ url: e.target.result, file });
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+};
+
+const fileInput = ref(null);
+
+const openFileInput = () => {
+  if (fileInput.value) {
+    fileInput.value.click();
+  }
+};
+
+const handleFileInputChange = (event) => {
+  const files = event.target.files;
+  handleFiles(files);
+};
+
+const removeImage = (index) => {
+  images.value.splice(index, 1);
+};
+
+// own selling items
+// watch the changes of the rowPerPage and currentPage
+watch([rowPerPage, currentPage], ([newRowPerPage, newCurrentPage]) => {
+  itemsLoad()
+})
+
+// watch the changes of the searchValue
+watch(searchValue, (newSearchValue) => {
+  itemsLoad()
+})
+
+// all items
+// watch the changes of the rowPerPageAllItems and currentPageAllItems
+watch([rowPerPageAllItems, currentPageAllItems], ([newRowPerPage, newCurrentPage]) => {
+  allItemLoad()
+})
+
+// watch the changes of the typeSearch
+watch(typeSearch, (newTypeSearch) => {
+  allItemLoad()
+})
+
+// watch the changes of the conditionSearch
+watch(conditionSearch, (newConditionSearch) => {
+  allItemLoad()
+})
+
+// watch the changes of the searchValueAllItems
+watch(searchValueAllItems, (newSearchValue) => {
+  allItemLoad()
+})
+
+//validations
+const priceValidator = (value) => {
+  if (!value) {
+    return 'Price is required';
+  }
+
+  if (isNaN(value)) {
+    return 'Price must be a number';
+  }
+
+  if (value <= 0) {
+    return 'Price must be greater than 0';
+  }
+
+  return true;
+};
+
+itemsLoad();
+getUser();
+allItemLoad();
+
+</script>
+
+<template>
+
+  <VRow class="mb-2">
+    <VCol cols="12" md="4">
+      <VCombobox
+        v-model="typeSearch"
+        multiple
+        chips
+        :items="types"
+        prepend-inner-icon="ri-price-tag-3-line"
+        item-title="name"
+        placeholder="Select type"
+        return-object
+        label="Type"
+        clearable
+      />
+
+    </VCol>
+    <VCol cols="12" md="4">
+      <VCombobox
+        v-model="conditionSearch"
+        :items="conditions"
+        prepend-inner-icon="ri-thumb-up-line"
+        item-title="name"
+        placeholder="Select Condition"
+        return-object
+        label="Condition"
+        clearable
+      />
+    </VCol>
+    <VCol cols="12" md="4">
+      <VTextField
+        v-model="searchValueAllItems"
+        placeholder="Search"
+        label="Search name or description of the item"
+        clearable
+        dense
+      />
+    </VCol>
+  </VRow>
+
+  <!-- Item List -->
+  <div class="box-style">
+    <div class="item-list-container">
+      <ItemList 
+        :allItems="allItems"
+        :allItemLoad="allItemLoad"
+      />
+    </div>
+    <VCardText>
+      <VRow>
+        <VCol cols="12" md="4" />
+        <VCol cols="12" md="4">
+          <VPagination
+            v-model="currentPageAllItems"
+            variant="outlined"
+            :length="totalPagesAllItems"
+            rounded="circle"
+          />
+        </VCol>
+        <VCol cols="12" md="4" />
+      </VRow>
+    </VCardText>
+  </div>
+
+  <!-- 'Own Selling Item Table -->
+  <VRow>
+    <VCol cols="12" md="3">
+      <div class="mb-5">
+        <VBtn @click="addPictureBox=true">
+          Create New Item
+        </VBtn>
+      </div>
+    </VCol>
+    <VCol cols="12" md="3"/>
+    <VCol cols="12" md="3"/>
+    <VCol cols="12" md="3">
+      <VTextField
+        v-model="searchValue"
+        placeholder="Search"
+        label="Search name of the item"
+        clearable
+        dense
+      />
+    </VCol>
+  </VRow>
+
+  <div class="table-style">
+    
+    <TableItem
+      :items="items"
+      :itemsLoad="itemsLoad"
+      :allItemLoad="allItemLoad"
+      :conditions="conditions"
+      :types="types"
+    />
+  </div>
+
+<VCardText>
+    <VRow>
+      <VCol cols="12" md="2">
+        <VCombobox
+          v-model="rowPerPage"
+          :items="[5, 10, 15, 20]"
+          label="Rows per page"
+          dense
+        />
+      </VCol>
+      <VCol cols="12" md="6"/>
+        
+      <VCol cols="12" md="4">
+        <VPagination
+          v-model="currentPage"
+          variant="outlined"
+          :length="totalPages"
+          rounded="circle"
+        />
+      </VCol>
+    </VRow>
+  </VCardText>
+
+<VDialog
+    v-model="addNewDialog"
+    max-width="800"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Create New Selling Item">
+
+      <VCardText>
+        <VForm 
+        ref="refForm" 
+        @submit.prevent>
+
+        <VRow>
+          <!-- 👉 First Name -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Item Name</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="name"
+                  prepend-inner-icon="ri-shopping-bag-4-line"
+            
+                  placeholder="Rolex"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Description</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextarea
+                  v-model="description"
+                  prepend-inner-icon="ri-information-2-line"
+                  no-resize
+                  placeholder="Describe the item, e.g., color, size, material, features..."
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Condition</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+              <VSelect
+                v-model="condition"
+                :items="conditions"
+           
+                placeholder="Select Condition"
+                prepend-inner-icon="ri-thumb-up-line"
+                variant="solo"
+              />
+            </VCol>
+          </VRow>
+        </VCol>
+
+        <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Type</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+              <VSelect
+                v-model="type"
+                :items="types"
+                
+                prepend-inner-icon="ri-price-tag-3-line"
+                placeholder="Select Type"
+                variant="solo"
+              />
+            </VCol>
+          </VRow>
+        </VCol>
+
+        <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Price</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="price"
+                  prepend-inner-icon="ri-money-dollar-circle-line"
+                  
+                  placeholder="100.00"
+                  :rules="[requiredValidator, priceValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!-- 👉 submit and reset button -->
+          <VCol
+            offset-md="3"
+            cols="12"
+            md="9"
+            class="d-flex gap-4"
+          >
+          <VBtn
+              color="info"
+              @click="addNewDialog=false"
+              variant="tonal"
+            >
+              Back
+            </VBtn>
+            <VBtn
+              color="secondary"
+              type="reset"
+              variant="tonal"
+            >
+              Reset
+            </VBtn>
+            
+            <VBtn
+              type="submit"
+              @click="$refs.refForm.validate().then(() => createItem())"
+            >
+              Publish
+            </VBtn>
+          </VCol>
+        </VRow>
+      </VForm>
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+
+  <!-- Add Picture Dialog -->
+  <VDialog
+    v-model="addPictureBox"
+    max-width="600"
+  >
+    <VCard title="Add Item Pictures">
+      <div class="upload-container">
+        <input
+          type="file"
+          ref="fileInput"
+          style="display: none"
+          accept="image/*"
+          @change="handleFileInputChange"
+        />
+        <div
+          class="upload-box"
+          @drop.prevent="handleDrop"
+          @dragover.prevent
+          @click="openFileInput"
+        >
+          <VIcon class="upload-icon">ri-image-add-line</VIcon>
+          <p class="upload-text">Drag & Drop your images here.</p>
+          <p class="upload-text">Click here to upload images (PNG, JPEG, JPG).</p>
+          <div v-if="images.length > 0" class="uploaded-images">
+            <p class="upload-text">Selected images: </p>
+          <div v-for="(image, index) in images" :key="index" class="uploaded-image">
+            <img :src="image.url" alt="Uploaded Image" />
+            <VBtn @click="removeImage(index)" icon="ri-close-line" class="remove-btn"/>
+          </div>
+        </div>
+        </div>
+      </div>
+   
+      <VCardActions>
+        <div class="button-container">
+          <VBtn color="secondary" @click="addPictureBox = false">Cancel</VBtn>
+          <VBtn color="success" @click="addNewDialog=true">Next</VBtn>
+        </div>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+  
+</template>
+
+
+<style scoped>
+
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px;
+}
+
+.item-list-container {
+  block-size: 550px; /* Set the desired height */
+  margin-block-start:8px;
+  margin-inline:8px 8px;
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.table-style{
+  padding: 0.5px; /* Padding around the table */
+  background-color: #848383; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+}
+
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  block-size: 300px; /* Adjust the height as needed */
+  cursor: pointer;
+  inline-size: 400px; /* Adjust the width as needed */
+  margin-block-end: 10px;
+}
+
+.upload-icon {
+  font-size: 48px;
+}
+
+.upload-text {
+  margin-block-start: 8px;
+}
+
+.uploaded-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-block-start: 20px;
+}
+
+.uploaded-image {
+  position: relative;
+}
+
+.uploaded-image img {
+  border-radius: 8px;
+  max-block-size: 100px; /* Adjust the size as needed */
+  max-inline-size: 100px; /* Adjust the size as needed */
+}
+
+.remove-btn {
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-end: 5px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 440px;
+}
+</style>
+
+

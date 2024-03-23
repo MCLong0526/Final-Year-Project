@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ItemController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/get-user', 'getCurrentLoggedUser');
         Route::get('/get-user-by-token', 'getUserByToken');
         Route::post('/logout', 'logout');
+    });
+
+    Route::controller(ItemController::class)->prefix('items')->group(function () {
+        Route::get('/get-all-items', 'index');
+        Route::get('/get-auth-items', 'getAuthItems');
+        Route::put('/update/{item_id}', 'update');
+        Route::post('/store', 'store');
+        Route::post('/save-item-pictures/{item_id}', 'saveItemPictures');
+        Route::delete('/delete/{item_id}', 'destroy');
+
     });
 
 });

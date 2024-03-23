@@ -8,7 +8,6 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const user = ref([]);
-const hasError = ref(false);
 
 const logout = () => {
   authStore.logout();

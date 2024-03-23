@@ -138,7 +138,7 @@ const changeAvatar = file => {
       if (typeof fileReader.result === 'string') {
         user.value.avatar = fileReader.result
         // PASS THE FILE TO THE FUNCTION
-        console.log(fileReader.result)
+        
         saveAvatar(fileReader.result)
       }
     }
