@@ -21,6 +21,7 @@ declare module 'vue' {
     ItemTable: typeof import('./resources/js/components/Item/ItemTable.vue')['default']
     MoreBtn: typeof import('./resources/js/@core/components/MoreBtn.vue')['default']
     MyTimeComponent: typeof import('./resources/js/components/MyTimeComponent.vue')['default']
+    OrderPendingTable: typeof import('./resources/js/components/Order/OrderPendingTable.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Security: typeof import('./resources/js/components/Profile/Security.vue')['default']

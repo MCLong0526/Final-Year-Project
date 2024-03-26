@@ -47,6 +47,13 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
       to: '/selling-item',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'Order Information',
+      icon: 'ri-shopping-bag-2-line',
+      to: '/order-information',
+    }"
+  />
   
   
 

@@ -21,6 +21,7 @@ class Item extends Model
         'condition',
         'type',
         'price',
+        'quantity',
     ];
 
     public function user()
@@ -31,5 +32,11 @@ class Item extends Model
     public function pictures()
     {
         return $this->hasMany(ItemPicture::class, 'item_id', 'item_id');
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'item_user', 'item_id', 'user_id')
+            ->withPivot('status', 'meet_dateTime', 'order_dateTime', 'remark_buyer', 'remark_seller', 'quantity', 'place_to_meet');
     }
 }

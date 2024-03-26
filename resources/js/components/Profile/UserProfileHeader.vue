@@ -286,8 +286,8 @@ getUser();
         <VDivider class="my-2" />
      
         <VListItem v-for="item in items" :key="item.title">
-          <VListItemTitle style="display: inline-block; inline-size: 120px;"><strong>{{ item.title }}</strong></VListItemTitle>
-          <VListItemSubtitle style="display: inline-block;">: {{ item.value }}</VListItemSubtitle>
+          <VListItemTitle class="text-h6" style="display: inline-block; inline-size: 120px;"><strong>{{ item.title }}</strong></VListItemTitle>
+          <VListItemSubtitle class="text-h6" style="display: inline-block;">: {{ item.value }}</VListItemSubtitle>
         </VListItem>
 
         

@@ -1,4 +1,9 @@
 <script setup>
+import { requiredValidator } from '@/@core/utils/validators';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
+import axios from 'axios';
+import { VForm } from 'vuetify/components/VForm';
   
 const props = defineProps({
   allItems: {
@@ -13,23 +18,95 @@ const props = defineProps({
 
 const openItemDialog = ref(false);
 const clickedItem = ref({});
+const checkStatusDialog = ref(false);
+const meetDateTime = ref('');
+const quantity = ref('');
+const remark_buyer = ref('');
+const isAddAlert = ref(false);  
+const placeToMeet = ref(null);
+const hasErrorAlert = ref(false);
+const errorMessages = ref('');
+
+const placesInUnimas = [
+  'Faculty of Cognitive Sciences and Human Development',
+  'Faculty of Computer Science and Information Technology',
+  'Faculty of Economics and Business',
+  'Faculty of Engineering',
+  'Faculty of Applied and Creative Arts',
+  'Faculty of Medicine and Health Sciences',
+  'Faculty of Resource Science and Technology',
+  'Faculty of Social Sciences and Humanities',
+  'Faculty of Built Environment',
+  'Faculty of Education, Language and Communication',
+];
 
 const seeItem = (item) => {
   openItemDialog.value = true;
   clickedItem.value = item;
 };
 
+const submitOrder = async () => {
 
+  // // Set the timezone to Asia/Kuala_Lumpur
+  // process.env.TZ = 'Asia/Kuala_Lumpur';
+
+  // // Format the date to YYYY-MM-DD HH:MM:SS format
+  // const dateToMeetValue = new Date(meetDateTime.value).toISOString().slice(0, 19).replace('T', ' ');
+
+  const formData = {
+    place_to_meet: placeToMeet.value,
+    quantity: quantity.value,
+    remark_buyer: remark_buyer.value,
+    item_id: clickedItem.value.item_id,
+    status: 'Pending',
+  };
+
+  try {
+    await axios.post('/api/order-items/store', formData);
+    checkStatusDialog.value = false;
+    openItemDialog.value = false;
+    props.allItemLoad();
+    meetDateTime.value = '';
+    quantity.value = '';
+    remark_buyer.value = '';
+    isAddAlert.value = true;
+    
+  } catch (error) {
+    errorMessages.value = error.response.data.message;
+    hasErrorAlert.value = true;
+    console.error(error);
+  }
+};
+
+watch(meetDateTime, (newValue) => {
+  if (newValue) {
+    const dateObj = new Date(newValue);
+    const formattedDate = dateObj.toLocaleString('en-US', { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit', 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: true,
+      timeZone: 'Asia/Kuala_Lumpur' // Adjust to your timezone
+    });
+    if (remark_buyer.value.includes('Preferred meet up date and time:')) {
+      remark_buyer.value = `${remark_buyer.value}\n• ${formattedDate}`;
+    } else {
+      remark_buyer.value = `Preferred meet up date and time:\n• ${formattedDate}`;
+    }
+  }
+});
 
 </script>
 
 <template>
   <VRow>
     <VCol
-      v-for="(item) in allItems.slice(0, 9)"
+      v-for="(item) in allItems"
       :key="item.item_id"
       cols="12"
-      md="4"
+      md="3"
       sm="6"
     >
       <VCard class="mb-4">
@@ -64,7 +141,7 @@ const seeItem = (item) => {
     </VCol>
   </VRow>
 
-  <!--Item Dialog-->
+  <!--Clicked Item Dialog-->
   <VDialog
     v-model="openItemDialog"
     scrollable
@@ -96,7 +173,7 @@ const seeItem = (item) => {
         <h3 class="mt-2">Seller Information</h3>
         <VCardText class="font-weight-medium text-high-emphasis text-center text-truncate" style="display: flex; align-items: center;">
       
-        <VAvatar size="38"
+        <VAvatar size="40"
             :color="clickedItem.user.avatar ? '' : 'primary'"
             :class="`${!clickedItem.user.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
             :variant="!clickedItem.user.avatar ? 'tonal' : undefined"
@@ -119,6 +196,10 @@ const seeItem = (item) => {
             <strong>Type</strong>
             <span>: {{ clickedItem.type }}</span>
           </div>
+          <div class="detail-row">
+            <strong>Quantity</strong>
+            <span>: {{ clickedItem.quantity }}</span>
+          </div>
         </VCardText>
 
         <h3 class="mt-2">Description</h3>
@@ -138,7 +219,7 @@ const seeItem = (item) => {
         >
           Close
         </VBtn>
-        <VBtn @click="openItemDialog = false">
+        <VBtn @click="checkStatusDialog = true">
           <VTooltip
             location="top"
             activator="parent"
@@ -151,6 +232,181 @@ const seeItem = (item) => {
       </VCardText>
     </VCard>
   </VDialog>
+
+
+  <VDialog
+    v-model="checkStatusDialog"
+    scrollable
+    max-width="700"
+    class="dialog"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Order Information">
+
+      <VCardText>
+        <VForm 
+        ref="refForm" 
+        @submit.prevent>
+
+        <VRow>
+          <!-- Date -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Date To Meet</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VueDatePicker
+                  teleport-center
+                  :clearable="true"
+                  :min-date="new Date()"
+                  v-model="meetDateTime"
+                  placeholder="Select Date"
+                  required
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!--Place to meet-->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="placeHorizontalIcons">Place To Meet</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+              <VCombobox
+                v-model="placeToMeet"
+                :items="placesInUnimas"
+                hide-selected
+                :hide-no-data="false"
+                placeholder="Select Place"
+                persistent-hint
+              >
+                <template #no-data>
+                  <VListItem>
+                    <VListItemTitle>
+                      No results matching. Press <kbd>enter</kbd> to use it.
+                    </VListItemTitle>
+                  </VListItem>
+                </template>
+              </VCombobox>
+                
+              </VCol>
+            </VRow>
+          </VCol>
+
+        
+          <!-- 👉 Mobile -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="mobileHorizontalIcons">Quantity</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="quantity"
+                  prepend-inner-icon="ri-survey-line"
+                  placeholder="Enter Quantity"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!-- Remark -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="remarkHorizontalIcons">Remark</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextarea
+                  v-model="remark_buyer"
+                  prepend-inner-icon="ri-chat-4-line"
+                  placeholder="Enter Remark"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+
+          <!-- 👉 submit and reset button -->
+          <VCol
+            offset-md="6"
+            cols="12"
+            md="9"
+            class="d-flex gap-4"
+          ><VBtn
+              color="secondary"
+              type="reset"
+              variant="tonal"
+            >
+              Reset
+            </VBtn>
+          <VBtn
+              type="submit"
+              @click="$refs.refForm.validate().then(() => submitOrder())"
+            >
+              Send Request
+            </VBtn>
+            
+          </VCol>
+        </VRow>
+      </VForm>
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+  <!-- Add Alert -->
+  <VSnackbar
+      v-model="isAddAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+      Order has been successfully placed.
+  </VSnackbar>
+
+  <VSnackbar
+      v-model="hasErrorAlert"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+    <VIcon size="20" class="me-2">ri-alert-line</VIcon>
+      {{ errorMessages }}
+  </VSnackbar>
  
 </template>
 

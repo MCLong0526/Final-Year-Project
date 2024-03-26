@@ -30,6 +30,10 @@ const deleteDialog = ref(false);
 const clickedItem = ref({});
 const editItemDialog = ref(false);
 const currentTab = ref('tab-1');
+const isDeleteAlert = ref(false);
+const isEditAlert = ref(false);
+const hasErrorAlert = ref(false);
+const errorMessages = ref('');
 
 const openDeleteDialog = (item) => {
   deleteDialog.value = true;
@@ -39,6 +43,27 @@ const openDeleteDialog = (item) => {
 const openEditDialog = (item) => {
   editItemDialog.value = true;
   clickedItem.value = Object.assign({}, item);
+
+  // change the picture_path to base64 format
+  clickedItem.value.pictures.forEach((image, index) => {
+    if (image.picture_path.startsWith('http') || image.picture_path.startsWith('localhost://')) {
+      fetch(image.picture_path)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            image.picture_path = e.target.result;
+            if (index === clickedItem.value.pictures.length - 1) {
+              // All images converted, do nothing
+            }
+          };
+          reader.readAsDataURL(blob);
+        });
+    } else if (image.picture_path.startsWith('localhost')) {
+      // Update the picture_path if it starts with 'localhost'
+      image.picture_path = 'data:image;base64,' + image.picture_path;
+    }
+  });
 };
 
 //delete item
@@ -46,9 +71,12 @@ const deleteItem = () => {
   axios.delete(`/api/items/delete/${clickedItem.value.item_id}`)
     .then((response) => {
       deleteDialog.value = false;
+      isDeleteAlert.value = true;
       props.itemsLoad();
       props.allItemLoad();
     }).catch((error) => {
+      errorMessages.value = error.response.data.message;
+      hasErrorAlert.value = true;
       console.log(error);
     });
 };
@@ -62,14 +90,18 @@ const editItem = () => {
     condition: clickedItem.value.condition,
     type: clickedItem.value.type,
     price: clickedItem.value.price,
+    quantity: clickedItem.value.quantity,
     images: clickedItem.value.pictures,
   
   })
     .then((response) => {
       editItemDialog.value = false;
+      isEditAlert.value = true;
       props.itemsLoad();
       props.allItemLoad();
     }).catch((error) => {
+      errorMessages.value = error.response.data.message;
+      hasErrorAlert.value = true;
       console.log(error);
     });
 };
@@ -82,7 +114,6 @@ const handleDrop = (event) => {
   handleFiles(files);
 };
 
-// Handle files for image upload (new and existing images)
 const handleFiles = (files) => {
   const hasExistingImages = clickedItem.value.pictures.some(image => !image.isNew);
 
@@ -95,6 +126,15 @@ const handleFiles = (files) => {
         const isBase64 = base64Data.startsWith('data:image');
         let picturePath = base64Data;
 
+        // Check if the image is already in base64 format
+        if (!isBase64) {
+          picturePath = base64Data;
+        }
+
+        // Add new image to the pictures array
+        clickedItem.value.pictures.push({ picture_path: picturePath, file, isNew: !isBase64 });
+
+        // Convert existing images if any
         if (hasExistingImages) {
           const existingImages = clickedItem.value.pictures.filter(image => !image.isNew);
           existingImages.forEach((existingImage, index) => {
@@ -106,24 +146,22 @@ const handleFiles = (files) => {
                   reader.onload = (e) => {
                     existingImage.picture_path = e.target.result;
                     if (index === existingImages.length - 1) {
-                      // All existing images converted, now push the new image
-                      clickedItem.value.pictures.push({ picture_path: picturePath, file, isNew: !isBase64 });
+                      // All existing images converted, do nothing
                     }
                   };
                   reader.readAsDataURL(blob);
                 });
+            } else if (existingImage.picture_path.startsWith('localhost')) {
+              // Update the picture_path if it starts with 'localhost'
+              existingImage.picture_path = 'data:image;base64,' + base64Data;
             }
           });
-        } else {
-          // No existing images, or all existing images are already in base64 format
-          clickedItem.value.pictures.push({ picture_path: picturePath, file, isNew: !isBase64 });
         }
       };
       reader.readAsDataURL(file);
     }
   }
 };
-
 
 
 
@@ -143,8 +181,21 @@ const handleFileInputChange = (event) => {
 };
 
 const removeImage = (index) => {
-  clickedItem.value.pictures.splice(index, 1);
+  const removedImage = clickedItem.value.pictures.splice(index, 1)[0];
+  if (!removedImage.isNew) {
+    // If the removed image is not new, update its picture_path to base64 format
+    fetch(removedImage.picture_path)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          removedImage.picture_path = e.target.result;
+        };
+        reader.readAsDataURL(blob);
+      });
+  }
 };
+
 
 
 //validations
@@ -185,6 +236,10 @@ const priceValidator = (value) => {
         <th class="text-uppercase text-center">
           <VIcon icon="ri-price-tag-3-line" />
           Type
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-survey-line" />
+          Quantity
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-money-dollar-circle-line" />
@@ -234,6 +289,9 @@ const priceValidator = (value) => {
         </td>
         <td class="text-center">
           {{ item.type }}
+        </td>
+        <td class="text-center">
+          {{ item.quantity }}
         </td>
         <td class="text-center">
           RM {{ item.price }}
@@ -322,6 +380,8 @@ const priceValidator = (value) => {
   <VDialog
     v-model="editItemDialog"
     max-width="800"
+    scrollable
+    max-height="800"
   >
     <!-- Dialog Content -->
     <VCard title="Edit Selling Item">
@@ -397,6 +457,7 @@ const priceValidator = (value) => {
         <!--edit Information-->
         <VWindowItem
           value="tab-2"
+        
         >
         <VCardText>
             <VForm 
@@ -509,6 +570,28 @@ const priceValidator = (value) => {
                     cols="12"
                     md="3"
                   >
+                    <label for="firstNameHorizontalIcons">Quantity</label>
+                  </VCol>
+
+                  <VCol
+                    cols="12"
+                    md="9"
+                  >
+                    <VTextField
+                      v-model="clickedItem.quantity"
+                      prepend-inner-icon="ri-survey-line"
+                      :rules="[requiredValidator]"
+                    />
+                  </VCol>
+                </VRow>
+            </VCol>
+
+            <VCol cols="12">
+                <VRow no-gutters>
+                  <VCol
+                    cols="12"
+                    md="3"
+                  >
                     <label for="firstNameHorizontalIcons">Price</label>
                   </VCol>
 
@@ -565,6 +648,37 @@ const priceValidator = (value) => {
       
     </VCard>
   </VDialog>
+
+  <!--Snackbar-->
+  <VSnackbar
+      v-model="isDeleteAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+      Item <strong>{{ clickedItem.name }}</strong> has been successfully deleted.
+    </VSnackbar>
+
+    <VSnackbar
+      v-model="isEditAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+      Item <strong>{{ clickedItem.name }}</strong> information has been successfully edited.
+    </VSnackbar>
+
+    <VSnackbar
+      v-model="hasErrorAlert"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+      <VIcon size="20" class="me-2">ri-alert-line</VIcon>
+      {{ errorMessages }}
+    </VSnackbar>
+  
 
 </template>
 

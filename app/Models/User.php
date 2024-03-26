@@ -55,4 +55,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id');
     }
+
+    public function items()
+    {
+        return $this->belongsToMany(Item::class, 'item_user', 'user_id', 'item_id')
+            ->withPivot('status', 'meet_dateTime', 'order_dateTime', 'remark_buyer', 'remark_seller', 'quantity', 'place_to_meet');
+    }
 }

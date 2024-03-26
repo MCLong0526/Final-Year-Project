@@ -14,6 +14,7 @@ const description = ref('');
 const price = ref('');
 const condition = ref(null);
 const type = ref(null);
+const quantity = ref('');
 const items = ref([]);
 const rowPerPage = ref(5);
 const rowPerPageAllItems = ref(9);
@@ -26,8 +27,12 @@ const addPictureBox = ref(false);
 const images = ref([]);
 const allItems = ref([]);
 const typeSearch = ref([]);
+const sortPrice = ref(null);
 const conditionSearch = ref(null);
 const searchValueAllItems = ref('');
+const isAddAlert = ref(false);
+const hasErrorAlert = ref(false);
+const errorMessages = ref('');
 
 const conditions = [
   'New',
@@ -87,6 +92,13 @@ const allItemLoad = debounce(() => {
   if(searchValueAllItems.value && searchValueAllItems.value.length > 2){
     requestURL += '&search='+searchValueAllItems.value;
   }
+  if(sortPrice.value){
+    if(sortPrice.value === 'Low to High'){
+      requestURL += '&sort_price=asc';
+    }else{
+    requestURL += '&sort_price=desc';
+    }
+  }
   axios.get(requestURL).then(({data}) => {
     totalPagesAllItems.value = Math.ceil(data.data.total / rowPerPageAllItems.value);
     allItems.value = data.data.data;
@@ -131,6 +143,7 @@ const createItem = () => {
     price: price.value,
     condition: condition.value,
     type: type.value,
+    quantity: quantity.value,
     images: images.value,
   }).then((response) => {
     name.value = '';
@@ -141,11 +154,15 @@ const createItem = () => {
     addNewDialog.value = false;
     images.value = [];
     addPictureBox.value = false;
+    isAddAlert.value = true;
     itemsLoad();
     allItemLoad();
 
     console.log(response);
   }).catch((error) => {
+    errorMessages.value = error.response.data.message;
+    hasErrorAlert.value = true;
+    
     console.log(error);
   });
 };
@@ -189,37 +206,16 @@ const removeImage = (index) => {
   images.value.splice(index, 1);
 };
 
-// own selling items
-// watch the changes of the rowPerPage and currentPage
-watch([rowPerPage, currentPage], ([newRowPerPage, newCurrentPage]) => {
-  itemsLoad()
-})
+// Watch for changes in selling items
+watch([rowPerPage, currentPage, searchValue], () => {
+  itemsLoad();
+});
 
-// watch the changes of the searchValue
-watch(searchValue, (newSearchValue) => {
-  itemsLoad()
-})
+// Watch for changes in all items
+watch([rowPerPageAllItems, currentPageAllItems, typeSearch, conditionSearch, searchValueAllItems, sortPrice], () => {
+  allItemLoad();
+});
 
-// all items
-// watch the changes of the rowPerPageAllItems and currentPageAllItems
-watch([rowPerPageAllItems, currentPageAllItems], ([newRowPerPage, newCurrentPage]) => {
-  allItemLoad()
-})
-
-// watch the changes of the typeSearch
-watch(typeSearch, (newTypeSearch) => {
-  allItemLoad()
-})
-
-// watch the changes of the conditionSearch
-watch(conditionSearch, (newConditionSearch) => {
-  allItemLoad()
-})
-
-// watch the changes of the searchValueAllItems
-watch(searchValueAllItems, (newSearchValue) => {
-  allItemLoad()
-})
 
 //validations
 const priceValidator = (value) => {
@@ -247,7 +243,7 @@ allItemLoad();
 <template>
 
   <VRow class="mb-2">
-    <VCol cols="12" md="4">
+    <VCol cols="12" md="3">
       <VCombobox
         v-model="typeSearch"
         multiple
@@ -262,7 +258,8 @@ allItemLoad();
       />
 
     </VCol>
-    <VCol cols="12" md="4">
+    
+    <VCol cols="12" md="3">
       <VCombobox
         v-model="conditionSearch"
         :items="conditions"
@@ -274,15 +271,28 @@ allItemLoad();
         clearable
       />
     </VCol>
-    <VCol cols="12" md="4">
+    <VCol cols="12" md="3">
+      <VCombobox
+        v-model="sortPrice"
+        :items="['Low to High', 'High to Low']"
+        prepend-inner-icon="ri-price-tag-3-line"
+        placeholder="Sort by Price"
+        return-object
+        label="Sort by Price"
+        clearable
+      />
+
+    </VCol>
+    <VCol cols="12" md="3">
       <VTextField
         v-model="searchValueAllItems"
         placeholder="Search"
-        label="Search name or description of the item"
+        label="Search name or description of item"
         clearable
         dense
       />
     </VCol>
+    
   </VRow>
 
   <!-- Item List -->
@@ -314,7 +324,7 @@ allItemLoad();
     <VCol cols="12" md="3">
       <div class="mb-5">
         <VBtn @click="addPictureBox=true">
-          Create New Item
+          Sell New Item
         </VBtn>
       </div>
     </VCol>
@@ -370,7 +380,7 @@ allItemLoad();
     max-width="800"
   >
     <!-- Dialog Content -->
-    <VCard title="Create New Selling Item">
+    <VCard title="Sell New Item">
 
       <VCardText>
         <VForm 
@@ -483,6 +493,30 @@ allItemLoad();
                 cols="12"
                 md="3"
               >
+                <label for="firstNameHorizontalIcons">Quantity</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="quantity"
+                  prepend-inner-icon="ri-shopping-bag-4-line"
+                  
+                  placeholder="1"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+        </VCol>
+
+        <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
                 <label for="firstNameHorizontalIcons">Price</label>
               </VCol>
 
@@ -578,6 +612,28 @@ allItemLoad();
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <!--Snackbar-->
+  <VSnackbar
+      v-model="isAddAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+      New item has been successfully registered.
+    </VSnackbar>
+
+    <!--Snackbar-->
+    <VSnackbar
+      v-model="hasErrorAlert"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+    <VIcon size="20" class="me-2">ri-alert-line</VIcon>
+      {{ errorMessages }}
+    </VSnackbar>
   
 </template>
 

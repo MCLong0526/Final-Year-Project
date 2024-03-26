@@ -28,7 +28,9 @@ class ItemRequest extends FormRequest
                 'condition' => 'required|string',
                 'type' => 'required|string',
                 'price' => 'required|numeric',
+                'quantity' => 'required|integer',
                 'images' => 'required|array',
+
             ];
         }
 
@@ -39,6 +41,7 @@ class ItemRequest extends FormRequest
             'condition' => 'required|string',
             'type' => 'required|string',
             'price' => 'required|numeric',
+            'quantity' => 'required|integer',
             'images' => 'required|array',
         ];
     }

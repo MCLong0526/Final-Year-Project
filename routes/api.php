@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -48,7 +49,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/store', 'store');
         Route::post('/save-item-pictures/{item_id}', 'saveItemPictures');
         Route::delete('/delete/{item_id}', 'destroy');
-
+    });
+    Route::controller(OrderItemController::class)->prefix('order-items')->group(function () {
+        Route::post('/store', 'store');
+        Route::get('/get-pending-orders', 'getPendingOrders');
+        Route::put('/approve-order/{item_user_id}', 'approveOrder');
     });
 
 });

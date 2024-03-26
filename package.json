@@ -17,9 +17,11 @@
     "@iconify-json/bxl": "^1.1.10",
     "@iconify-json/mdi": "^1.1.64",
     "@peepi/vuetify-tiptap": "^1.4.0",
+    "@syncfusion/ej2-vue-calendars": "^25.1.35",
     "@tiptap/pm": "^2.2.4",
     "@tiptap/starter-kit": "^2.2.4",
     "@tiptap/vue-3": "^2.2.4",
+    "@vuepic/vue-datepicker": "^8.3.1",
     "@vueuse/core": "^10.5.0",
     "@vueuse/math": "^10.5.0",
     "apexcharts": "3.37.0",
@@ -38,6 +40,7 @@
     "vue3-apexcharts": "^1.4.4",
     "vue3-perfect-scrollbar": "^1.6.1",
     "vuetify": "3.4.9",
+    "vuetify-google-autocomplete": "^2.1.2",
     "webfontloader": "^1.6.28"
   },
   "devDependencies": {

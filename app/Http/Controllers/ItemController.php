@@ -27,6 +27,9 @@ class ItemController extends Controller
                 $query->where('name', 'like', '%'.request('search').'%')
                     ->orWhere('description', 'like', '%'.request('search').'%');
             })
+            ->when(request()->filled('sort_price'), function ($query) {
+                $query->orderBy('price', request('sort_price'));
+            })
 
             ->paginate($userPerPage);
 
