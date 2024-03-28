@@ -2,101 +2,83 @@ import axios from 'axios';
 import { defineStore } from 'pinia';
 
 export const useAuthStore = defineStore('user', () => {
-  
   const user = ref({
     username: null,
-    email: null, 
+    email: null,
     roles: [],
-    token: null, // Add token property to store the user's token
+    token: localStorage.getItem('token') || null, // Retrieve token from localStorage
     avatar: null,
     phone_number: null,
     user_id: null,
-    status:null,
-    password: null,
-
+    status: null,
   });
 
-  const deviceToken = ref(null)
-  const isLoggedIn = ref(false);
+  const deviceToken = ref(null);
+  const isLoggedIn = computed(() => !!user.value.token); // Check if token exists
   const errorMessages = ref(null);
 
   function $reset() {
     user.value = {
       username: null,
-      email: null, 
+      email: null,
       roles: [],
       token: null,
       avatar: null,
       phone_number: null,
       user_id: null,
-      status:null,
-      password: null,
+      status: null,
     };
-    isLoggedIn.value = false;
     deviceToken.value = null;
   }
 
-
   async function login(email, password) {
     try {
-
       const response = await axios.post('/api/auth/authenticate', { email, password });
-      const userData = response.data;
+      const userData = response.data.user;
       user.value = {
-        username: userData.user.username,
-        email: userData.user.email,
-        roles: userData.user.roles,
-        avatar: userData.user.avatar,
-        phone_number: userData.user.phone_number,
-        user_id: userData.user.user_id,
-        status: userData.user.status,
-        token: userData.token,
-        password: userData.user.password,
+        username: userData.username,
+        email: userData.email,
+        roles: userData.roles,
+        avatar: userData.avatar,
+        phone_number: userData.phone_number,
+        user_id: userData.user_id,
+        status: userData.status,
+        token: response.data.token,
       };
 
       // Save the new token to localStorage
-      localStorage.setItem('token', userData.token);
+      localStorage.setItem('token', response.data.token);
 
-      isLoggedIn.value = true;
-
-  
-  
-      return [userData, null];
+      return [response.data, null];
     } catch (error) {
       errorMessages.value = error.response.data.error;
       return [null, error];
     }
   }
-  
 
   async function logout() {
     try {
-      await axios.post('/api/auth/logout')
-      isLoggedIn.value = false;
-      //resetAllStoreState()
-      $reset()
-    } 
-    catch(error) {
-      console.error(error)
+      await axios.post('/api/auth/logout');
+      localStorage.removeItem('token'); // Remove token from localStorage
+      $reset();
+    } catch (error) {
+      console.error(error);
     }
   }
 
   async function getCurrentLoggedUser() {
-    
     try {
-      if(isLoggedIn.value === false){
-        const response = await axios.get('/api/auth/get-user')
-        user.value = response.data.data
-        isLoggedIn.value = true
-      }
-      
-    } 
-    catch(error) {
-      console.error(error)
+      const response = await axios.get('/api/auth/get-user');
+      const userData = response.data.data;
+      user.value = {
+        ...userData,
+        token: user.value.token, // Keep the existing token
+      };
+    } catch (error) {
+      console.error(error);
     }
   }
+  
 
-
-
-  return { user,deviceToken, $reset, login, isLoggedIn, logout, getCurrentLoggedUser, errorMessages};
+  return { user, deviceToken, $reset, login, isLoggedIn, logout, getCurrentLoggedUser, errorMessages };
 });

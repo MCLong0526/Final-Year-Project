@@ -1,6 +1,7 @@
 <script setup>
 import NavItems from '@/layouts/components/NavItems.vue';
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue';
+import Notification from '@/layouts/components/Notification.vue';
 import UserProfile from '@/layouts/components/UserProfile.vue';
 import UnimasLogo from '@images/logos/logoUni.png';
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
@@ -38,9 +39,7 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
         <VSpacer />
 
-        <IconBtn class="me-2">
-          <VIcon icon="ri-notification-line" />
-        </IconBtn>
+        <Notification />
 
         <NavbarThemeSwitcher class="me-2" />
 
@@ -85,6 +84,7 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
     
   </VerticalNavLayout>
+
 </template>
 
 <style lang="scss" scoped>
@@ -108,5 +108,6 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
     line-height: 1.75rem;
     text-transform: uppercase;
   }
-}
+} 
+
 </style>

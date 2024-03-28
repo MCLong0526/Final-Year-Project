@@ -175,6 +175,28 @@ const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be 
           >
             <VAvatar size="30">
               <VIcon icon="ri-user-star-line" />
+              <VMenu
+                activator="parent"
+                transition="slide-x-transition"
+                location="right"
+                offset="14px"
+              >
+              <VCard>
+                <VList>
+                  <VListItemTitle class="ml-4">
+                    Roles
+                  </VListItemTitle>
+                  <VListItem>
+                    <template v-for="role in item.roles" :key="role.role_id">
+                      <VChip color="primary" size="small" class="me-2">
+                        {{ role.name }}
+                      </VChip>
+                    </template>
+                  </VListItem>
+                </VList>
+              </VCard>
+
+              </VMenu>
             </VAvatar>
         </VBadge>
         </td>

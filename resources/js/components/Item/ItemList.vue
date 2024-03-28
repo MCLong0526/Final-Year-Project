@@ -67,6 +67,7 @@ const submitOrder = async () => {
     openItemDialog.value = false;
     props.allItemLoad();
     meetDateTime.value = '';
+    placeToMeet.value = '';
     quantity.value = '';
     remark_buyer.value = '';
     isAddAlert.value = true;
@@ -219,7 +220,10 @@ watch(meetDateTime, (newValue) => {
         >
           Close
         </VBtn>
-        <VBtn @click="checkStatusDialog = true">
+        <VBtn 
+          v-if="clickedItem.isOwn === false"
+          @click="checkStatusDialog = true" 
+        >
           <VTooltip
             location="top"
             activator="parent"
@@ -229,6 +233,7 @@ watch(meetDateTime, (newValue) => {
           </VTooltip>
           Check Status
         </VBtn>
+
       </VCardText>
     </VCard>
   </VDialog>

@@ -109,6 +109,17 @@ const allItemLoad = debounce(() => {
       });
     });
 
+    // if the user_id is the same as the user logged in, then the save the item_id
+    allItems.value.forEach((item) => {
+      if(item.user_id === user.value.user_id){
+        item.isOwn = true;
+      }
+      else{
+        item.isOwn = false;
+      }
+    });
+
+
   }).catch((error) => {
     console.log(error);
   });

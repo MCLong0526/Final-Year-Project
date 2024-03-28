@@ -7,7 +7,7 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  getPendingOrders: {
+  getAllOrders: {
     type: Function,
     required: true
   }
@@ -15,11 +15,13 @@ const props = defineProps({
 
 const clickedItem = ref({})
 const openPendingDialog = ref(false)
-const openApproveDialog = ref(false)
+const openDecisionDialog = ref(false)
 const meet_dateTime = ref(null)
 const remark_seller = ref('')
 const preferredDates = ref([])
+const decision= ref('')
 const isApprovedAlert = ref(false)
+const isRejectedAlert = ref(false)
 
 
 const viewPendingOrder = (item) => {
@@ -28,6 +30,16 @@ const viewPendingOrder = (item) => {
   extractPreferredDates([item]);
   console.log(clickedItem.value);
   
+}
+
+const openApproveDialog = () => {
+  openDecisionDialog.value = true;
+  decision.value = 'approve';
+}
+
+const openRejectDialog = () => {
+  openDecisionDialog.value = true;
+  decision.value = 'reject';
 }
 
 const extractPreferredDates = (pendingOrders) => {
@@ -44,20 +56,32 @@ const extractPreferredDates = (pendingOrders) => {
   return preferredDates;
 };
 
-const approveOrder = () => {
+
+//confirm order
+const confirmedOrder = () => {
   //change the date format to yyyy-mm-dd hh:mm:ss
   meet_dateTime.value = new Date(meet_dateTime.value).toISOString().slice(0, 19).replace('T', ' ');
+  if(decision.value === 'reject') {
+    meet_dateTime.value = null;
+  }
   const data = {
     meet_dateTime: meet_dateTime.value,
     remark_seller: remark_seller.value
   }
 
-  axios.put('/api/order-items/approve-order/' + clickedItem.value.id, data)
+  axios.put('/api/order-items/confirmed-order/' + clickedItem.value.id, data)
     .then(response => {
-      openApproveDialog.value = false;
+      openDecisionDialog.value = false;
       openPendingDialog.value = false;
-      isApprovedAlert.value = true;
-      props.getPendingOrders();
+      meet_dateTime.value = null;
+      remark_seller.value = '';
+      if(decision.value === 'approve') {
+        isApprovedAlert.value = true;
+      } else {
+        isRejectedAlert.value = true;
+      }
+      decision.value = '';
+      props.getAllOrders();
     })
     .catch(error => {
       console.log(error)
@@ -66,12 +90,12 @@ const approveOrder = () => {
 
 
 
+
+
 </script>
 <template>
-
-  <VTable height="250" fixed-header>
+  <VTable v-if="pendingOrders.length > 0" height="250" fixed-header>
     <thead>
-
       <tr>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-info-i" />
@@ -146,8 +170,57 @@ const approveOrder = () => {
           <VBtn color="primary" @click="viewPendingOrder(item)">View</VBtn>
         </td>
       </tr>
+      
     </tbody>
   </VTable>
+
+  <VTable v-else height="140" fixed-header>
+    <thead>
+      <tr>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-info-i" />
+          Order ID
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-product-hunt-line" />
+          Product
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-id-card-line" />
+          Customer
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-calendar-schedule-line" />
+          Order Date
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-verified-badge-line" />
+          Status
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-eye-line" />
+          View
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="6" class="text-center">
+          <VAlert  
+            variant="tonal"
+            type="warning"
+            class="mt-2"
+            color="primary"
+            closable
+            dense
+          >
+            No pending orders found.
+          </VAlert>
+        </td>
+      </tr>
+    </tbody>
+    
+    </VTable>
 
 
 
@@ -222,13 +295,13 @@ const approveOrder = () => {
         <VBtn
           color="error"
           class="me-4"
-          @click="openPendingDialog = false"
+          @click="openRejectDialog"
         >
           Reject
         </VBtn>
         <VBtn
           color="success"
-          @click="openApproveDialog = true"
+          @click="openApproveDialog"
         >
           Approve
         </VBtn>
@@ -239,7 +312,7 @@ const approveOrder = () => {
 
   <!--Approve Dialog-->
   <VDialog
-    v-model="openApproveDialog"
+    v-model="openDecisionDialog"
     max-width="600"
   >
     <!-- Dialog Content -->
@@ -251,7 +324,7 @@ const approveOrder = () => {
         @submit.prevent>
         <VRow>
           <!-- 👉 Select date -->
-          <VCol cols="12">
+          <VCol cols="12" v-if="decision === 'approve'">
             <VRow no-gutters>
               <VCol
                 cols="12"
@@ -295,7 +368,7 @@ const approveOrder = () => {
                 <VTextarea
                   v-model="remark_seller"
                   prepend-inner-icon="ri-chat-4-line"
-                  placeholder="Enter Remark"
+                  placeholder="Enter Remark for Buyer"
                   :rules="[requiredValidator]"
                 />
               </VCol>
@@ -313,14 +386,14 @@ const approveOrder = () => {
             <VBtn
             class="ml-8"
               color="secondary"
-              @click="openApproveDialog = false"
+              @click="openDecisionDialog = false"
               variant="tonal"
             >
               Close
             </VBtn>
             <VBtn
               type="submit"
-              @click="$refs.refForm.validate().then(() => approveOrder())"
+              @click="$refs.refForm.validate().then(() => confirmedOrder())"
             >
               Send
             </VBtn>
@@ -340,6 +413,16 @@ const approveOrder = () => {
     >
     <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
       Order has been successfully approved.
+  </VSnackbar>
+
+  <VSnackbar
+      v-model="isRejectedAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+      Order has been successfully rejected.
   </VSnackbar>
 
 

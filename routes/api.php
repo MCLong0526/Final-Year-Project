@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -52,8 +53,15 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::controller(OrderItemController::class)->prefix('order-items')->group(function () {
         Route::post('/store', 'store');
-        Route::get('/get-pending-orders', 'getPendingOrders');
-        Route::put('/approve-order/{item_user_id}', 'approveOrder');
+        Route::get('/get-all-sell-orders', 'getAllSellOrders');
+        Route::get('/get-buy-orders', 'getBuyOrders');
+        Route::put('/confirmed-order/{item_user_id}', 'confirmedOrder');
+    });
+    Route::controller(NotificationController::class)->prefix('notifications')->group(function () {
+        Route::get('/get-auth-notifications', 'getAuthNotifications');
+        Route::put('/mark-as-read/{notification_id}', 'markAsRead');
+        Route::put('/mark-all-read/{user_id}', 'markAllRead');
+
     });
 
 });

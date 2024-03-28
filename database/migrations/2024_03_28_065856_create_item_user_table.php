@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('item_user', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('item_id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('buyer_id');
             $table->string('status');
             $table->dateTime('meet_dateTime')->nullable();
             $table->dateTime('order_dateTime');
@@ -25,9 +25,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('item_id')->references('item_id')->on('items')->onDelete('cascade');
-            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
-
-            $table->unique(['item_id', 'user_id']);
+            $table->foreign('buyer_id')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
 

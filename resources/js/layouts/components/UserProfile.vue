@@ -50,7 +50,6 @@ getUser();
 
 <template>
   <VBadge
-    
     dot
     location="bottom right"
     offset-x="3"

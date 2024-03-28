@@ -34,13 +34,16 @@ class OrderItemController extends Controller
      */
     public function store(CreateOrderRequest $request)
     {
+        // Set the timezone to Malaysia
+        date_default_timezone_set('Asia/Kuala_Lumpur');
         // Get the authenticated user's ID
         $userId = Auth::id();
 
         // Check if an order already exists for the same item_id and user_id
         $existingOrder = DB::table('item_user')
             ->where('item_id', $request->item_id)
-            ->where('user_id', $userId)
+            ->where('buyer_id', $userId)
+            ->where('status', 'pending')
             ->first();
 
         if ($existingOrder) {
@@ -58,6 +61,18 @@ class OrderItemController extends Controller
             'place_to_meet' => $request->place_to_meet,
             'order_dateTime' => $orderDateTime,
             'remark_buyer' => $request->remark_buyer,
+        ]);
+
+        // set the notification to the seller
+        $sellerId = Item::findOrFail($request->item_id)->user_id;
+        $itemName = Item::findOrFail($request->item_id)->name;
+        $information = "I have placed an order for your item '$itemName'. Please check it out!";
+        DB::table('notifications')->insert([
+            'sender_id' => $userId,
+            'receiver_id' => $sellerId,
+            'information' => $information,
+            'status' => 'Unread',
+            'created_at' => $orderDateTime,
         ]);
 
         return $this->success('Order placed successfully');
@@ -96,7 +111,7 @@ class OrderItemController extends Controller
         //
     }
 
-    public function getPendingOrders()
+    public function getAllSellOrders()
     {
         // Get the authenticated user's ID
         $userId = Auth::id();
@@ -104,34 +119,80 @@ class OrderItemController extends Controller
         // Get all items belongs to the user
         $itemIds = Item::where('user_id', $userId)->pluck('item_id');
 
-        // Get all pending orders for the authenticated user
-        $pendingOrders = DB::table('item_user')
+        // Get all orders for the authenticated user
+        $allOrders = DB::table('item_user')
             ->whereIn('item_id', $itemIds)
-            ->where('status', 'pending')
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
-        foreach ($pendingOrders as $order) {
-            $order->user = User::find($order->user_id);
+        foreach ($allOrders as $order) {
+            $order->user = User::find($order->buyer_id);
             $order->item = Item::find($order->item_id);
 
             // Get the pictures for the item
             $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
         }
 
-        return $this->success(data: $pendingOrders, message: 'Pending orders retrieved successfully');
+        return $this->success(data: $allOrders, message: 'All selling orders retrieved successfully');
     }
 
-    public function approveOrder(Request $request, string $id)
+    public function confirmedOrder(Request $request, string $id)
     {
-        // update the item_user table with the status 'Approved', and the $id is the item_user.id
-        // update also the meet_dateTime, remark_seller
-        DB::table('item_user')->where('id', $id)->update([
-            'status' => 'Approved',
-            'meet_dateTime' => $request->meet_dateTime,
-            'remark_seller' => $request->remark_seller,
+
+        // Set the timezone to Malaysia
+        date_default_timezone_set('Asia/Kuala_Lumpur');
+
+        if ($request->meet_dateTime === null) {
+            DB::table('item_user')->where('id', $id)->update([
+                'status' => 'Rejected',
+                'meet_dateTime' => $request->meet_dateTime,
+                'remark_seller' => $request->remark_seller,
+            ]);
+        } else {
+            DB::table('item_user')->where('id', $id)->update([
+                'status' => 'Approved',
+                'meet_dateTime' => $request->meet_dateTime,
+                'remark_seller' => $request->remark_seller,
+            ]);
+        }
+
+        // set the notification to the buyer
+        $order = DB::table('item_user')->where('id', $id)->first();
+        $buyerId = $order->buyer_id;
+        $itemName = Item::findOrFail($order->item_id)->name;
+        $information = "Your order for the item '$itemName' has been $order->status by the seller.";
+        DB::table('notifications')->insert([
+            'sender_id' => Auth::id(),
+            'receiver_id' => $buyerId,
+            'information' => $information,
+            'status' => 'Unread',
+            'created_at' => now(),
+
         ]);
 
         return $this->success('Order approved successfully');
     }
+
+    // public function getBuyOrders()
+    // {
+    //     // Get the authenticated user's ID
+    //     $userId = Auth::id();
+
+    //     // Get all Approved and Rejected orders for the authenticated user
+    //     $buyOrders = DB::table('item_user')
+    //         ->where('user_id', $userId)
+    //         ->where('status', 'Approved')
+    //         ->get();
+
+    //     // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
+    //     foreach ($buyOrders as $order) {
+    //         $order->user = User::find($order->user_id);
+    //         $order->item = Item::find($order->item_id);
+
+    //         // Get the pictures for the item
+    //         $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
+    //     }
+
+    //     return $this->success(data: $buyOrders, message: 'Buy orders retrieved successfully');
+    // }
 }
