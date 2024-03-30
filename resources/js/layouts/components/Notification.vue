@@ -3,16 +3,16 @@ import axios from 'axios';
 
 const notifications = ref([]);
 const userIdForNotification = ref(0);
+const unreadNotification = ref(0);
 
 const getNotification = () => {
   axios.get('/api/notifications/get-auth-notifications')
     .then(response => {
       notifications.value = response.data.data
       
-      // sort the notifications status by 'Unread' first, and then 'Read'
-      notifications.value.sort((a, b) => {
-        return a.status === 'Unread' ? -1 : 1
-      })
+      // sort the notifications status by 'Unread' first, and then 'Read', and count the number of unread notifications
+      unreadNotification.value = notifications.value.filter(notification => notification.status === 'Unread').length
+
 
       //sort the notifications by the latest
      
@@ -41,7 +41,6 @@ const getNotification = () => {
       {
         userIdForNotification.value = notifications.value[0].receiver_id
       }
-      
 
     })
     .catch(error => {
@@ -76,7 +75,26 @@ getNotification()
 
 <template>
   <IconBtn class="me-2">
-    <VIcon icon="ri-notification-line" />
+    <VBadge
+      v-if="unreadNotification > 0"
+      color="primary"
+      :content="unreadNotification"
+    >
+      <VIcon
+        size="25"
+        icon="ri-notification-line"
+      />
+    </VBadge>
+    <VBadge
+      v-else
+      dot
+      color="secondary"
+    >
+      <VIcon
+        size="25"
+        icon="ri-notification-line"
+      />
+    </VBadge>
       <VMenu
         activator="parent"
         :close-on-content-click="false"

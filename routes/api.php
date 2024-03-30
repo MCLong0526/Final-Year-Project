@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderItemController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -55,12 +57,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/store', 'store');
         Route::get('/get-all-sell-orders', 'getAllSellOrders');
         Route::get('/get-buy-orders', 'getBuyOrders');
+        Route::get('/count-pending-orders', 'countPendingOrders');
         Route::put('/confirmed-order/{item_user_id}', 'confirmedOrder');
     });
     Route::controller(NotificationController::class)->prefix('notifications')->group(function () {
         Route::get('/get-auth-notifications', 'getAuthNotifications');
         Route::put('/mark-as-read/{notification_id}', 'markAsRead');
         Route::put('/mark-all-read/{user_id}', 'markAllRead');
+    });
+    Route::controller(PostController::class)->prefix('posts')->group(function () {
+        Route::post('/store', 'store');
+        Route::get('/', 'index');
+        Route::post('/like/{post_id}', 'likePost');
+        Route::post('/unlike/{post_id}', 'unlikePost');
+
+    });
+    Route::controller(CommentController::class)->prefix('comments')->group(function () {
+        Route::post('/store', 'store');
+        Route::get('/get-comments-by-post-id/{post_id}', 'getCommentsByPostId');
 
     });
 

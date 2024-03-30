@@ -81,7 +81,11 @@ const confirmedOrder = () => {
         isRejectedAlert.value = true;
       }
       decision.value = '';
-      props.getAllOrders();
+      
+      // wait for 2 seconds before closing the alert
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     })
     .catch(error => {
       console.log(error)

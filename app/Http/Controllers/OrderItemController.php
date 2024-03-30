@@ -138,7 +138,6 @@ class OrderItemController extends Controller
 
     public function confirmedOrder(Request $request, string $id)
     {
-
         // Set the timezone to Malaysia
         date_default_timezone_set('Asia/Kuala_Lumpur');
 
@@ -171,6 +170,23 @@ class OrderItemController extends Controller
         ]);
 
         return $this->success('Order approved successfully');
+    }
+
+    public function countPendingOrders()
+    {
+        // Get the authenticated user's ID
+        $userId = Auth::id();
+
+        // get all the item_id that belongs to the user
+        $itemIds = Item::where('user_id', $userId)->pluck('item_id');
+
+        //compare the item_id with the item_id in the item_user table and get the pending orders
+        $pendingOrders = DB::table('item_user')
+            ->whereIn('item_id', $itemIds)
+            ->where('status', 'pending')
+            ->count();
+
+        return $this->success(data: $pendingOrders, message: 'Pending orders counted successfully');
     }
 
     // public function getBuyOrders()

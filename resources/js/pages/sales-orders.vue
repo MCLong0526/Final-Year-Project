@@ -6,6 +6,7 @@ import axios from "axios";
 const allOrders = ref([]);
 const pendingOrders = ref([]);
 const confirmedOrders = ref([]);
+const currentTab = ref('tab-1');
 
 
 const getAllOrders = () => {
@@ -85,22 +86,73 @@ getAllOrders()
 //getBuyOrders()
 </script>
 <template>
-  <VCardTitle class="box-style">Orders You Are Selling</VCardTitle>
-  <div class="table-style">
-    
-    <TablePendingOrders
-      :pendingOrders="pendingOrders"
-      :getAllOrders="getAllOrders"
-    />
-  </div>
-  <VDivider class="mt-2 mb-2"/>
-  <div class="table-style">
-    
-    <TableConfirmedOrders
-      :confirmedOrders="confirmedOrders"
-      :getAllOrders="getAllOrders"
-    />
-  </div>
+  <div class="box-style">
+
+  <VAlert
+      variant="tonal"
+      color="info"
+    >
+      <template #title >
+        <VIcon
+          icon="ri-information-line"
+          class="mr-2"
+        />
+        <span >Order of Selling Items</span>
+      </template>
+      <p>
+        This page shows the list of orders that are pending and confirmed. You can view the details of each order by clicking the "View" button.
+      </p>
+    </VAlert>
+  <VTabs
+    v-model="currentTab"
+    grow
+    stacked
+  >
+    <VTab value="tab-1">
+      <VIcon
+        icon="ri-loader-line"
+        class="mb-2"
+      />
+      <span>Pending Order</span>
+    </VTab>
+
+    <VTab value="tab-2">
+      <VIcon
+        icon="ri-takeaway-line"
+        class="mb-2"
+      />
+      <span>Confirmed Order</span>
+    </VTab>
+  </VTabs>
+
+  <VWindow
+    v-model="currentTab"
+    class="mt-5"
+  >
+    <VWindowItem
+      value="tab-1"
+    >
+      <div class="table-style">
+        <TablePendingOrders
+          :pendingOrders="pendingOrders"
+          :getAllOrders="getAllOrders"
+        />
+      </div>
+    </VWindowItem>
+
+    <VWindowItem
+      value="tab-2"
+    >
+      <div class="table-style">
+        <TableConfirmedOrders
+          :confirmedOrders="confirmedOrders"
+          :getAllOrders="getAllOrders"
+        />
+      </div>
+    </VWindowItem>
+  </VWindow>
+</div>
+  
 </template>
 
 <style scoped>

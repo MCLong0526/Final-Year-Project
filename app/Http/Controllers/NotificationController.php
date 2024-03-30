@@ -102,4 +102,14 @@ class NotificationController extends Controller
 
         return $this->success('All notifications marked as read successfully.', 200);
     }
+
+    public function countUnreadNotifications()
+    {
+        // Get all notifications belongs to the user, seller_id and buyer_id is the authenticated user's ID, for sale and buy orders
+        $notifications = Notification::where('receiver_id', Auth::id())
+            ->where('status', 'Unread')
+            ->get();
+
+        return $this->success($notifications, 'Unread notifications count retrieved successfully.', 200);
+    }
 }

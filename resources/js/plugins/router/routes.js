@@ -36,8 +36,13 @@ export const routes = [
         meta: { requiresAuth: true },
       },
       {
-        path:'order-information',
-        component: () => import('@/pages/order-information.vue'),
+        path:'sales-orders',
+        component: () => import('@/pages/sales-orders.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path:'track-purchases',
+        component: () => import('@/pages/track-purchases.vue'),
         meta: { requiresAuth: true },
       }
   

@@ -1,5 +1,23 @@
-<script setup>import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTitle.vue';
+<script setup>
+import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTitle.vue';
 import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
+import axios from 'axios';
+
+const purchasesNotification = ref(0);
+const orderNotification = ref(0);
+
+const getUnreadNotification = () => {
+  axios.get('/api/order-items/count-pending-orders')
+    .then(response => {
+      orderNotification.value = response.data.data
+
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+
+getUnreadNotification()
 
 </script>
 
@@ -40,6 +58,11 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
       to: '/life-moment-post',
     }"
   />
+  <VerticalNavSectionTitle
+    :item="{
+      heading: 'Product and Services',
+    }"
+  />
   <VerticalNavLink
     :item="{
       title: 'Selling Item',
@@ -47,16 +70,47 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
       to: '/selling-item',
     }"
   />
-  <VerticalNavLink
+  <VerticalNavSectionTitle
     :item="{
-      title: 'Order Information',
-      icon: 'ri-shopping-bag-2-line',
-      to: '/order-information',
+      heading: 'Order Information',
     }"
   />
-  
-  
+  <VerticalNavLink
+    v-if="orderNotification > 0"
+    :item="{
+      title: 'Sales Orders',
+      badgeContent: orderNotification,
+      badgeClass: 'bg-error',
+      icon: 'ri-shopping-bag-2-line',
+      to: '/sales-orders',
+    }"
+  />
+  <VerticalNavLink
+    v-else
+    :item="{
+      title: 'Sales Orders',
+      icon: 'ri-shopping-bag-2-line',
+      to: '/sales-orders',
+    }"
+  />
+  <VerticalNavLink
+    v-if="purchasesNotification > 0"
+    :item="{
+      title: 'Track Purchases',
+      badgeContent: purchasesNotification,
+      badgeClass: 'bg-error',
+      icon: 'ri-shopping-cart-2-line',
+      to: '/track-purchases',
+    }"
+  />
+  <VerticalNavLink
+    v-else
+    :item="{
+      title: 'Track Purchases',
+      icon: 'ri-shopping-cart-2-line',
+      to: '/track-purchases',
+    }"
+  />
 
-  
 
 </template>
