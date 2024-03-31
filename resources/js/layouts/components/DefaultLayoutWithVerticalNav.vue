@@ -1,6 +1,5 @@
 <script setup>
 import NavItems from '@/layouts/components/NavItems.vue';
-import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue';
 import Notification from '@/layouts/components/Notification.vue';
 import UserProfile from '@/layouts/components/UserProfile.vue';
 import UnimasLogo from '@images/logos/logoUni.png';
@@ -41,7 +40,7 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
         <Notification />
 
-        <NavbarThemeSwitcher class="me-2" />
+        <!-- <NavbarThemeSwitcher class="me-2" /> -->
 
 
         <UserProfile />
@@ -51,7 +50,7 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
     <template #vertical-nav-header="{ toggleIsOverlayNavActive }">
       <RouterLink
-        to="/"
+        to="/dashboard"
         class="app-logo app-title-wrapper"
       >
         <img

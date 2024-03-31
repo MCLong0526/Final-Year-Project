@@ -253,6 +253,8 @@ allItemLoad();
 
 <template>
 
+  <div class="box-style">
+
   <VRow class="mb-2">
     <VCol cols="12" md="3">
       <VCombobox
@@ -307,7 +309,7 @@ allItemLoad();
   </VRow>
 
   <!-- Item List -->
-  <div class="box-style">
+
     <div class="item-list-container">
       <ItemList 
         :allItems="allItems"
@@ -330,10 +332,12 @@ allItemLoad();
     </VCardText>
   </div>
 
+  <div class="box-style">
+
   <!-- 'Own Selling Item Table -->
   <VRow>
     <VCol cols="12" md="3">
-      <div class="mb-5">
+      <div class="mt-1 ml-2">
         <VBtn @click="addPictureBox=true">
           Sell New Item
         </VBtn>
@@ -343,6 +347,7 @@ allItemLoad();
     <VCol cols="12" md="3"/>
     <VCol cols="12" md="3">
       <VTextField
+      class="mb-2 mr-2"
         v-model="searchValue"
         placeholder="Search"
         label="Search name of the item"
@@ -353,7 +358,6 @@ allItemLoad();
   </VRow>
 
   <div class="table-style">
-    
     <TableItem
       :items="items"
       :itemsLoad="itemsLoad"
@@ -385,7 +389,11 @@ allItemLoad();
       </VCol>
     </VRow>
   </VCardText>
+</div>
 
+
+
+  <!-- Add New Item Dialog -->
 <VDialog
     v-model="addNewDialog"
     max-width="800"
@@ -660,8 +668,6 @@ allItemLoad();
 
 .item-list-container {
   block-size: 550px; /* Set the desired height */
-  margin-block-start:8px;
-  margin-inline:8px 8px;
   overflow-y: auto; /* Enable vertical scrolling */
 }
 
@@ -725,6 +731,13 @@ allItemLoad();
   display: flex;
   justify-content: space-between;
   gap: 440px;
+}
+
+.box-style {
+  padding: 10px; /* Padding around the text */
+  border: 1.5px solid #d3d3d3;
+  border-radius: 5px; /* Rounded corners */
+  background-color: rgba(255, 255, 255, 53.7%); /* Light gray background color */
 }
 </style>
 

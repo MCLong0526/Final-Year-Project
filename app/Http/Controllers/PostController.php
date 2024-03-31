@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PostRequest;
 use App\Models\Like;
+use App\Models\Notification;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,11 +17,16 @@ class PostController extends Controller
      */
     public function index()
     {
-        // get all the posts with pagination
+        $postPerPage = request()->input('per_page', 10);
+        $search = request('search');
+
         $posts = Post::with('user', 'comments', 'likes')
+            ->when($search, function ($query) use ($search) {
+                $query->where('content', 'like', '%'.$search.'%');
+            })
             ->withCount('comments', 'likes')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate($postPerPage);
 
         return $this->success(data: $posts, message: 'Posts retrieved successfully');
     }
@@ -128,6 +134,20 @@ class PostController extends Controller
         $like->post_id = $postId;
         $like->created_at = now();
         $like->save();
+
+        // create notification for like if the user is not the post owner
+        $post = Post::find($postId);
+
+        if ($post->user_id != $userId) {
+            $notification = new Notification();
+            $notification->receiver_id = $post->user_id;
+            $notification->sender_id = $userId;
+            $notification->information = Auth::user()->username.' liked your post';
+            $notification->status = 'Unread';
+            $notification->created_at = now();
+
+            $notification->save();
+        }
 
         return response()->json(['message' => 'Post liked successfully']);
 

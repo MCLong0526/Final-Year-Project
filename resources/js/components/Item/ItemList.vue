@@ -102,7 +102,7 @@ watch(meetDateTime, (newValue) => {
 </script>
 
 <template>
-  <VRow>
+  <VRow class="mt-1 ml-1 mr-1">
     <VCol
       v-for="(item) in allItems"
       :key="item.item_id"

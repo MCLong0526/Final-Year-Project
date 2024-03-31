@@ -151,7 +151,7 @@ getAllOrders()
       </div>
     </VWindowItem>
   </VWindow>
-</div>
+  </div>
   
 </template>
 

@@ -55,7 +55,8 @@ class CommentController extends Controller
 
         $comment->save();
 
-        if ($comment->parent_id !== null) {
+        // Check if the comment is a reply and the replier is not the post owner
+        if ($comment->parent_id !== null && $comment->replier_id !== $comment->post->user_id) {
             //create notification for reply
             $notification = new Notification();
             $notification->receiver_id = $comment->replier_id;
@@ -65,7 +66,7 @@ class CommentController extends Controller
             $notification->created_at = now();
 
             $notification->save();
-        } else {
+        } elseif ($comment->parent_id === null && $comment->user_id !== $comment->post->user_id) {
             //create notification for comment
             $notification = new Notification();
             $notification->receiver_id = $comment->post->user_id;

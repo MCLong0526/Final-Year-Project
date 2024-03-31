@@ -189,6 +189,30 @@ class OrderItemController extends Controller
         return $this->success(data: $pendingOrders, message: 'Pending orders counted successfully');
     }
 
+    // get purchases pending orders
+    public function getPurchasesOrders()
+    {
+        // Get the authenticated user's ID
+        $userId = Auth::id();
+
+        // Get all Approved and Rejected orders for the authenticated user
+        $buyOrders = DB::table('item_user')
+            ->where('buyer_id', $userId)
+            ->get();
+
+        // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
+        foreach ($buyOrders as $order) {
+            $order->user = User::find($order->buyer_id);
+            $order->item = Item::find($order->item_id);
+
+            // Get the pictures for the item
+            $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
+            $order->item->user = User::find($order->item->user_id);
+        }
+
+        return $this->success(data: $buyOrders, message: 'Purchases orders retrieved successfully');
+    }
+
     // public function getBuyOrders()
     // {
     //     // Get the authenticated user's ID

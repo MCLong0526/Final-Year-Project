@@ -58,7 +58,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/get-all-sell-orders', 'getAllSellOrders');
         Route::get('/get-buy-orders', 'getBuyOrders');
         Route::get('/count-pending-orders', 'countPendingOrders');
+        Route::get('/get-purchases-orders', 'getPurchasesOrders');
         Route::put('/confirmed-order/{item_user_id}', 'confirmedOrder');
+
     });
     Route::controller(NotificationController::class)->prefix('notifications')->group(function () {
         Route::get('/get-auth-notifications', 'getAuthNotifications');
