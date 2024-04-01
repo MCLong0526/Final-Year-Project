@@ -1,9 +1,12 @@
 <script setup>
+import ConfirmedPurchasesTable from "@/components/Purchases/ConfirmedPurchasesTable.vue";
 import PendingPurchasesTable from "@/components/Purchases/PendingPurchasesTable.vue";
 import axios from "axios";
 
 const currentTab = ref('tab-1');
 const pendingPurchasesOrders = ref([]);
+const approvedPurchasesOrders = ref([]);
+const rejectedPurchasesOrders = ref([]);
 const allOrders = ref([]);
 
 const getPurchasesOrder = () => {
@@ -40,10 +43,12 @@ const getPurchasesOrder = () => {
       allOrders.value.forEach((item) => {
         if (item.status == 'Pending') {
           pendingPurchasesOrders.value.push(item)
-        }else
-        {
-          //confirmedOrders.value.push(item)
+        }else if(item.status == 'Approved'){
+          approvedPurchasesOrders.value.push(item)
+        }else{
+          rejectedPurchasesOrders.value.push(item)
         }
+      
 
       })
 
@@ -103,7 +108,7 @@ getPurchasesOrder()
       icon="ri-calendar-close-fill"
       class="mb-2"
     />
-    <span>Rejected Order</span>
+    <span>Rejected/Cancelled Order</span>
   </VTab>
 
 </VTabs>
@@ -127,6 +132,9 @@ getPurchasesOrder()
     value="tab-2"
   >
     <div class="table-style">
+      <ConfirmedPurchasesTable
+        :confirmedPurchasesOrders="approvedPurchasesOrders"
+      />
       
     </div>
   </VWindowItem>
@@ -135,7 +143,9 @@ getPurchasesOrder()
     value="tab-3"
   >
     <div class="table-style">
-      
+      <ConfirmedPurchasesTable
+        :confirmedPurchasesOrders="rejectedPurchasesOrders"
+      />
     </div>
   </VWindowItem>
 </VWindow>

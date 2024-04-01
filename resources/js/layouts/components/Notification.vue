@@ -138,10 +138,12 @@ getNotification()
               </VBtn>
           </VCol>
         </VRow>
+        
 
           <VDivider />
              
             <template
+              
               v-for="(notification, index) of notifications"
               :key="notification.id"
             >

@@ -13,6 +13,8 @@ declare module 'vue' {
     CardStatisticsVertical: typeof import('./resources/js/@core/components/cards/CardStatisticsVertical.vue')['default']
     CardStatisticsWithImages: typeof import('./resources/js/@core/components/cards/CardStatisticsWithImages.vue')['default']
     ConfirmationDialog: typeof import('./resources/js/components/ConfirmationDialog.vue')['default']
+    ConfirmedPurchasesTable: typeof import('./resources/js/components/Purchases/ConfirmedPurchasesTable.vue')['default']
+    ConfirmPurchasesTable: typeof import('./resources/js/components/Purchases/ConfirmPurchasesTable.vue')['default']
     CreateButton: typeof import('./resources/js/components/CreateButton.vue')['default']
     CustomSnackbar: typeof import('./resources/js/components/SnackBarAlert/CustomSnackbar.vue')['default']
     ErrorHeader: typeof import('./resources/js/components/ErrorHeader.vue')['default']

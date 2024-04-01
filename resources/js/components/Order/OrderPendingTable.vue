@@ -7,7 +7,7 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  getAllOrders: {
+  getPendingOrders: {
     type: Function,
     required: true
   }
@@ -81,11 +81,10 @@ const confirmedOrder = () => {
         isRejectedAlert.value = true;
       }
       decision.value = '';
+
+      // refresh the pending orders
+      props.getPendingOrders();
       
-      // wait for 2 seconds before closing the alert
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
     })
     .catch(error => {
       console.log(error)
@@ -171,7 +170,24 @@ const confirmedOrder = () => {
         </td>
 
         <td class="text-center">
-          <VBtn color="primary" @click="viewPendingOrder(item)">View</VBtn>
+          <VBtn
+            color="warning"
+            style="margin-inline: 15px 3px"
+            size="small"
+            @click="viewPendingOrder(item)"
+          >
+            <VIcon
+              icon="ri-eye-line"
+            />
+            <VTooltip
+                open-delay="500"
+                location="top"
+                activator="parent"
+                transition="scroll-y-transition"
+              >
+                <span>Confirm Order</span>
+              </VTooltip>
+          </VBtn>
         </td>
       </tr>
       

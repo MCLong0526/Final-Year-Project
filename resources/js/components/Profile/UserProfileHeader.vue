@@ -89,11 +89,11 @@ const getUser = async () => {
 // change the role color
 const getRoleColor = (role) => {
   switch (role) {
-    case 'admin':
+    case 'Admin':
       return 'error';
-    case 'buyer':
+    case 'Buyer':
       return 'success';
-    case 'seller':
+    case 'Seller':
       return 'warning';
     default:
       return 'info';

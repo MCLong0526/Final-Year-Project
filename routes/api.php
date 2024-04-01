@@ -55,11 +55,13 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::controller(OrderItemController::class)->prefix('order-items')->group(function () {
         Route::post('/store', 'store');
-        Route::get('/get-all-sell-orders', 'getAllSellOrders');
+        Route::get('/get-pending-sell-orders', 'getPendingSellOrders');
+        Route::get('/get-confirmed-sell-orders', 'getConfirmedSellOrders');
         Route::get('/get-buy-orders', 'getBuyOrders');
         Route::get('/count-pending-orders', 'countPendingOrders');
         Route::get('/get-purchases-orders', 'getPurchasesOrders');
         Route::put('/confirmed-order/{item_user_id}', 'confirmedOrder');
+        Route::put('/cancel-pending-order/{item_user_id}', 'cancelPendingOrder');
 
     });
     Route::controller(NotificationController::class)->prefix('notifications')->group(function () {
@@ -70,8 +72,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(PostController::class)->prefix('posts')->group(function () {
         Route::post('/store', 'store');
         Route::get('/', 'index');
+        Route::get('/get-auth-posts', 'getAuthPosts');
         Route::post('/like/{post_id}', 'likePost');
         Route::post('/unlike/{post_id}', 'unlikePost');
+        Route::delete('/delete/{post_id}', 'destroy');
 
     });
     Route::controller(CommentController::class)->prefix('comments')->group(function () {

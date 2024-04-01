@@ -119,7 +119,15 @@ class PostController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $post = Post::findorFail($id);
+
+        if (! $post) {
+            return response()->json(['message' => 'Post not found'], 404);
+        }
+
+        $post->delete();
+
+        return response()->json(['message' => 'Post deleted successfully']);
     }
 
     //like post
@@ -161,5 +169,18 @@ class PostController extends Controller
         Like::where('user_id', $userId)->where('post_id', $postId)->delete();
 
         return response()->json(['message' => 'Post unliked successfully']);
+    }
+
+    public function getAuthPosts()
+    {
+        $userId = Auth::id();
+
+        $posts = Post::with('user', 'comments', 'likes')
+            ->where('user_id', $userId)
+            ->withCount('comments', 'likes')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $this->success(data: $posts, message: 'Posts retrieved successfully');
     }
 }

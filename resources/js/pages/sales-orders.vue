@@ -2,20 +2,27 @@
 import TableConfirmedOrders from "@/components/Order/OrderConfirmedTable.vue";
 import TablePendingOrders from "@/components/Order/OrderPendingTable.vue";
 import axios from "axios";
+import { debounce } from 'lodash';
+import { watch } from "vue";
 
-const allOrders = ref([]);
 const pendingOrders = ref([]);
 const confirmedOrders = ref([]);
 const currentTab = ref('tab-1');
+const searchCustomer = ref('');
+const orderStatus = ref([]);
+const orderStatusSelect = [
+  { name: 'Approved', value: 'Approved' },
+  { name: 'Rejected', value: 'Rejected' },
+];
 
 
-const getAllOrders = () => {
-  axios.get('/api/order-items/get-all-sell-orders')
+const getPendingOrders = () => {
+  axios.get('/api/order-items/get-pending-sell-orders')
     .then(response => {
-      allOrders.value = response.data.data
+      pendingOrders.value = response.data.data
 
       // change the order_dateTime format to yyyy-mm-dd hh:mm am/pm, remove the seconds
-      allOrders.value.forEach((item) => {
+      pendingOrders.value.forEach((item) => {
         const formatDate = (dateTime) => {
           const date = new Date(dateTime);
           const year = date.getFullYear();
@@ -35,24 +42,11 @@ const getAllOrders = () => {
 
 
       // change the item picture path to http://127.0.0.1:8000/storage/
-      allOrders.value.forEach((item) => {
+      pendingOrders.value.forEach((item) => {
         item.item.pictures.forEach((picture) => {
           picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path
         })
       })
-
-      //separate status = 'Pending' from allOrders, and assign to pendingOrders
-      allOrders.value.forEach((item) => {
-        if (item.status == 'Pending') {
-          pendingOrders.value.push(item)
-        }else
-        {
-          confirmedOrders.value.push(item)
-        }
-
-      })
-
-
 
     })
     .catch(error => {
@@ -60,30 +54,61 @@ const getAllOrders = () => {
     })
 }
 
-// const getBuyOrders = () => {
-//   axios.get('/api/order-items/get-buy-orders')
-//     .then(response => {
-//       buyOrders.value = response.data.data
+const getConfirmedOrders = debounce(() => {
+  let requestURL = '/api/order-items/get-confirmed-sell-orders';
+  if (searchCustomer.value && searchCustomer.value.length > 2) {
+    requestURL += `?search=${searchCustomer.value}`;
+  }
+  if (orderStatus.value.value) {
+    requestURL += `?&status=${orderStatus.value.value}`;
+  }
+  axios.get(requestURL)
+    .then(({data}) => {
+      confirmedOrders.value = data.data
 
-//       // change the order_dateTime format to yyyy-mm-dd hh:mm am/pm
-//       buyOrders.value.forEach((item) => {
-//         item.order_dateTime = new Date(item.order_dateTime).toLocaleString()
-//       })
+      // change the order_dateTime format to yyyy-mm-dd hh:mm am/pm, remove the seconds
+      confirmedOrders.value.forEach((item) => {
+        const formatDate = (dateTime) => {
+          const date = new Date(dateTime);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          let hours = date.getHours();
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          const ampm = hours >= 12 ? 'pm' : 'am';
+          hours = hours % 12 || 12;
+          return `${year}-${month}-${day} ${hours}:${minutes} ${ampm}`;
+        };
 
-//       // change the item picture path to http://
-//       buyOrders.value.forEach((item) => {
-//         item.item.pictures.forEach((picture) => {
-//           picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path
-//         })
-//       })
-//     })
-//     .catch(error => {
-//       console.log(error)
-//     })
-//   }
+        item.order_dateTime = formatDate(item.order_dateTime);
+        item.meet_dateTime = formatDate(item.meet_dateTime);
+      });
 
-getAllOrders()
-//getBuyOrders()
+
+
+      // change the item picture path to http://127.0.0.1:8000/storage/
+      confirmedOrders.value.forEach((item) => {
+        item.item.pictures.forEach((picture) => {
+          picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path
+        })
+      })
+
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}, 800);
+
+watch(searchCustomer, () => {
+  getConfirmedOrders();
+})
+
+watch(orderStatus, () => {
+  getConfirmedOrders();
+})
+
+getPendingOrders()
+getConfirmedOrders()
 </script>
 <template>
   <div class="box-style">
@@ -132,10 +157,11 @@ getAllOrders()
     <VWindowItem
       value="tab-1"
     >
+    
       <div class="table-style">
         <TablePendingOrders
           :pendingOrders="pendingOrders"
-          :getAllOrders="getAllOrders"
+          :getPendingOrders="getPendingOrders"
         />
       </div>
     </VWindowItem>
@@ -143,10 +169,41 @@ getAllOrders()
     <VWindowItem
       value="tab-2"
     >
+    <VRow>
+      <VCol cols="12" md="3">
+        <VCombobox
+          v-model="orderStatus"
+          class="mb-4 mt-2"
+          chips
+          return-object
+          item-title="name"
+          :items="orderStatusSelect"
+          prepend-inner-icon="ri-filter-3-line"
+          placeholder="Select Order Status"
+          clearable
+        @click:clear="orderStatus = []"
+        />
+        </VCol>
+        <VCol cols="12" md="3" />
+        <VCol cols="12" md="3" />
+        
+      <VCol cols="12" md="3">
+        <VTextField
+          class="mb-4 mt-2"
+          v-model="searchCustomer"
+          label="Search"
+          placeholder="Search"
+          dense
+          clearable
+        />
+        </VCol>
+        
+      
+      </VRow>
       <div class="table-style">
         <TableConfirmedOrders
           :confirmedOrders="confirmedOrders"
-          :getAllOrders="getAllOrders"
+          :getConfirmedOrders="getConfirmedOrders"
         />
       </div>
     </VWindowItem>

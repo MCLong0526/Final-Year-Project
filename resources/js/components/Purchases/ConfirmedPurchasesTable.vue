@@ -1,48 +1,35 @@
 <script setup>
-
 // get user data from store
 import { useAuthStore } from '@/plugins/store/AuthStore'; // Adjust the path based on your project structure
-import { ref } from 'vue';
-
 const store = useAuthStore();
-
 const props = defineProps({
-  confirmedOrders: {
+  confirmedPurchasesOrders: {
     type: Object,
     required: true
   },
-  getConfirmedOrders: {
-    type: Function,
-    required: true
-  }
-
 })
 
 const clickedItem = ref({})
-const openApprovedDialog = ref(false)
-const isApprovedAlert = ref(false)
+const openConfirmedDialog = ref(false)
 
-
-const viewApprovedOrder = (item) => {
-  openApprovedDialog.value = true;
+const viewOrder = (item) => {
+  openConfirmedDialog.value = true;
   clickedItem.value = item;
 }
 
 const openWhatsApp = (clickedUser) => {
 
-  const message = `Hello! I am ${store.user.username} from UNIMAS Web App. I would like to discuss the order here. Thank you.`;
-  const apilink = `https://web.whatsapp.com/send?phone=+60${clickedUser.phone_number}&text=${encodeURIComponent(message)}`;
+const message = `Hello! I am ${store.user.username} from UNIMAS Web App. I would like to discuss the order here. Thank you.`;
+const apilink = `https://web.whatsapp.com/send?phone=+60${clickedUser.phone_number}&text=${encodeURIComponent(message)}`;
 
-  // Open the WhatsApp web link
-  window.open(apilink, '_blank');
+// Open the WhatsApp web link
+window.open(apilink, '_blank');
 };
 
-
-
-
 </script>
+
 <template>
-  <VTable v-if="confirmedOrders.length>0" height="250" fixed-header>
+  <VTable v-if="confirmedPurchasesOrders.length>0" height="250" fixed-header>
     
     <thead>
 
@@ -57,7 +44,7 @@ const openWhatsApp = (clickedUser) => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-id-card-line" />
-          Customer
+         Seller
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
@@ -79,7 +66,7 @@ const openWhatsApp = (clickedUser) => {
     </thead>
 
     <tbody>
-      <tr v-for="item in confirmedOrders" :key="item.id">
+      <tr v-for="item in confirmedPurchasesOrders" :key="item.id">
         <td class="text-center">#{{ item.id }}</td>
         <td>
           <div class="d-flex align-items-center">
@@ -100,16 +87,16 @@ const openWhatsApp = (clickedUser) => {
         <td>
           <div class="d-flex align-items-center">
             <VAvatar
-              v-if="item.user.avatar"
+              v-if="item.item.user.avatar"
               size="32"
-              :color="item.user.avatar ? '' : 'primary'"
+              :color="item.item.user.avatar ? '' : 'primary'"
               class="mr-1"
             >
-              <VImg :src="item.user.avatar" />
+              <VImg :src="item.item.user.avatar" />
             </VAvatar>
             <div>
-              <div>{{ item.user.username }}</div>
-              <div style="color: #6c757d; font-size: 12px;">{{ item.user.email }}</div>
+              <div>{{ item.item.user.username }}</div>
+              <div style="color: #6c757d; font-size: 12px;">{{ item.item.user.email }}</div>
             </div>
           </div>
         </td>     
@@ -132,7 +119,7 @@ const openWhatsApp = (clickedUser) => {
             color="primary"
             style="margin-inline: 15px 3px"
             size="small"
-            @click="viewApprovedOrder(item)"
+            @click="viewOrder(item)"
           >
             <VIcon
               icon="ri-list-view"
@@ -164,7 +151,7 @@ const openWhatsApp = (clickedUser) => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-id-card-line" />
-          Customer
+         Seller
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
@@ -204,10 +191,9 @@ const openWhatsApp = (clickedUser) => {
     </VTable>
 
 
-
-  <!--Approved Item Dialog-->
+  <!-- Confirmed Order for purchases -->
   <VDialog
-    v-model="openApprovedDialog"
+    v-model="openConfirmedDialog"
     scrollable
     max-width="500"
   >
@@ -224,15 +210,16 @@ const openWhatsApp = (clickedUser) => {
           <div class="detail-row">
             <strong>Status</strong>
             <span v-if="clickedItem.status=='Approved'">: <VChip color="success" size="small"><VIcon icon="ri-check-fill" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
-            <span v-else>: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
+            <span v-if="clickedItem.status=='Rejected'">: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
+            <span v-if="clickedItem.status=='Cancelled'">: <VChip color="secondary" size="small"><VIcon icon="ri-close-circle-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
           </div>
           <div class="detail-row">
             <strong>Item</strong>
             <span>: {{ clickedItem.item.name }}</span>
           </div>
           <div class="detail-row">
-            <strong>Customer</strong>
-            <span>: {{ clickedItem.user.username }}</span>
+            <strong>Seller</strong>
+            <span>: {{ clickedItem.item.user.username }}</span>
           </div>
           <div class="detail-row">
             <strong>Order Date Time</strong>
@@ -263,7 +250,7 @@ const openWhatsApp = (clickedUser) => {
           <VCol cols="12" md="3">
             <VBtn
               color="secondary"
-              @click="openApprovedDialog = false"
+              @click="openConfirmedDialog = false"
             >
               <VIcon icon="ri-close-line" class="mr-1"/>
               Close
@@ -273,7 +260,8 @@ const openWhatsApp = (clickedUser) => {
           <VCol cols="12" md="3" />
           <VCol cols="12" md="3">
             <VBtn color="success" 
-              @click="openWhatsApp(clickedItem.user)"
+              v-if="clickedItem.status == 'Approved'"
+              @click="openWhatsApp(clickedItem.item.user)"
             >
               <VIcon icon="ri-whatsapp-line" class="mr-1"/>
               <VTooltip
@@ -281,7 +269,7 @@ const openWhatsApp = (clickedUser) => {
                 activator="parent"
                 transition="scroll-x-transition"
               >
-                Contact Buyer
+                Contact Seller
               </VTooltip>
               Contact
             </VBtn>
@@ -295,21 +283,6 @@ const openWhatsApp = (clickedUser) => {
       </VCardText>
     </VCard>
   </VDialog>
-
-
-  <!-- Approved Successfully Order -->
-  <VSnackbar
-      v-model="isApprovedAlert"
-      location="top end"
-      transition="scale-transition"
-      color="success"
-    >
-    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
-      Order has been successfully approved.
-  </VSnackbar>
-
-
-  
 </template>
 
 <style scoped>

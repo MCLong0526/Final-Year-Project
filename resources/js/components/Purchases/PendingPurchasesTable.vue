@@ -1,4 +1,5 @@
 <script setup>
+import axios from 'axios';
 
 const props = defineProps({
   pendingPurchasesOrders: {
@@ -7,6 +8,25 @@ const props = defineProps({
   },
 
 })
+
+const cancelOrderDialog = ref(false)
+const clickedPendingOrder = ref(null)
+
+const cancelOrder = (order) => {
+  cancelOrderDialog.value = true
+  clickedPendingOrder.value = order
+}
+
+const cancelPendingOrder = () => {
+  axios.put(`/api/order-items/cancel-pending-order/${clickedPendingOrder.value.id}`)
+    .then(response => {
+      cancelOrderDialog.value = false
+
+    })
+    .catch(error => {
+      $toast.error('Failed to cancel order.')
+    })
+}
 </script>
 
 <template>
@@ -34,8 +54,8 @@ const props = defineProps({
           Status
         </th>
         <th class="text-uppercase text-center">
-          <VIcon icon="ri-eye-line" />
-          View
+          <VIcon icon="ri-close-circle-line" />
+          Cancel
         </th>
       </tr>
     </thead>
@@ -83,7 +103,24 @@ const props = defineProps({
         </td>
 
         <td class="text-center">
-          <VBtn color="primary" @click="viewPendingOrder(item)">View</VBtn>
+          <VBtn
+            color="warning"
+            style="margin-inline: 15px 3px"
+            size="small"
+            @click="cancelOrder(item)"
+          >
+            <VIcon
+              icon="ri-close-circle-line"
+            />
+            <VTooltip
+                open-delay="500"
+                location="top"
+                activator="parent"
+                transition="scroll-y-transition"
+              >
+                <span>Cancel Order</span>
+              </VTooltip>
+          </VBtn>
         </td>
       </tr>
       
@@ -137,4 +174,41 @@ const props = defineProps({
     </tbody>
     
     </VTable>
+
+    <!--Delete Dialog-->
+  <VDialog
+    v-model="cancelOrderDialog"
+    persistent
+    class="v-dialog-sm"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Cancel Order?">    
+      <VCardText>
+        <VAlert
+          color="error"
+          icon="ri-alert-line"
+          variant="tonal"
+        >
+          Are you sure you want to cancel the order for the item "<strong>{{ clickedPendingOrder.item.name }}</strong>"
+        </VAlert>
+      </VCardText>
+
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="secondary"
+          @click="cancelOrderDialog = false"
+        >
+          Close
+        </VBtn>
+        <VBtn
+          color="error"
+          @click="cancelPendingOrder"
+        >
+          Cancel Order
+        
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
 </template>

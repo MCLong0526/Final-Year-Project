@@ -111,7 +111,7 @@ class OrderItemController extends Controller
         //
     }
 
-    public function getAllSellOrders()
+    public function getPendingSellOrders()
     {
         // Get the authenticated user's ID
         $userId = Auth::id();
@@ -122,6 +122,8 @@ class OrderItemController extends Controller
         // Get all orders for the authenticated user
         $allOrders = DB::table('item_user')
             ->whereIn('item_id', $itemIds)
+            ->where('status', 'Pending')
+            ->orderBy('order_dateTime', 'asc')
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
@@ -131,6 +133,48 @@ class OrderItemController extends Controller
 
             // Get the pictures for the item
             $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
+        }
+
+        return $this->success(data: $allOrders, message: 'All selling orders retrieved successfully');
+    }
+
+    public function getConfirmedSellOrders()
+    {
+        // Get the authenticated user's ID
+        $userId = Auth::id();
+
+        // Get all items belongs to the user
+        $itemIds = Item::where('user_id', $userId)->pluck('item_id');
+        // Get all orders for the authenticated user
+        $allOrders = DB::table('item_user')
+            ->whereIn('item_id', $itemIds)
+            ->where('status', 'Approved')
+            ->orWhere('status', 'Rejected')
+            //  order by meet_dateTime in ascending order but ignore the null values
+            ->orderByRaw('meet_dateTime IS NULL, meet_dateTime ASC')
+            ->get();
+
+        // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
+        foreach ($allOrders as $order) {
+            $order->user = User::find($order->buyer_id);
+            $order->item = Item::find($order->item_id);
+
+            // Get the pictures for the item
+            $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
+        }
+
+        // filter the orders by using the request "search" parameter, and the request search is to search the buyer's username and email
+        if (request()->filled('search')) {
+            $allOrders = $allOrders->filter(function ($order) {
+                return stripos($order->user->username, request('search')) !== false
+                    || stripos($order->user->email, request('search')) !== false;
+            });
+        }
+        if (request()->filled('status')) {
+            // direct compare the status with the request status
+            $allOrders = $allOrders->filter(function ($order) {
+                return $order->status === request('status');
+            });
         }
 
         return $this->success(data: $allOrders, message: 'All selling orders retrieved successfully');
@@ -211,6 +255,40 @@ class OrderItemController extends Controller
         }
 
         return $this->success(data: $buyOrders, message: 'Purchases orders retrieved successfully');
+    }
+
+    public function cancelPendingOrder(string $id)
+    {
+        // Set the timezone to Malaysia
+        date_default_timezone_set('Asia/Kuala_Lumpur');
+
+        // Get the order details
+        $order = DB::table('item_user')->where('id', $id)->first();
+
+        // Check if the order is pending
+        if ($order->status === 'Pending') {
+            // Update the order status to Rejected
+            DB::table('item_user')->where('id', $id)->update([
+                'status' => 'Cancelled',
+                'remark_buyer' => 'Order cancelled by buyer',
+            ]);
+
+            // set the notification to the seller
+            $sellerId = Item::findOrFail($order->item_id)->user_id;
+            $itemName = Item::findOrFail($order->item_id)->name;
+            $information = "The order for your item '$itemName' has been cancelled by the buyer.";
+            DB::table('notifications')->insert([
+                'sender_id' => Auth::id(),
+                'receiver_id' => $sellerId,
+                'information' => $information,
+                'status' => 'Unread',
+                'created_at' => now(),
+            ]);
+
+            return $this->success('Order cancelled successfully');
+        } else {
+            return response()->json(['message' => 'Order cannot be cancelled.'], 409);
+        }
     }
 
     // public function getBuyOrders()

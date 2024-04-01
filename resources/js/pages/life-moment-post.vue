@@ -17,6 +17,7 @@ const content = ref('')
 const picture = ref([])
 const posts = ref([])
 const searchPost = ref('')
+const typePosts = ref('all')
 
 //image part:
 const handleDrop = (event) => {
@@ -64,6 +65,8 @@ const storePost = () => {
       addPostDialog.value = false;
       content.value = '';
       picture.value = [];
+      // must reset the posts array to empty to fetch the new post
+      posts.value = [];
       getPosts();
     })
     .catch(error => {
@@ -191,6 +194,7 @@ getPosts();
     :posts="posts"
     :getPosts="getPosts"
     :showLoading="showLoading"
+    :typePosts="typePosts"
   />
 
 

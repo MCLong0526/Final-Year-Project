@@ -15,6 +15,10 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  typePosts: {
+    type: String,
+    required: true,
+  },
 })
 
 const addCommentDialog = ref(false)
@@ -24,7 +28,6 @@ const comments = ref([])
 const newComment = ref('')
 const selectedPost = ref(null) 
 const showLikeMenu = ref(false)
-
 
 //like and unlike a post
 const toggleLike = (post) => {
@@ -154,21 +157,17 @@ const showLike = (post) => {
 
 };
 
-
-const items = [
-  {
-    title: 'Option 1',
-    value: 'Option 1',
-  },
-  {
-    title: 'Option 2',
-    value: 'Option 2',
-  },
-  {
-    title: 'Option 3',
-    value: 'Option 3',
-  },
-]
+//delete post
+const deletePost = (post) => {
+  axios.delete('/api/posts/delete/' + post.post_id)
+    .then(response => {
+      console.log(response.data);
+      props.getPosts();
+    })
+    .catch(error => {
+      console.log(error);
+    });
+};
 
 
 </script>
@@ -181,17 +180,47 @@ const items = [
         <VCol v-for="post in posts" :key="post.post_id" cols="12">
           <VCard variant="outlined" class="mx-auto" max-width="600" style="border-radius: 20px; background-color: #f8f9fa;">
             <VCardItem>
-              <div class="d-flex align-items-center">
-                <VAvatar v-if="post.user.avatar" size="40">
-                  <VImg :src="post.user.avatar" />
-                </VAvatar>
-                <div class="ml-2">
-                  <div>{{ post.user.username }}</div>
-                  <div style="color: #6c757d; font-size: 12px;">{{ post.user.email }} &middot; <span style="font-style: italic;">{{ post.created_at }}</span></div>
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                  <VAvatar v-if="post.user.avatar" size="40">
+                    <VImg :src="post.user.avatar" />
+                  </VAvatar>
+                  <div class="ml-2">
+                    <div>{{ post.user.username }}</div>
+                    <div style="color: #6c757d; font-size: 12px;">{{ post.user.email }} &middot; <span style="font-style: italic;">{{ post.created_at }}</span></div>
+                  </div>
                 </div>
+               
+                <div v-if="typePosts=='private'" class="ml-auto">
+                  <VMenu transition="slide-x-transition">
+                    <template #activator="{ props }">
+                      <VBtn v-bind="props"
+                        class="ml-auto"
+                        icon="ri-more-2-line"
+                        variant="text"
+                      />
+                    </template>
+                    <VList >
+                      <VListItem>
+                        <VBtn variant="text" >
+                          <VIcon icon="ri-pencil-line" />
+                        </VBtn>
+                          
+                      </VListItem>
+                      <VListItem>
+                        <VBtn  variant="text" @click="deletePost(post)">
+                          <VIcon icon="ri-delete-bin-6-line" />
+                        </VBtn>
+
+                      </VListItem>
+                    </VList>
+                </VMenu>
+             </div>
+              
               </div>
               <VImg v-if="post.picture" height="300" :src="post.picture" class="mb-4" />
             </VCardItem>
+
             <VCardActions>
               <VBtn icon color="primary" class="ml-3 mr-1" @click="toggleLike(post)">
                 <VIcon :class="post.is_liked ? 'ri-thumb-up-fill' : 'ri-thumb-up-line'" />
@@ -239,6 +268,7 @@ const items = [
           </VCard>
         </VCol>
       </VRow>
+
       <VRow v-if="showLoading" align="center" justify="center">
 
         <VProgressCircular
@@ -330,7 +360,9 @@ const items = [
       </div>
     </VCard>
   </VDialog>
-  
+
+
+ 
 </template>
 
 <style scoped>
