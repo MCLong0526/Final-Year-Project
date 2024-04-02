@@ -77,7 +77,7 @@ const storePost = () => {
 // get posts
 const getPosts = debounce(() => {
   let requestURL = '/api/posts?page='+page+'&per_page='+postPerPage.value;
-  if (searchPost.value && searchPost.value.length > 2) {
+  if (searchPost.value && searchPost.value.length > 2 && searchPost.value !== null) {
     requestURL += '&search=' + searchPost.value;
   }
   axios.get(requestURL)
@@ -125,7 +125,7 @@ const getPosts = debounce(() => {
     .catch(error => {
       console.log(error);
     });
-}, 800);
+}, 500);
 
 
 const isBottomOfPage = () => {
@@ -147,11 +147,9 @@ const fetchPostsIfAtBottom = () => {
 window.addEventListener('scroll', fetchPostsIfAtBottom);
 
 watch(searchPost, debounce(() => {
-  if (searchPost.value.length > 2) {
-    page = 1;
-    posts.value = [];
-    getPosts();
-  }
+  page = 1;
+  posts.value = [];
+  getPosts();
 }, 500));
 
 getPosts();
@@ -180,6 +178,7 @@ getPosts();
       <VTextField
         v-model="searchPost"
         label="Search"
+        clearable
         prepend-inner-icon="ri-search-line"
         placeholder="Placeholder Text"
       />

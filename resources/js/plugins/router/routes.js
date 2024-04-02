@@ -44,6 +44,11 @@ export const routes = [
         path:'track-purchases',
         component: () => import('@/pages/track-purchases.vue'),
         meta: { requiresAuth: true },
+      },
+      {
+        path:'admin-dashboard',
+        component: () => import('@/pages/admin-dashboard.vue'),
+        meta: { requiresAuth: true },
       }
   
     ],

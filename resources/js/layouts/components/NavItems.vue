@@ -38,6 +38,17 @@ getUnreadNotification()
 
   <VerticalNavLink
     :item="{
+      title: 'Admin Dashboard',
+      icon: 'ri-dashboard-fill',
+      to: '/admin-dashboard',
+    }"
+  />
+
+
+  
+
+  <VerticalNavLink
+    :item="{
       title: 'Test',
       icon: 'ri-test-tube-line',
       to: '/test',

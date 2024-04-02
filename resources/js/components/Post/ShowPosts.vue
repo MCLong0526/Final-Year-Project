@@ -272,7 +272,7 @@ const editPost = (post) => {
 <template>
   <!--All Posts-->
   <div class="mt-2">
-    <VList scrollable height="600" style=" background-color: transparent;max-inline-size: 2000px; overflow-x: hidden;">
+    <VList v-if="posts.length>0" scrollable height="600" style=" background-color: transparent;max-inline-size: 2000px; overflow-x: hidden;">
       <VRow align="center" justify="center">
         <VCol v-for="post in posts" :key="post.post_id" cols="12">
           <VCard variant="outlined" class="mx-auto" max-width="600" style="border-radius: 20px; background-color: #f8f9fa;">
@@ -374,6 +374,18 @@ const editPost = (post) => {
           striped
         />
       </VRow>
+    </VList>
+    <VList v-else style=" background-color: transparent;max-inline-size: 2000px; overflow-x: hidden;">
+      <VAlert  
+        variant="tonal"
+        type="warning"
+        class="mt-2 text-center"
+        color="primary"
+        closable
+        dense
+      >
+        No posts available
+      </VAlert>
     </VList>
   </div>
 
