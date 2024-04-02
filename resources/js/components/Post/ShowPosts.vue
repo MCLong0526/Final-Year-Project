@@ -1,4 +1,5 @@
 <script setup>
+import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
 import { VForm } from 'vuetify/components/VForm';
 
@@ -28,6 +29,11 @@ const comments = ref([])
 const newComment = ref('')
 const selectedPost = ref(null) 
 const showLikeMenu = ref(false)
+const editPostDialog = ref(false)
+const addImage = ref(false)
+const isPostSuccessAlert = ref(false)
+const deletePostDialog = ref(false)
+const snackType = ref(null)
 
 //like and unlike a post
 const toggleLike = (post) => {
@@ -158,10 +164,17 @@ const showLike = (post) => {
 };
 
 //delete post
-const deletePost = (post) => {
-  axios.delete('/api/posts/delete/' + post.post_id)
+const deleteDialog = (post) => {
+  deletePostDialog.value = true;
+  selectedPost.value = post;
+};
+
+const deletePost = () => {
+  axios.delete('/api/posts/delete/' + selectedPost.value.post_id)
     .then(response => {
-      console.log(response.data);
+      snackType.value = 'delete';
+      isPostSuccessAlert.value = true;
+      deletePostDialog.value = false;
       props.getPosts();
     })
     .catch(error => {
@@ -169,6 +182,90 @@ const deletePost = (post) => {
     });
 };
 
+
+//image part:
+const handleDrop = (event) => {
+  event.preventDefault();
+  const files = event.dataTransfer.files;
+  handleFiles(files);
+};
+
+
+const handleFiles = (files) => {
+  const file = files[0]; // Only handle the first file
+
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64Data = e.target.result;
+
+      // Update the selectedPost.picture_path only if a new image is selected
+      if (!selectedPost.value.picture || selectedPost.value.picture !== base64Data) {
+        selectedPost.value.picture = base64Data;
+        selectedPost.value.file = file; // Store the file object for uploading
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const fileInput = ref(null);
+
+const openFileInput = () => {
+  if (fileInput.value) {
+    fileInput.value.click();
+  }
+};
+
+const handleFileInputChange = (event) => {
+  const files = event.target.files;
+  handleFiles(files);
+};
+
+const removeImage = () => {
+  if (!selectedPost.value.picture.isNew) {
+    // If the removed image is not new, update its picture_path to base64 format
+    fetch(selectedPost.value.picture.picture_path)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          selectedPost.value.picture.picture_path = e.target.result;
+          // Do something with the updated picture_path, such as sending it to the server
+        };
+        reader.readAsDataURL(blob);
+      });
+  }
+  // Clear the picture
+  selectedPost.value.picture = null;
+};
+
+//edit post
+const editDialog=(post)=>{
+  editPostDialog.value = true;
+  selectedPost.value = post
+  selectedPost.value.picture = post.picture;
+  console.log(selectedPost.value)
+}
+
+const editPost = (post) => {
+  console.log(post);
+
+  axios.put('/api/posts/update/' + post.post_id, {
+    content: post.content,
+    picture: post.picture,
+  })
+    .then(response => {
+      snackType.value = 'edit';
+      editPostDialog.value = false;
+      isPostSuccessAlert.value = true;
+      props.getPosts();
+    })
+    .catch(error => {
+      console.log(error);
+    });
+};
+//edit done.
 
 </script>
 
@@ -202,13 +299,13 @@ const deletePost = (post) => {
                     </template>
                     <VList >
                       <VListItem>
-                        <VBtn variant="text" >
+                        <VBtn variant="text" @click=editDialog(post)>
                           <VIcon icon="ri-pencil-line" />
                         </VBtn>
                           
                       </VListItem>
                       <VListItem>
-                        <VBtn  variant="text" @click="deletePost(post)">
+                        <VBtn  variant="text" @click="deleteDialog(post)">
                           <VIcon icon="ri-delete-bin-6-line" />
                         </VBtn>
 
@@ -218,7 +315,7 @@ const deletePost = (post) => {
              </div>
               
               </div>
-              <VImg v-if="post.picture" height="300" :src="post.picture" class="mb-4" />
+              <VImg v-if="post.picture" height="300" :src="post.picture" class=" mt-4" />
             </VCardItem>
 
             <VCardActions>
@@ -362,6 +459,167 @@ const deletePost = (post) => {
   </VDialog>
 
 
+  <!--Create New Post-->
+  <VDialog
+    v-model="editPostDialog"
+    max-width="600"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Edit Post Information">
+
+      <VCardText>
+        <VForm 
+        ref="refForm" 
+        @submit.prevent>
+        <VRow>
+          <!-- 👉 First Name -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Post Content</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextField
+                  v-model="selectedPost.content"
+                  prepend-inner-icon="ri-message-2-line"
+                  placeholder="What's on your mind?"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+          
+          <VCol cols="12" v-if="addImage === true">
+            <VRow no-gutters>
+              <VCol cols="12" md="3">
+                <label for="emailHorizontalIcons">Post Image</label>
+              </VCol>
+              <VCol cols="12" md="9">
+                <div class="upload-container">
+                  <input
+                    type="file"
+                    ref="fileInput"
+                    style="display: none"
+                    accept="image/*"
+                    @change="handleFileInputChange"
+                  />
+                  <div
+                    class="upload-box"
+                    @drop.prevent="handleDrop"
+                    @dragover.prevent
+                    @click="openFileInput"
+                  >
+                    <VIcon class="upload-icon">ri-image-add-line</VIcon>
+                    <p class="upload-text">Drag & Drop your picture here.</p>
+                    <p class="upload-text">Click here to upload picture (PNG, JPEG, JPG).</p>
+                    <div v-if="selectedPost.picture" class="uploaded-images">
+                      <p class="upload-text">Selected picture:</p>
+                      <div class="uploaded-image">
+                        <img :src="selectedPost.picture" alt="Uploaded Image" />
+                        <VBtn @click="removeImage()" icon="ri-close-line" class="remove-btn" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </VCol>
+            </VRow>
+          </VCol>
+
+       
+
+          <!-- 👉 submit and reset button -->
+          <VCol
+            offset-md="3"
+            cols="12"
+            md="9"
+            class="d-flex gap-4"
+          >
+          <VBtn
+            color="secondary"
+            variant="tonal"
+            
+            @click="addImage = !addImage"
+            >
+            <VIcon icon="ri-chat-upload-line" size="20" />
+            <VTooltip
+                open-delay="500"
+                location="top"
+                activator="parent"
+                transition="scroll-y-transition"
+              >
+                <span>Click here to upload image</span>
+              </VTooltip>
+          </VBtn>
+          <VBtn
+              type="submit"
+              @click="$refs.refForm.validate().then(() => editPost(selectedPost))"
+            >
+              Edit
+            </VBtn>
+            
+          </VCol>
+        </VRow>
+      </VForm>
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+   <!--Delete Dialog-->
+   <VDialog
+    v-model="deletePostDialog"
+    persistent
+    class="v-dialog-sm"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Delete Post">  
+      <VCardText>
+        <VAlert
+          color="error"
+          icon="ri-alert-line"
+          variant="tonal"
+        >
+          Are you sure you want to delete this post?
+        </VAlert>
+      </VCardText>
+
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="secondary"
+          @click="deletePostDialog = false"
+        >
+          Close
+        </VBtn>
+        <VBtn
+          color="error"
+          @click="deletePost"
+        >
+          Delete Post
+        
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <!-- Approved Successfully Order -->
+  <VSnackbar
+      v-model="isPostSuccessAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+    <span v-if="snackType==='edit'">Post updated successfully!</span>
+    <span v-if="snackType==='delete'">Post deleted successfully!</span>
+  </VSnackbar>
+
  
 </template>
 
@@ -387,4 +645,53 @@ const deletePost = (post) => {
   overflow-y: auto; /* Add vertical scrollbar if content exceeds max height */
 }
 
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  block-size: 300px; /* Adjust the height as needed */
+  cursor: pointer;
+  inline-size: 422px; /* Adjust the width as needed */
+  margin-block-end: 10px;
+}
+
+.upload-icon {
+  font-size: 48px;
+}
+
+.upload-text {
+  margin-block-start: 8px;
+}
+
+.uploaded-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-block-start: 20px;
+}
+
+.uploaded-image {
+  position: relative;
+}
+
+.uploaded-image img {
+  border-radius: 8px;
+  max-block-size: 100px; /* Adjust the size as needed */
+  max-inline-size: 100px; /* Adjust the size as needed */
+}
+
+.remove-btn {
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-end: 5px;
+}
 </style>

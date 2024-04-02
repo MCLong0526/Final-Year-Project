@@ -73,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/store', 'store');
         Route::get('/', 'index');
         Route::get('/get-auth-posts', 'getAuthPosts');
+        Route::put('/update/{post_id}', 'update');
         Route::post('/like/{post_id}', 'likePost');
         Route::post('/unlike/{post_id}', 'unlikePost');
         Route::delete('/delete/{post_id}', 'destroy');

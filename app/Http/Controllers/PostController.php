@@ -111,7 +111,26 @@ class PostController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $post = Post::findOrFail($id);
+
+        // Update the post content
+        $post->content = $request->input('content');
+
+        // Update the post picture if a new picture was provided
+        if ($request->picture !== null) {
+            $picture = $request->picture;
+            $imageFormat = explode('/', mime_content_type($picture))[1];
+            $decodedImage = base64_decode(str_replace('data:image/'.$imageFormat.';base64,', '', $picture));
+            $fileName = uniqid().'.'.$imageFormat;
+            Storage::disk('public')->put('images/posts/'.$fileName, $decodedImage);
+            $post->picture = 'images/posts/'.$fileName;
+        } else {
+            $post->picture = null;
+        }
+
+        $post->save();
+
+        return response()->json(['message' => 'Post updated successfully']);
     }
 
     /**

@@ -550,6 +550,7 @@ const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be 
       transition="scale-transition"
       color="success"
     >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
       User <strong>{{ clickedUser.username }}</strong> information has been successfully edited.
     </VSnackbar>
 
