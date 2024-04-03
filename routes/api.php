@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ItemController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +84,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(CommentController::class)->prefix('comments')->group(function () {
         Route::post('/store', 'store');
         Route::get('/get-comments-by-post-id/{post_id}', 'getCommentsByPostId');
+
+    });
+    Route::controller(AdminDashboardController::class)->prefix('admin-dashboard')->group(function () {
+        Route::get('/get-number-of-users', 'getNumberOfUsers');
+        Route::get('/get-number-of-items', 'getNumberOfItems');
+        Route::get('/get-number-of-posts', 'getNumberOfPosts');
+
+    });
+    Route::controller(ServiceController::class)->prefix('services')->group(function () {
+        Route::get('/get-auth-services', 'getAuthServices');
+        Route::post('/store', 'store');
+        Route::delete('/delete/{service_id}', 'destroy');
 
     });
 

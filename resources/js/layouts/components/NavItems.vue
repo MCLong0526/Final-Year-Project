@@ -81,6 +81,13 @@ getUnreadNotification()
       to: '/selling-item',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'Provide Service',
+      icon: 'ri-service-line',
+      to: '/provide-service',
+    }"
+  />
   <VerticalNavSectionTitle
     :item="{
       heading: 'Order Information',
@@ -104,6 +111,7 @@ getUnreadNotification()
       to: '/sales-orders',
     }"
   />
+
   <VerticalNavLink
     v-if="purchasesNotification > 0"
     :item="{

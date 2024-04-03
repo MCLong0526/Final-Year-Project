@@ -49,6 +49,11 @@ export const routes = [
         path:'admin-dashboard',
         component: () => import('@/pages/admin-dashboard.vue'),
         meta: { requiresAuth: true },
+      },
+      {
+        path:'provide-service',
+        component: () => import('@/pages/provide-services.vue'),
+        meta: { requiresAuth: true },
       }
   
     ],

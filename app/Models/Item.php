@@ -34,6 +34,7 @@ class Item extends Model
         return $this->hasMany(ItemPicture::class, 'item_id', 'item_id');
     }
 
+    //order_item
     public function users()
     {
         return $this->belongsToMany(User::class, 'item_user', 'item_id', 'buyer_id')

@@ -47,7 +47,7 @@ const isPositive = computed(() => Math.sign(props.change) === 1)
 
       <VSpacer />
 
-      <MoreBtn class="me-n3 mt-n1" />
+      <MoreBtn class="me-n3 mt-n1" i/>
     </VCardText>
 
     <VCardText>

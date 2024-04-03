@@ -291,7 +291,12 @@ const priceValidator = (value) => {
           {{ item.type }}
         </td>
         <td class="text-center">
+          <VChip v-if="item.quantity > 0" color="primary" size="small">
+            {{ item.quantity }}
+          </VChip>
+          <VChip v-else color="secondary">
           {{ item.quantity }}
+          </VChip>
         </td>
         <td class="text-center">
           RM {{ item.price }}
@@ -345,14 +350,14 @@ const priceValidator = (value) => {
     class="v-dialog-sm"
   >
     <!-- Dialog Content -->
-    <VCard title="Delete item?">    
+    <VCard title="Delete Item">    
       <VCardText>
         <VAlert
           color="error"
           icon="ri-alert-line"
           variant="tonal"
         >
-        Are you sure you want to delete product "<strong>{{ clickedItem.name }}</strong>" ?
+        Are you sure you want to delete product: <strong>{{ clickedItem.name }}</strong> ?
         </VAlert>
       </VCardText>
 

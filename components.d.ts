@@ -30,6 +30,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Security: typeof import('./resources/js/components/Profile/Security.vue')['default']
+    ServiceTable: typeof import('./resources/js/components/Service/ServiceTable.vue')['default']
     ShowPosts: typeof import('./resources/js/components/Post/ShowPosts.vue')['default']
     TableTeam: typeof import('./resources/js/components/TableTeam.vue')['default']
     TableUser: typeof import('./resources/js/components/TableUser.vue')['default']

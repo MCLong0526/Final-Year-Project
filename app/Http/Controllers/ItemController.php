@@ -118,14 +118,14 @@ class ItemController extends Controller
 
     public function getAuthItems()
     {
-        $userPerPage = request()->input('per_page', 10);
+        $itemPerPage = request()->input('per_page', 10);
         $items = Item::with('pictures')
             ->where('user_id', auth()->id())
             ->when(request()->filled('search'), function ($query) {
                 $query->where('name', 'like', '%'.request('search').'%');
 
             })
-            ->paginate($userPerPage);
+            ->paginate($itemPerPage);
 
         return $this->success(data: $items, message: 'Items retrieved successfully');
     }
