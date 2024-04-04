@@ -22,6 +22,7 @@ const checkStatusDialog = ref(false);
 const meetDateTime = ref('');
 const quantity = ref('');
 const remark_buyer = ref('');
+const remark_buyer_dateTime = ref('');
 const isAddAlert = ref(false);  
 const placeToMeet = ref(null);
 const hasErrorAlert = ref(false);
@@ -46,17 +47,10 @@ const seeItem = (item) => {
 };
 
 const submitOrder = async () => {
-
-  // // Set the timezone to Asia/Kuala_Lumpur
-  // process.env.TZ = 'Asia/Kuala_Lumpur';
-
-  // // Format the date to YYYY-MM-DD HH:MM:SS format
-  // const dateToMeetValue = new Date(meetDateTime.value).toISOString().slice(0, 19).replace('T', ' ');
-
   const formData = {
     place_to_meet: placeToMeet.value,
     quantity: quantity.value,
-    remark_buyer: remark_buyer.value,
+    remark_buyer: remark_buyer_dateTime.value + '\n' + remark_buyer.value,
     item_id: clickedItem.value.item_id,
     status: 'Pending',
   };
@@ -91,10 +85,10 @@ watch(meetDateTime, (newValue) => {
       hour12: true,
       timeZone: 'Asia/Kuala_Lumpur' // Adjust to your timezone
     });
-    if (remark_buyer.value.includes('Preferred meet up date and time:')) {
-      remark_buyer.value = `${remark_buyer.value}\n• ${formattedDate}`;
+    if (remark_buyer_dateTime.value.includes('Preferred meet up date and time:')) {
+      remark_buyer_dateTime.value = `${remark_buyer_dateTime.value}\n• ${formattedDate}`;
     } else {
-      remark_buyer.value = `Preferred meet up date and time:\n• ${formattedDate}`;
+      remark_buyer_dateTime.value = `Preferred meet up date and time:\n• ${formattedDate}`;
     }
   }
 });
@@ -110,7 +104,7 @@ watch(meetDateTime, (newValue) => {
       md="3"
       sm="6"
     >
-      <VCard class="mb-4">
+      <VCard class="mb-4" @click="seeItem(item)">
         <VCarousel delimiter-icon="ri-circle-fill" height="250px" hide-delimiter-background show-arrows="hover">
           <VCarouselItem v-for="(image, index) in item.pictures" :key="index" >
             <VImg :src="image.picture_path" height="250px" object-fit="cover" class="mt-2 ml-2 mr-2" />
@@ -120,24 +114,25 @@ watch(meetDateTime, (newValue) => {
           <VChip
             color="primary"
             class="mr-2"
+            size="small"
           >
           <VIcon icon="ri-price-tag-3-line" class="mr-2"/>
           {{ item.type }}</VChip>
         </VCardTitle>
-        <VCardTitle>
-          <VIcon icon="ri-money-dollar-circle-line" />
+        <VRow class="ml-3 mt-2">
+          <VIcon icon="ri-money-dollar-circle-line" class="mr-2"/>
 
-          RM {{item.price}}</VCardTitle>
-        <VCardTitle>
-          <VIcon icon="ri-shopping-bag-4-line" />
+          RM {{item.price}}
+        </VRow>
+        <VRow class="ml-3 mt-4">
+          <VIcon icon="ri-shopping-bag-4-line" class="mr-2"/>
             {{ item.name }}
-        </VCardTitle>
-
-        <VCardActions>
-          <VBtn @click="seeItem(item)">
-            Details
-          </VBtn>
-        </VCardActions>
+        </VRow>
+        <VRow class="ml-3 mt-4 mb-4">
+          <VIcon icon="ri-thumb-up-line" class="mr-2"/>
+              {{ item.condition }}
+            
+            </VRow>
       </VCard>
     </VCol>
   </VRow>
@@ -172,7 +167,7 @@ watch(meetDateTime, (newValue) => {
         </VCardTitle>
 
         <h3 class="mt-2">Seller Information</h3>
-        <VCardText class="font-weight-medium text-high-emphasis text-center text-truncate" style="display: flex; align-items: center;">
+        <VCardText class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;">
       
         <VAvatar size="40"
             :color="clickedItem.user.avatar ? '' : 'primary'"
@@ -182,7 +177,10 @@ watch(meetDateTime, (newValue) => {
             <VImg
             :src="clickedItem.user.avatar"/>
         </VAvatar>
-        {{ clickedItem.user.username }}
+        <div style="display: inline-block; vertical-align: top;">
+          <div>{{ clickedItem.user.username }}</div>
+          <div style="color: #6c757d; font-size: 12px;">{{ clickedItem.user.email }}</div>
+        </div>
 
         </VCardText>  
 
@@ -200,6 +198,11 @@ watch(meetDateTime, (newValue) => {
           <div class="detail-row">
             <strong>Quantity</strong>
             <span>: {{ clickedItem.quantity }}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Created At</strong>
+            <span>: {{ clickedItem.created_at }}</span>
+            
           </div>
         </VCardText>
 
@@ -246,7 +249,7 @@ watch(meetDateTime, (newValue) => {
     class="dialog"
   >
     <!-- Dialog Content -->
-    <VCard title="Order Information">
+    <VCard title="Order Item Information">
 
       <VCardText>
         <VForm 
@@ -334,6 +337,32 @@ watch(meetDateTime, (newValue) => {
                   v-model="quantity"
                   prepend-inner-icon="ri-survey-line"
                   placeholder="Enter Quantity"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!-- Remark -->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="remarkHorizontalIcons">Remark for Meet Up</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VTextarea
+                  v-model="remark_buyer_dateTime"
+                  disabled
+                  scrollable
+                  prepend-inner-icon="ri-chat-4-line"
+                  placeholder="Enter Remark"
                   :rules="[requiredValidator]"
                 />
               </VCol>

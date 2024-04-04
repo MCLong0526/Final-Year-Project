@@ -50,8 +50,6 @@ class OrderItemController extends Controller
             return response()->json(['message' => 'Order already placed for this item.'], 409);
         }
 
-        // Set the timezone to the user's timezone
-        date_default_timezone_set('Asia/Kuala_Lumpur');
         $orderDateTime = new DateTime();
 
         // Save the order to the pivot table item_user
@@ -291,26 +289,28 @@ class OrderItemController extends Controller
         }
     }
 
-    // public function getBuyOrders()
-    // {
-    //     // Get the authenticated user's ID
-    //     $userId = Auth::id();
+    // count the number of pending, approved, rejected, and cancelled of the authenticated user orders
+    public function countAuthPurchases()
+    {
+        // Get the authenticated user's ID
+        $userId = Auth::id();
 
-    //     // Get all Approved and Rejected orders for the authenticated user
-    //     $buyOrders = DB::table('item_user')
-    //         ->where('user_id', $userId)
-    //         ->where('status', 'Approved')
-    //         ->get();
+        // Get all orders for the authenticated user
+        $allOrders = DB::table('item_user')
+            ->where('buyer_id', $userId)
+            ->get();
 
-    //     // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
-    //     foreach ($buyOrders as $order) {
-    //         $order->user = User::find($order->user_id);
-    //         $order->item = Item::find($order->item_id);
+        // Count the number of orders based on the status
+        $pendingOrders = $allOrders->where('status', 'Pending')->count();
+        $approvedOrders = $allOrders->where('status', 'Approved')->count();
+        $rejectedOrders = $allOrders->where('status', 'Rejected')->count();
+        $cancelledOrders = $allOrders->where('status', 'Cancelled')->count();
 
-    //         // Get the pictures for the item
-    //         $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
-    //     }
-
-    //     return $this->success(data: $buyOrders, message: 'Buy orders retrieved successfully');
-    // }
+        return $this->success(data: [
+            'noPendingOrders' => $pendingOrders,
+            'noApprovedOrders' => $approvedOrders,
+            'noRejectedOrders' => $rejectedOrders,
+            'noCancelledOrders' => $cancelledOrders,
+        ], message: 'Orders counted successfully');
+    }
 }

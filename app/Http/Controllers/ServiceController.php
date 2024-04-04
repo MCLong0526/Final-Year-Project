@@ -14,7 +14,21 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        //
+        $servicePerPage = request()->input('per_page', 10);
+        $services = Service::with('pictures', 'user')
+            ->when(request()->filled('type'), function ($query) {
+                $query->whereIn('type', explode(',', request('type')));
+            })
+            ->when(request()->filled('search'), function ($query) {
+                $query->where('name', 'like', '%'.request('search').'%')
+                    ->orWhere('description', 'like', '%'.request('search').'%');
+            })
+            ->when(request()->filled('sort_price'), function ($query) {
+                $query->orderBy('price_per_hour', request('sort_price'));
+            })
+            ->paginate($servicePerPage);
+
+        return $this->success(data: $services, message: 'Services retrieved successfully');
     }
 
     /**
@@ -56,9 +70,26 @@ class ServiceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ServiceRequest $request, string $id)
     {
-        //
+        $service = Service::findOrFail($id);
+        $service->update($request->validated());
+
+        $service->pictures()->delete();
+
+        $pictures = $request->pictures;
+        collect($pictures)->each(function ($picture) use ($service) {
+            $pictureFormat = explode('/', mime_content_type($picture['picture_path']))[1];
+            $decodedPicture = base64_decode(str_replace('data:image/'.$pictureFormat.';base64,', '', $picture['picture_path']));
+            $fileName = uniqid().'.'.$pictureFormat;
+            Storage::disk('public')->put('images/services/'.$fileName, $decodedPicture);
+            $service->pictures()->create([
+                'picture_path' => 'images/services/'.$fileName,
+                'service_id' => $service->service_id,
+            ]);
+        });
+
+        return $this->success(message: 'Service updated successfully');
     }
 
     /**

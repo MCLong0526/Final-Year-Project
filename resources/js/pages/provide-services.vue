@@ -4,6 +4,7 @@ import TableService from '@/components/Service/ServiceTable.vue';
 import { useAuthStore } from '@/plugins/store/AuthStore';
 import axios from 'axios';
 import { debounce } from 'lodash';
+import { watch } from 'vue';
 
 const store = useAuthStore();
 const searchValue = ref('');
@@ -16,12 +17,19 @@ const addPictureBox = ref(false);
 const errorMessages = ref('');
 const hasErrorAlert = ref(false);
 const isAddAlert = ref(false);
+const typeSearch = ref([]);
+const sortPrice = ref(null);
+const searchValueAllServices = ref('');
 
 const name = ref('');
 const description = ref('');
 const type = ref(null);
 const pricePerHour = ref('');
 const pictures = ref([]);
+const allServices = ref([]);
+const rowPerPageAllServices = ref(8);
+const currentPageAllServices = ref(1);
+const totalPagesAllServices = ref(0);
 
 const types = [
   'Web Development',
@@ -42,6 +50,7 @@ const serviceLoad = debounce(() => {
   if (searchValue.value && searchValue.value.length > 2) {
     requestURL += '&search=' + searchValue.value;
   }
+
   axios.get(requestURL)
     .then(({data}) => {
       totalPages.value = Math.ceil(data.data.total / rowPerPage.value);
@@ -58,6 +67,60 @@ const serviceLoad = debounce(() => {
     })
 },800)
 
+const allServicesLoad = debounce(() => {
+  let requestURL='/api/services/get-all-services?per_page='+rowPerPageAllServices.value+'&page='+currentPageAllServices.value;
+  if(typeSearch.value && typeSearch.value.length > 0){
+    requestURL += '&type='+typeSearch.value;
+  }
+  if(searchValueAllServices.value && searchValueAllServices.value.length > 2){
+    requestURL += '&search='+searchValueAllServices.value;
+  }
+  if(sortPrice.value){
+    if(sortPrice.value === 'Low to High'){
+      requestURL += '&sort_price=asc';
+    }else{
+    requestURL += '&sort_price=desc';
+    }
+  }
+  axios.get(requestURL).then(({data}) => {
+    totalPagesAllServices.value = Math.ceil(data.data.total / rowPerPageAllServices.value);
+    allServices.value = data.data.data;
+
+    allServices.value.forEach((service) => {
+      service.pictures.forEach((picture) => {
+        picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+      });
+    });
+
+    // if the user_id is the same as the user logged in, then the save the service_id
+    allServices.value.forEach((service) => {
+      if(service.user_id === store.user.user_id){
+        service.isOwn = true;
+      }
+      else{
+        service.isOwn = false;
+      }
+    });
+
+     // make the created_at date more readable, remove seconds, make it am/pm
+     allServices.value.forEach((service) => {
+      service.created_at = new Date(service.created_at).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true,
+      });
+    });
+
+
+
+  }).catch((error) => {
+    console.log(error);
+  });
+},800)
+
 
 const createService = () => {
   axios.post('/api/services/store', {
@@ -72,7 +135,8 @@ const createService = () => {
     name.value = '';
     description.value = '';
     pricePerHour.value = '';
-    type.value = '';
+    type.value = null;
+
     addNewDialog.value = false;
     pictures.value = [];
     addPictureBox.value = false;
@@ -137,65 +201,142 @@ watch([searchValue, rowPerPage, currentPage], () => {
   serviceLoad();
 });
 
+watch([rowPerPageAllServices, currentPageAllServices, typeSearch,  searchValueAllServices, sortPrice], () => {
+  allServicesLoad();
+});
+
+
 serviceLoad()
+allServicesLoad()
 </script>
 
 <template>
   <div class="box-style">
+    <h2 class="mt-3 ml-3 text-overline-4" style="font-weight: 400;">Filter Services</h2>
+    <VRow class="mb-2 mt-2">
+      <VCol cols="12" md="4">
+        <VCombobox
+          v-model="typeSearch"
+          multiple
+          chips
+          :items="types"
+          prepend-inner-icon="ri-price-tag-3-line"
+          item-title="name"
+          placeholder="Select type"
+          return-object
+          label="Type"
+          clearable
+        />
 
-<!-- 'Own Selling Item Table -->
-<VRow>
-  <VCol cols="12" md="3">
-    <div class="mt-1 ml-2">
-      <VBtn @click="addPictureBox=true">
-        Provide New Service
-      </VBtn>
-    </div>
-  </VCol>
-  <VCol cols="12" md="3"/>
-  <VCol cols="12" md="3"/>
-  <VCol cols="12" md="3">
-    <VTextField
-    class="mb-2 mr-2"
-      v-model="searchValue"
-      placeholder="Search"
-      label="Search name of the service"
-      clearable
-      dense
-    />
-  </VCol>
-</VRow>
-
-<div class="table-style">
-  <TableService
-    :services="services"
-    :serviceLoad="serviceLoad"
-  />
-</div>
-
-<VCardText>
-  <VRow>
-    <VCol cols="12" md="2">
-      <VCombobox
-        v-model="rowPerPage"
-        :items="[5, 10, 15, 20]"
-        label="Rows per page"
-        dense
-      />
-    </VCol>
-    <VCol cols="12" md="6"/>
+      </VCol>
       
-    <VCol cols="12" md="4">
-      <VPagination
-        v-model="currentPage"
-        variant="outlined"
-        :length="totalPages"
-        rounded="circle"
+      <VCol cols="12" md="4">
+        <VCombobox
+          v-model="sortPrice"
+          :items="['Low to High', 'High to Low']"
+          prepend-inner-icon="ri-price-tag-3-line"
+          placeholder="Sort by Price"
+          return-object
+          label="Sort by Price"
+          clearable
+        />
+      </VCol>
+
+      <VCol cols="12" md="4" >
+        <VTextField
+          v-model="searchValueAllServices"
+          placeholder="Search"
+          label="Search name or description of service"
+          clearable
+          dense
+        />
+      </VCol>
+      
+    </VRow>
+  </div>
+    <div class="box-style">
+    <!-- Item List -->
+
+      <div class="item-list-container">
+        <ServiceList
+          :allServices="allServices"
+          :allServicesLoad="allServicesLoad"
+        />
+      </div>
+      <VCardText>
+        <VRow>
+          <VCol cols="12" md="4" />
+          <VCol cols="12" md="4">
+            <VPagination
+              v-model="currentPageAllServices"
+              variant="outlined"
+              :length="totalPagesAllServices"
+              rounded="circle"
+            />
+          </VCol>
+          <VCol cols="12" md="4" />
+        </VRow>
+      </VCardText>
+    </div>
+
+
+
+  <div class="box-style">
+
+    <!-- 'Own Selling Item Table -->
+    <VRow>
+      <VCol cols="12" md="3">
+        <div class="mt-5 ml-5 mb-4">
+          <VBtn @click="addPictureBox=true">
+            Provide New Service
+          </VBtn>
+        </div>
+      </VCol>
+      <VCol cols="12" md="3"/>
+      <VCol cols="12" md="3"/>
+      <VCol cols="12" md="3">
+        <VTextField
+        class="mt-5 mr-5 mb-4"
+          v-model="searchValue"
+          placeholder="Search"
+          label="Search name of the service"
+          clearable
+          dense
+        />
+      </VCol>
+    </VRow>
+
+    <div class="table-style">
+      <TableService
+        :services="services"
+        :serviceLoad="serviceLoad"
+        :types="types"
       />
-    </VCol>
-  </VRow>
-</VCardText>
-</div>
+    </div>
+
+    <VCardText>
+      <VRow>
+        <VCol cols="12" md="2">
+          <VCombobox
+            v-model="rowPerPage"
+            :items="[5, 10, 15, 20]"
+            label="Rows per page"
+            dense
+          />
+        </VCol>
+        <VCol cols="12" md="6"/>
+          
+        <VCol cols="12" md="4">
+          <VPagination
+            v-model="currentPage"
+            variant="outlined"
+            :length="totalPages"
+            rounded="circle"
+          />
+        </VCol>
+      </VRow>
+    </VCardText>
+    </div>
 
 <VDialog
     v-model="addNewDialog"
@@ -459,8 +600,10 @@ serviceLoad()
 .box-style {
   padding: 1.5px; /* Padding around the table */
   border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
-  margin-block-end: 15px;
+  margin-block-end: 15px
 }
 
 .item-list-container {
@@ -470,7 +613,6 @@ serviceLoad()
 
 .table-style{
   padding: 0.5px; /* Padding around the table */
-  background-color: #848383; /* White background color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
 }
 
@@ -530,10 +672,4 @@ serviceLoad()
   gap: 440px;
 }
 
-.box-style {
-  padding: 10px; /* Padding around the text */
-  border: 1.5px solid #d3d3d3;
-  border-radius: 5px; /* Rounded corners */
-  background-color: rgba(255, 255, 255, 53.7%); /* Light gray background color */
-}
 </style>

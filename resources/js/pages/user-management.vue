@@ -133,8 +133,11 @@ rolesLoad()
 
 <template>
 
-<VRow>
-    <VCol cols="12" md="4">
+<div class="box-style">
+  <h2 class="mt-3 ml-3 text-overline-4" style="font-weight: 400;">Filter User</h2>
+
+<VRow class="mt-2 mb-2 ">
+    <VCol cols="12" md="4" class="ml-2">
       <VCombobox
         v-model="roleSearch"
         multiple
@@ -163,10 +166,13 @@ rolesLoad()
       />
     </VCol>
   </VRow>
-  
+</div>
+
+
+  <div class="box-style">
   <VRow>
     <VCol cols="12" md="3">
-      <div class="mb-5">
+      <div class="mt-5 ml-5 mb-4">
         <VBtn @click="registerDialog=true">
           Register User
           <v-icon
@@ -180,6 +186,7 @@ rolesLoad()
     <VCol cols="12" md="3"/>
     <VCol cols="12" md="3">
       <VTextField
+      class="mt-5 mr-5 mb-4"
         v-model="searchValue"
         placeholder="Search"
         label="Search username or email"
@@ -222,6 +229,7 @@ rolesLoad()
     </VRow>
     
   </VCardText>
+  </div>
 
 
 <VDialog
@@ -449,8 +457,16 @@ rolesLoad()
 <style scoped>
 .table-style{
   padding: 0.5px; /* Padding around the table */
-  background-color: #848383; /* White background color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+}
+
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px
 }
 </style>
 ```

@@ -32,4 +32,10 @@ class Service extends Model
     {
         return $this->hasMany(ServicePicture::class, 'service_id', 'service_id');
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'service_user', 'service_id', 'customer_id')
+            ->withPivot('status', 'service_dateTime', 'order_dateTime', 'place_to_service', 'approximated_price', 'remark_customer', 'remark_provider');
+    }
 }

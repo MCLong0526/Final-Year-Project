@@ -31,7 +31,7 @@ const isPositive = controlledComputed(() => props.change, () => Math.sign(props.
 </script>
 
 <template>
-  <VCard>
+  <VCard >
     <VCardText class="d-flex align-center">
       <VAvatar
         size="44"
@@ -68,3 +68,9 @@ const isPositive = controlledComputed(() => props.change, () => Math.sign(props.
     </VCardText>
   </VCard>
 </template>
+
+<style scope>
+.style1 {
+  box-shadow: none !important;
+}
+</style>

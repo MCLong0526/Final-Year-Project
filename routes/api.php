@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderItemController;
+use App\Http\Controllers\OrderServiceController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ServiceController;
@@ -64,7 +65,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/get-purchases-orders', 'getPurchasesOrders');
         Route::put('/confirmed-order/{item_user_id}', 'confirmedOrder');
         Route::put('/cancel-pending-order/{item_user_id}', 'cancelPendingOrder');
-
+        Route::get('/count-auth-purchases', 'countAuthPurchases');
+    });
+    Route::controller(OrderServiceController::class)->prefix('order-services')->group(function () {
+        Route::post('/store', 'store');
     });
     Route::controller(NotificationController::class)->prefix('notifications')->group(function () {
         Route::get('/get-auth-notifications', 'getAuthNotifications');
@@ -93,9 +97,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
     Route::controller(ServiceController::class)->prefix('services')->group(function () {
+        Route::get('/get-all-services', 'index');
         Route::get('/get-auth-services', 'getAuthServices');
         Route::post('/store', 'store');
         Route::delete('/delete/{service_id}', 'destroy');
+        Route::put('/update/{service_id}', 'update');
 
     });
 

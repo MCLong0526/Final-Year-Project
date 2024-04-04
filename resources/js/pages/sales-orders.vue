@@ -215,14 +215,15 @@ getConfirmedOrders()
 <style scoped>
 .table-style{
   padding: 0.5px; /* Padding around the table */
-  background-color: #848383; /* White background color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
 }
 
 .box-style {
-  padding: 10px; /* Padding around the text */
-  border: 1.5px solid #d3d3d3;
-  border-radius: 5px; /* Rounded corners */
-  background-color: rgba(255, 255, 255, 53.7%); /* Light gray background color */
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px
 }
 </style>

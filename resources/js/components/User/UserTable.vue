@@ -106,6 +106,7 @@ const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be 
 
 <template>
   <VTable
+    v-if="users.length > 0"
     height="250"
     fixed-header
   >
@@ -261,6 +262,65 @@ const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be 
                 <span>Delete</span>
               </VTooltip>
           </VBtn>
+        </td>
+      </tr>
+    </tbody>
+  </VTable>
+
+  <VTable
+    v-else
+    height="150"
+    fixed-header
+  >
+    <thead>
+      <tr>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-user-line" />
+          User ID
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-shield-user-line" />
+          Username
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-phone-line" />
+          Phone Number
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-mail-line" />
+          Email
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-user-star-line" />
+          Roles
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-shield-check-line" />
+          Status
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-exchange-funds-line" />
+          Modify
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td
+          colspan="7"
+          class="text-center"
+        >
+        <VAlert  
+            variant="tonal"
+            type="warning"
+            class="mt-2"
+            color="primary"
+            closable
+            dense
+          >
+          No user found.
+          </VAlert>
         </td>
       </tr>
     </tbody>

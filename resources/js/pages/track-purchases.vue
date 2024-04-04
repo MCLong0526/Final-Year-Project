@@ -7,6 +7,10 @@ const currentTab = ref('tab-1');
 const pendingPurchasesOrders = ref([]);
 const approvedPurchasesOrders = ref([]);
 const rejectedPurchasesOrders = ref([]);
+const noPendingOrders = ref(0);
+const noApprovedOrders = ref(0);
+const noRejectedOrders = ref(0);
+const noCancelledOrders = ref(0);  
 const allOrders = ref([]);
 
 const getPurchasesOrder = () => {
@@ -52,7 +56,6 @@ const getPurchasesOrder = () => {
 
       })
 
-      console.log(pendingPurchasesOrders.value)
 
     })
     .catch(error => {
@@ -60,110 +63,174 @@ const getPurchasesOrder = () => {
     })
 }
 
+const countAuthPurchases = () => {
+  axios.get('/api/order-items/count-auth-purchases')
+    .then(response => {
+      
+      noPendingOrders.value = response.data.data.noPendingOrders
+      noApprovedOrders.value = response.data.data.noApprovedOrders
+      noRejectedOrders.value = response.data.data.noRejectedOrders
+      noCancelledOrders.value = response.data.data.noCancelledOrders
+
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+
+countAuthPurchases()
 getPurchasesOrder()
 
 </script>
 
 <template>
+
+  <div class="box-style">
+    <VRow class="no-gutters">
+      <VCol cols="12" md="3" >
+        <CardStatisticsHorizontal
+          title="Pending Orders"
+          color="warning"
+          icon="ri-emotion-happy-line"
+          :stats="noPendingOrders"
+          :change="0"
+        />
+        
+      </VCol>
+      <VCol cols="12" md="3">
+        <CardStatisticsHorizontal
+          title="Approved Orders"
+          color="success"
+          icon="ri-emotion-laugh-line"
+          :stats="noApprovedOrders"
+          :change="0"
+        />
+      </VCol>
+      <VCol cols="12" md="3">
+        <CardStatisticsHorizontal
+          title="Rejected Orders"
+          color="error"
+          icon="ri-emotion-unhappy-line"
+          :stats="noRejectedOrders"
+          :change="0"
+        />
+      </VCol>
+      <VCol cols="12" md="3">
+        <CardStatisticsHorizontal
+          title="Cancelled Orders"
+          color="secondary"
+          icon="ri-emotion-normal-line"
+          :stats="noCancelledOrders"
+          :change="0"
+        />
+      </VCol>
+
+    </VRow>
+  </div>
+
+
   <div class="box-style">
 
-<VAlert
-    variant="tonal"
-    color="info"
-  >
-    <template #title >
-      <VIcon
-        icon="ri-information-line"
-        class="mr-2"
-      />
-      <span >Order of Purchasing Items</span>
-    </template>
-    <p>
-      This page shows the list of orders that are pending and confirmed. You can view the details of each order by clicking the "View" button.
-    </p>
-  </VAlert>
-<VTabs
-  v-model="currentTab"
-  grow
-  stacked
->
-  <VTab value="tab-1">
-    <VIcon
-      icon="ri-calendar-schedule-fill"
-      class="mb-2"
-    />
-    <span>Pending Order</span>
-  </VTab>
+    <VAlert
+        variant="tonal"
+        color="info"
+      >
+        <template #title >
+          <VIcon
+            icon="ri-information-line"
+            class="mr-2"
+          />
+          <span >Order of Purchasing Items</span>
+        </template>
+        <p>
+          This page shows the list of orders that are pending and confirmed. You can view the details of each order by clicking the "View" button.
+        </p>
+      </VAlert>
+    <VTabs
+      v-model="currentTab"
+      grow
+      stacked
+    >
+      <VTab value="tab-1">
+        <VIcon
+          icon="ri-calendar-schedule-fill"
+          class="mb-2"
+        />
+        <span>Pending Order</span>
+      </VTab>
 
-  <VTab value="tab-2">
-    <VIcon
-      icon="ri-calendar-check-fill"
-      class="mb-2"
-    />
-    <span>Approved Order</span>
-  </VTab>
+      <VTab value="tab-2">
+        <VIcon
+          icon="ri-calendar-check-fill"
+          class="mb-2"
+        />
+        <span>Approved Order</span>
+      </VTab>
 
-  <VTab value="tab-3">
-    <VIcon
-      icon="ri-calendar-close-fill"
-      class="mb-2"
-    />
-    <span>Rejected/Cancelled Order</span>
-  </VTab>
+      <VTab value="tab-3">
+        <VIcon
+          icon="ri-calendar-close-fill"
+          class="mb-2"
+        />
+        <span>Rejected/Cancelled Order</span>
+      </VTab>
 
-</VTabs>
+    </VTabs>
 
-<VWindow
-  v-model="currentTab"
-  class="mt-5"
->
-  <VWindowItem
-    value="tab-1"
-  >
-    <div class="table-style">
-      <PendingPurchasesTable
-        :pendingPurchasesOrders="pendingPurchasesOrders"
-      />
-      
-    </div>
-  </VWindowItem>
+    <VWindow
+      v-model="currentTab"
+      class="mt-5"
+    >
+      <VWindowItem
+        value="tab-1"
+      >
+        <div class="table-style">
+          <PendingPurchasesTable
+            :pendingPurchasesOrders="pendingPurchasesOrders"
+          />
+          
+        </div>
+      </VWindowItem>
 
-  <VWindowItem
-    value="tab-2"
-  >
-    <div class="table-style">
-      <ConfirmedPurchasesTable
-        :confirmedPurchasesOrders="approvedPurchasesOrders"
-      />
-      
-    </div>
-  </VWindowItem>
+      <VWindowItem
+        value="tab-2"
+      >
+        <div class="table-style">
+          <ConfirmedPurchasesTable
+            :confirmedPurchasesOrders="approvedPurchasesOrders"
+          />
+          
+        </div>
+      </VWindowItem>
 
-  <VWindowItem
-    value="tab-3"
-  >
-    <div class="table-style">
-      <ConfirmedPurchasesTable
-        :confirmedPurchasesOrders="rejectedPurchasesOrders"
-      />
-    </div>
-  </VWindowItem>
-</VWindow>
-</div>
+      <VWindowItem
+        value="tab-3"
+      >
+        <div class="table-style">
+          <ConfirmedPurchasesTable
+            :confirmedPurchasesOrders="rejectedPurchasesOrders"
+          />
+        </div>
+      </VWindowItem>
+    </VWindow>
+  </div>
 </template>
 
 <style scoped>
 .table-style{
   padding: 0.5px; /* Padding around the table */
-  background-color: #848383; /* White background color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
 }
 
 .box-style {
-  padding: 10px; /* Padding around the text */
-  border: 1.5px solid #d3d3d3;
-  border-radius: 5px; /* Rounded corners */
-  background-color: rgba(255, 255, 255, 53.7%); /* Light gray background color */
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px
 }
+
+
 </style>
 

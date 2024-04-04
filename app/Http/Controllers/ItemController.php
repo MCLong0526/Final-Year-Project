@@ -15,7 +15,7 @@ class ItemController extends Controller
     public function index()
     {
         //find the user information by using user_id in the items table
-        $userPerPage = request()->input('per_page', 10);
+        $itemPerPage = request()->input('per_page', 10);
         $items = Item::with('user', 'pictures')
             ->when(request()->filled('type'), function ($query) {
                 $query->whereIn('type', explode(',', request('type')));
@@ -31,7 +31,7 @@ class ItemController extends Controller
                 $query->orderBy('price', request('sort_price'));
             })
 
-            ->paginate($userPerPage);
+            ->paginate($itemPerPage);
 
         return $this->success(data: $items, message: 'Items retrieved successfully');
 

@@ -17,7 +17,7 @@ const type = ref(null);
 const quantity = ref('');
 const items = ref([]);
 const rowPerPage = ref(5);
-const rowPerPageAllItems = ref(9);
+const rowPerPageAllItems = ref(8);
 const currentPage = ref(1);
 const currentPageAllItems = ref(1);
 const totalPages = ref(0);
@@ -117,6 +117,18 @@ const allItemLoad = debounce(() => {
       else{
         item.isOwn = false;
       }
+    });
+
+    // make the created_at date more readable, remove seconds, make it am/pm
+    allItems.value.forEach((item) => {
+      item.created_at = new Date(item.created_at).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true,
+      });
     });
 
 
@@ -253,9 +265,9 @@ allItemLoad();
 
 <template>
 
-  <div class="box-style">
-
-  <VRow class="mb-2">
+<div class="box-style">
+  <h2 class="mt-3 ml-3 text-overline-4" style="font-weight: 400;">Filter Items</h2>
+  <VRow class="mb-2 mt-2">
     <VCol cols="12" md="3">
       <VCombobox
         v-model="typeSearch"
@@ -296,7 +308,7 @@ allItemLoad();
       />
 
     </VCol>
-    <VCol cols="12" md="3">
+    <VCol cols="12" md="3" >
       <VTextField
         v-model="searchValueAllItems"
         placeholder="Search"
@@ -307,7 +319,8 @@ allItemLoad();
     </VCol>
     
   </VRow>
-
+</div>
+  <div class="box-style">
   <!-- Item List -->
 
     <div class="item-list-container">
@@ -337,7 +350,7 @@ allItemLoad();
   <!-- 'Own Selling Item Table -->
   <VRow>
     <VCol cols="12" md="3">
-      <div class="mt-1 ml-2">
+      <div class="mt-5 ml-5 mb-4">
         <VBtn @click="addPictureBox=true">
           Sell New Item
         </VBtn>
@@ -347,7 +360,7 @@ allItemLoad();
     <VCol cols="12" md="3"/>
     <VCol cols="12" md="3">
       <VTextField
-      class="mb-2 mr-2"
+      class="mt-5 mr-5 mb-4"
         v-model="searchValue"
         placeholder="Search"
         label="Search name of the item"
@@ -662,8 +675,10 @@ allItemLoad();
 .box-style {
   padding: 1.5px; /* Padding around the table */
   border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
-  margin-block-end: 15px;
+  margin-block-end: 15px
 }
 
 .item-list-container {
@@ -673,7 +688,6 @@ allItemLoad();
 
 .table-style{
   padding: 0.5px; /* Padding around the table */
-  background-color: #848383; /* White background color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
 }
 
@@ -733,12 +747,6 @@ allItemLoad();
   gap: 440px;
 }
 
-.box-style {
-  padding: 10px; /* Padding around the text */
-  border: 1.5px solid #d3d3d3;
-  border-radius: 5px; /* Rounded corners */
-  background-color: rgba(255, 255, 255, 53.7%); /* Light gray background color */
-}
 </style>
 
 
