@@ -28,7 +28,6 @@ const viewPendingOrder = (item) => {
   openPendingDialog.value = true;
   clickedItem.value = item;
   extractPreferredDates([item]);
-  console.log(clickedItem.value);
   
 }
 
@@ -44,23 +43,39 @@ const openRejectDialog = () => {
 
 const extractPreferredDates = (pendingOrders) => {
   preferredDates.value = [];
-  const pattern = /(?:^|\n)• (\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2} [AP]M)/g;
 
+  // extract the dates from the remark_buyer, the format of remark_buyer is "Preferred meet up date and time:\n• 2024/4/11 7:32 PM\ndewf", 
+  //only extract the date and time part 2024/4/11 7:32 PM, there might be multiple dates in the remark_buyer separated by new line, make sure the AM/PM is correct
   pendingOrders.forEach((item) => {
-    let match;
-    while ((match = pattern.exec(item.remark_buyer)) !== null) {
-      preferredDates.value.push(match[1]);
+    const remark = item.remark_buyer;
+    const dates = remark.match(/(\d{4}\/\d{1,2}\/\d{1,2} \d{1,2}:\d{2} [AP]M)/g);
+    if(dates) {
+      dates.forEach((date) => {
+        preferredDates.value.push(date);
+      })
     }
-  });
-
+  })
   return preferredDates;
 };
+
+// meet_dateTime is in format 11/4/2024, 02:29 PM, we need to convert it to yyyy-mm-dd hh:mm:ss, make sure follow the AM/PM 
+const convertDateTime = (dateTime) => {
+    const date = new Date(dateTime);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = '00';
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
 
 
 //confirm order
 const confirmedOrder = () => {
-  //change the date format to yyyy-mm-dd hh:mm:ss
-  meet_dateTime.value = new Date(meet_dateTime.value).toISOString().slice(0, 19).replace('T', ' ');
+
+  meet_dateTime.value = convertDateTime(meet_dateTime.value);
+
   if(decision.value === 'reject') {
     meet_dateTime.value = null;
   }
@@ -110,7 +125,7 @@ const confirmedOrder = () => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-id-card-line" />
-          Customer
+          Buyer
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
@@ -207,7 +222,7 @@ const confirmedOrder = () => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-id-card-line" />
-          Customer
+          Buyer
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
@@ -350,7 +365,7 @@ const confirmedOrder = () => {
                 cols="12"
                 md="3"
               >
-                <label for="firstNameHorizontalIcons">Selected Date</label>
+                <label for="firstNameHorizontalIcons">Selected Date and Time</label>
               </VCol>
 
               <VCol

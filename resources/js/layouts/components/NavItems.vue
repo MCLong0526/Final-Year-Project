@@ -1,5 +1,6 @@
 <script setup>
 import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTitle.vue';
+import VerticalNavGroup from '@layouts/components/VerticalNavGroup.vue';
 import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
 import axios from 'axios';
 
@@ -93,43 +94,74 @@ getUnreadNotification()
       heading: 'Order Information',
     }"
   />
+  <VerticalNavGroup
+    :item="{
+      title: 'Sales',
+      icon: 'ri-shopping-bag-2-line',
+    }"
+  >
   <VerticalNavLink
     v-if="orderNotification > 0"
     :item="{
-      title: 'Sales Orders',
+      title: 'Sales Items',
       badgeContent: orderNotification,
       badgeClass: 'bg-error',
-      icon: 'ri-shopping-bag-2-line',
-      to: '/sales-orders',
+      icon: 'ri-shopping-cart-2-fill',
+      to: '/sales-items',
     }"
   />
   <VerticalNavLink
     v-else
     :item="{
-      title: 'Sales Orders',
-      icon: 'ri-shopping-bag-2-line',
-      to: '/sales-orders',
+      title: 'Sales Items',
+      icon: 'ri-shopping-cart-2-fill',
+      to: '/sales-items',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'Sales Services',
+      icon: 'ri-service-fill',
+      to: '/sales-services',
+    }"
+  />
+  </VerticalNavGroup> 
+  
+
+  <VerticalNavGroup
+    :item="{
+      title: 'Purchases',
+      icon: 'ri-shopping-basket-line',
+    }"
+  >
 
   <VerticalNavLink
     v-if="purchasesNotification > 0"
     :item="{
-      title: 'Track Purchases',
+      title: 'Purchase Items',
       badgeContent: purchasesNotification,
       badgeClass: 'bg-error',
-      icon: 'ri-shopping-cart-2-line',
-      to: '/track-purchases',
+      icon: 'ri-shopping-cart-2-fill',
+      to: '/purchase-items',
     }"
   />
   <VerticalNavLink
     v-else
     :item="{
-      title: 'Track Purchases',
-      icon: 'ri-shopping-cart-2-line',
-      to: '/track-purchases',
+      title: 'Purchase Items',
+      icon: 'ri-shopping-cart-2-fill',
+      to: '/purchase-items',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'Purchase Services',
+      icon: 'ri-service-fill',
+      to: '/purchase-services',
+    }"
+  />
+  </VerticalNavGroup>
+
 
 
 </template>

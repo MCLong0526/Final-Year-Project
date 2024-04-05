@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('service_id');
             $table->unsignedBigInteger('customer_id');
             $table->string('status');
-            $table->dateTime('service_dateTime')->nullable();
+            $table->string('service_dateTime')->nullable();
             $table->dateTime('order_dateTime');
             $table->string('place_to_service');
             $table->string('approximated_price');

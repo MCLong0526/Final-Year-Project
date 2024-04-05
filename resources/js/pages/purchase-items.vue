@@ -1,6 +1,6 @@
 <script setup>
-import ConfirmedPurchasesTable from "@/components/Purchases/ConfirmedPurchasesTable.vue";
-import PendingPurchasesTable from "@/components/Purchases/PendingPurchasesTable.vue";
+import ConfirmedPurchasesTable from "@/components/Purchases/ConfirmedItemPurchasesTable.vue";
+import PendingPurchasesTable from "@/components/Purchases/PendingItemPurchasesTable.vue";
 import axios from "axios";
 
 const currentTab = ref('tab-1');
@@ -77,6 +77,7 @@ const countAuthPurchases = () => {
       console.log(error)
     })
 }
+
 
 countAuthPurchases()
 getPurchasesOrder()

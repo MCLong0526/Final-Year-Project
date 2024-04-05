@@ -76,15 +76,8 @@ const submitOrder = async () => {
 watch(meetDateTime, (newValue) => {
   if (newValue) {
     const dateObj = new Date(newValue);
-    const formattedDate = dateObj.toLocaleString('en-US', { 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit', 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      hour12: true,
-      timeZone: 'Asia/Kuala_Lumpur' // Adjust to your timezone
-    });
+    //change the hour and minutes to 12 hours format, and arrange the formattedDate to yyyy/mm/dd hh:mm AM/PM
+    const formattedDate = `${dateObj.getFullYear()}/${dateObj.getMonth() + 1}/${dateObj.getDate()} ${dateObj.getHours() % 12 || 12}:${dateObj.getMinutes()} ${dateObj.getHours() >= 12 ? 'PM' : 'AM'}`;
     if (remark_buyer_dateTime.value.includes('Preferred meet up date and time:')) {
       remark_buyer_dateTime.value = `${remark_buyer_dateTime.value}\n• ${formattedDate}`;
     } else {
@@ -103,6 +96,7 @@ watch(meetDateTime, (newValue) => {
       cols="12"
       md="3"
       sm="6"
+
     >
       <VCard class="mb-4" @click="seeItem(item)">
         <VCarousel delimiter-icon="ri-circle-fill" height="250px" hide-delimiter-background show-arrows="hover">
@@ -244,9 +238,10 @@ watch(meetDateTime, (newValue) => {
 
   <VDialog
     v-model="checkStatusDialog"
-    scrollable
-    max-width="700"
+    max-width="650"
     class="dialog"
+    style="overflow-x: hidden;"
+    
   >
     <!-- Dialog Content -->
     <VCard title="Order Item Information">
@@ -345,7 +340,7 @@ watch(meetDateTime, (newValue) => {
 
           <!-- Remark -->
           <VCol cols="12">
-            <VRow no-gutters>
+            <VRow no-gutters style="cursor: not-allowed;">
               <VCol
                 cols="12"
                 md="3"
@@ -364,6 +359,7 @@ watch(meetDateTime, (newValue) => {
                   prepend-inner-icon="ri-chat-4-line"
                   placeholder="Enter Remark"
                   :rules="[requiredValidator]"
+                  
                 />
               </VCol>
             </VRow>

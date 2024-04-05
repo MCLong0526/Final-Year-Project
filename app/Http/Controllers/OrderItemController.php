@@ -161,11 +161,12 @@ class OrderItemController extends Controller
             $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
         }
 
-        // filter the orders by using the request "search" parameter, and the request search is to search the buyer's username and email
+        // filter the orders by using the request "search" parameter, and the request search is to search the buyer's username and email, the search can also be used to filter the item's name
         if (request()->filled('search')) {
             $allOrders = $allOrders->filter(function ($order) {
                 return stripos($order->user->username, request('search')) !== false
-                    || stripos($order->user->email, request('search')) !== false;
+                    || stripos($order->user->email, request('search')) !== false
+                    || stripos($order->item->name, request('search')) !== false;
             });
         }
         if (request()->filled('status')) {

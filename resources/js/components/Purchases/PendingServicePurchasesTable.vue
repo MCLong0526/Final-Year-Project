@@ -6,11 +6,13 @@ const props = defineProps({
     type: Object,
     required: true
   },
-
 })
 
 const cancelOrderDialog = ref(false)
 const clickedPendingOrder = ref(null)
+const isAddAlert = ref(false)
+const hasErrorAlert = ref(false)
+const errorMessages = ref('')
 
 const cancelOrder = (order) => {
   cancelOrderDialog.value = true
@@ -18,13 +20,18 @@ const cancelOrder = (order) => {
 }
 
 const cancelPendingOrder = () => {
-  axios.put(`/api/order-items/cancel-pending-order/${clickedPendingOrder.value.id}`)
+  axios.put(`/api/order-services/cancel-pending-order/${clickedPendingOrder.value.id}`)
     .then(response => {
       cancelOrderDialog.value = false
+      isAddAlert.value = true
+      // watch 1.5 second then window reload
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
 
     })
     .catch(error => {
-      $toast.error('Failed to cancel order.')
+      console.log(error)
     })
 }
 </script>
@@ -39,11 +46,11 @@ const cancelPendingOrder = () => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-product-hunt-line" />
-          Product
+          Service
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-id-card-line" />
-          Seller
+          Provider
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
@@ -61,44 +68,44 @@ const cancelPendingOrder = () => {
     </thead>
 
     <tbody>
-      <tr v-for="item in pendingPurchasesOrders" :key="item.id">
-        <td class="text-center">#{{ item.id }}</td>
+      <tr v-for="service in pendingPurchasesOrders" :key="service.id">
+        <td class="text-center">#{{ service.id }}</td>
         <td>
           <div class="d-flex align-items-center">
             <VAvatar
-              v-if="item.item.pictures.length > 0 && item.item.pictures"
+              v-if="service.service.pictures.length > 0 && service.service.pictures"
               size="32"
               rounded="sm"
               style="margin-inline-end: 8px;"
             >
-              <VImg :src="item.item.pictures[0].picture_path" />
+              <VImg :src="service.service.pictures[0].picture_path" />
             </VAvatar>
             <div>
-              <div>{{ item.item.name }}</div>
-              <div style="color: #6c757d; font-size: 12px;">{{ item.item.type }}</div>
+              <div>{{ service.service.name }}</div>
+              <div style="color: #6c757d; font-size: 12px;">{{ service.service.type }}</div>
             </div>
           </div>
         </td>
         <td>
           <div class="d-flex align-items-center">
             <VAvatar
-              v-if="item.item.user.avatar"
+              v-if="service.service.user.avatar"
               size="32"
-              :color="item.item.user.avatar ? '' : 'primary'"
+              :color="service.service.user.avatar ? '' : 'primary'"
               class="mr-1"
             >
-              <VImg :src="item.item.user.avatar" />
+              <VImg :src="service.service.user.avatar" />
             </VAvatar>
             <div>
-              <div>{{ item.item.user.username }}</div>
-              <div style="color: #6c757d; font-size: 12px;">{{ item.item.user.email }}</div>
+              <div>{{ service.service.user.username }}</div>
+              <div style="color: #6c757d; font-size: 12px;">{{ service.service.user.email }}</div>
             </div>
           </div>
         </td>
-        <td class="text-center">{{ item.order_dateTime }}</td>
+        <td class="text-center">{{ service.order_dateTime }}</td>
         <td class="text-center">
           <div class="status-dot">
-            <VChip color="warning">{{ item.status }}</VChip>
+            <VChip color="warning">{{ service.status }}</VChip>
           </div>
         </td>
 
@@ -107,7 +114,7 @@ const cancelPendingOrder = () => {
             color="warning"
             style="margin-inline: 15px 3px"
             size="small"
-            @click="cancelOrder(item)"
+            @click="cancelOrder(service)"
           >
             <VIcon
               icon="ri-close-circle-line"
@@ -136,11 +143,11 @@ const cancelPendingOrder = () => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-product-hunt-line" />
-          Product
+          Service
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-id-card-line" />
-          Seller
+          Provider
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
@@ -189,7 +196,7 @@ const cancelPendingOrder = () => {
           icon="ri-alert-line"
           variant="tonal"
         >
-          Are you sure you want to cancel the order for the item "<strong>{{ clickedPendingOrder.item.name }}</strong>"
+          Are you sure you want to cancel the order for the service "<strong>{{ clickedPendingOrder.service.name }}</strong>"
         </VAlert>
       </VCardText>
 
@@ -211,4 +218,26 @@ const cancelPendingOrder = () => {
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <!--Snackbar-->
+  <VSnackbar
+      v-model="isAddAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+      Order has been successfully cancelled.
+    </VSnackbar>
+
+    <!--Snackbar-->
+    <VSnackbar
+      v-model="hasErrorAlert"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+    <VIcon size="20" class="me-2">ri-alert-line</VIcon>
+      {{ errorMessages }}
+    </VSnackbar>
 </template>

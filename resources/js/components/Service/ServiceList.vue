@@ -64,12 +64,10 @@ watch(serviceDate, (newValue) => {
 
   if (newValue) {
     const dateObj = new Date(newValue);
-    const formattedDate = dateObj.toLocaleString('en-US', { 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit', 
-    
-    });
+    //arrange the formattedDate to yyyy-mm-dd
+    const formattedDate = `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+
+
     // if the serviceDate is changed, then reset the serviceStartTime and serviceEndTime
     if(remark_buyer_dateTime.value.includes('Preferable Service Date and Time')){
       //remove all the time
@@ -524,7 +522,7 @@ const submitOrder = async () => {
 
           <!-- Remark -->
           <VCol cols="12">
-            <VRow no-gutters>
+            <VRow no-gutters style="cursor: not-allowed;">
               <VCol
                 cols="12"
                 md="3"

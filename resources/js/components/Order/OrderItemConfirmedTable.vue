@@ -57,7 +57,7 @@ const openWhatsApp = (clickedUser) => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-id-card-line" />
-          Customer
+          Buyer
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
@@ -164,7 +164,7 @@ const openWhatsApp = (clickedUser) => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-id-card-line" />
-          Customer
+          Buyer
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
@@ -222,21 +222,22 @@ const openWhatsApp = (clickedUser) => {
             <span>: #{{ clickedItem.id }}</span>
           </div>
           <div class="detail-row">
+            <strong>Order Date Time</strong>
+            <span>: {{ clickedItem.order_dateTime }}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Buyer</strong>
+            <span>: {{ clickedItem.user.username }}</span>
+          </div>
+          <div class="detail-row">
             <strong>Status</strong>
             <span v-if="clickedItem.status=='Approved'">: <VChip color="success" size="small"><VIcon icon="ri-check-fill" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
             <span v-else>: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
           </div>
+          <VDivider class="mt-2 mb-2"/>
           <div class="detail-row">
-            <strong>Item</strong>
+            <strong>Item Name</strong>
             <span>: {{ clickedItem.item.name }}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Customer</strong>
-            <span>: {{ clickedItem.user.username }}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Order Date Time</strong>
-            <span>: {{ clickedItem.order_dateTime }}</span>
           </div>
           <div class="detail-row" >
             <strong>Meet Date Time</strong>

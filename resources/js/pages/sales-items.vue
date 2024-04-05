@@ -1,6 +1,6 @@
 <script setup>
-import TableConfirmedOrders from "@/components/Order/OrderConfirmedTable.vue";
-import TablePendingOrders from "@/components/Order/OrderPendingTable.vue";
+import TableConfirmedOrders from "@/components/Order/OrderItemConfirmedTable.vue";
+import TablePendingOrders from "@/components/Order/OrderItemPendingTable.vue";
 import axios from "axios";
 import { debounce } from 'lodash';
 import { watch } from "vue";
@@ -99,13 +99,9 @@ const getConfirmedOrders = debounce(() => {
     })
 }, 800);
 
-watch(searchCustomer, () => {
+watch([searchCustomer, orderStatus, currentTab], () => {
   getConfirmedOrders();
-})
-
-watch(orderStatus, () => {
-  getConfirmedOrders();
-})
+});
 
 getPendingOrders()
 getConfirmedOrders()
@@ -169,7 +165,7 @@ getConfirmedOrders()
     <VWindowItem
       value="tab-2"
     >
-    <VRow>
+    <VRow class="ml-2 mr-2">
       <VCol cols="12" md="3">
         <VCombobox
           v-model="orderStatus"
@@ -185,6 +181,7 @@ getConfirmedOrders()
         />
         </VCol>
         <VCol cols="12" md="3" />
+
         <VCol cols="12" md="3" />
         
       <VCol cols="12" md="3">
@@ -192,7 +189,7 @@ getConfirmedOrders()
           class="mb-4 mt-2"
           v-model="searchCustomer"
           label="Search"
-          placeholder="Search"
+          placeholder="Search for customer and item"
           dense
           clearable
         />

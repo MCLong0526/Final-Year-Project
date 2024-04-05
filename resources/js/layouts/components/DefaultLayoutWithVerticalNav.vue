@@ -5,6 +5,7 @@ import UserProfile from '@/layouts/components/UserProfile.vue';
 import UnimasLogo from '@images/logos/logoUni.png';
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
+
 </script>
 
 <template>

@@ -10,6 +10,10 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  allServicesLoad: {
+    type: Function,
+    required: true,
+  },
   types: {
     type: Array,
     required: true,
@@ -77,7 +81,9 @@ const editService = () => {
   })
     .then((response) => {
       editServiceDialog.value = false;
+      isEditAlert.value = true;
       props.serviceLoad();
+      props.allServicesLoad();
     }).catch((error) => {
       errorMessages.value = error.response.data.message;
       hasErrorAlert.value = true;

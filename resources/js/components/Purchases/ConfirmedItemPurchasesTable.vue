@@ -7,6 +7,7 @@ const props = defineProps({
     type: Object,
     required: true
   },
+
 })
 
 const clickedItem = ref({})

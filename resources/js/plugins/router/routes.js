@@ -11,6 +11,11 @@ export const routes = [
         meta: { requiresAuth: true },
       },
       {
+        path:'admin-dashboard',
+        component: () => import('@/pages/admin-dashboard.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: 'test',
         component: () => import('@/pages/test.vue'),
         
@@ -21,41 +26,46 @@ export const routes = [
         meta: { requiresAuth: true },
       },
       {
-        path: 'user-profile',
-        component: () => import('@/pages/user-profile.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
         path: 'life-moment-post',
         component: () => import('@/pages/life-moment-post.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'user-profile',
+        component: () => import('@/pages/user-profile.vue'),
+        meta: { requiresAuth: true },
+      },
+
       {
         path: 'selling-item',
         component: () => import('@/pages/selling-item.vue'),
         meta: { requiresAuth: true },
       },
       {
-        path:'sales-orders',
-        component: () => import('@/pages/sales-orders.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
-        path:'track-purchases',
-        component: () => import('@/pages/track-purchases.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
-        path:'admin-dashboard',
-        component: () => import('@/pages/admin-dashboard.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
         path:'provide-service',
         component: () => import('@/pages/provide-services.vue'),
         meta: { requiresAuth: true },
+      },
+      {
+        path:'sales-items',
+        component: () => import('@/pages/sales-items.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path:'sales-services',
+        component: () => import('@/pages/sales-services.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path:'purchase-items',
+        component: () => import('@/pages/purchase-items.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path:'purchase-services',
+        component: () => import('@/pages/purchase-services.vue'),
+        meta: { requiresAuth: true },
       }
-  
     ],
   },
   {

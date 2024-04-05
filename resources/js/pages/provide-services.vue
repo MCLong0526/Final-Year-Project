@@ -310,6 +310,7 @@ allServicesLoad()
       <TableService
         :services="services"
         :serviceLoad="serviceLoad"
+        :allServicesLoad="allServicesLoad"
         :types="types"
       />
     </div>

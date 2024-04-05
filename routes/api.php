@@ -69,6 +69,12 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::controller(OrderServiceController::class)->prefix('order-services')->group(function () {
         Route::post('/store', 'store');
+        Route::get('/get-pending-sell-orders', 'getPendingSellOrders');
+        Route::put('/confirmed-order/{service_user_id}', 'confirmedOrder');
+        Route::get('/get-confirmed-sell-orders', 'getConfirmedSellOrders');
+        Route::get('/get-purchases-orders', 'getPurchasesOrders');
+        Route::put('/cancel-pending-order/{item_user_id}', 'cancelPendingOrder');
+        Route::get('/count-auth-purchases', 'countAuthPurchases');
     });
     Route::controller(NotificationController::class)->prefix('notifications')->group(function () {
         Route::get('/get-auth-notifications', 'getAuthNotifications');
