@@ -20,8 +20,9 @@ class ItemController extends Controller
             ->when(request()->filled('type'), function ($query) {
                 $query->whereIn('type', explode(',', request('type')));
             })
+            // filter the condition, the condition must same with the request
             ->when(request()->filled('condition'), function ($query) {
-                $query->where('condition', 'like', '%'.request('condition').'%');
+                $query->whereIn('condition', explode(',', request('condition')));
             })
             ->when(request()->filled('search'), function ($query) {
                 $query->where('name', 'like', '%'.request('search').'%')

@@ -96,6 +96,10 @@ const confirmedOrder = () => {
 
       // refresh the pending orders
       props.getPendingOrders();
+      // refresh the page 1.5 seconds after the order is confirmed
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
       
     })
     .catch(error => {

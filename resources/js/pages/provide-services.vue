@@ -20,6 +20,7 @@ const isAddAlert = ref(false);
 const typeSearch = ref([]);
 const sortPrice = ref(null);
 const searchValueAllServices = ref('');
+const ownServices = ref(false);
 
 const name = ref('');
 const description = ref('');
@@ -213,7 +214,7 @@ allServicesLoad()
 <template>
   <div class="box-style">
     <h2 class="mt-3 ml-3 text-overline-4" style="font-weight: 400;">Filter Services</h2>
-    <VRow class="mb-2 mt-2">
+    <VRow class="mb-2 mt-2 ml-2 mr-2">
       <VCol cols="12" md="4">
         <VCombobox
           v-model="typeSearch"
@@ -242,19 +243,35 @@ allServicesLoad()
         />
       </VCol>
 
-      <VCol cols="12" md="4" >
-        <VTextField
-          v-model="searchValueAllServices"
-          placeholder="Search"
-          label="Search name or description of service"
-          clearable
-          dense
-        />
-      </VCol>
+      
       
     </VRow>
   </div>
     <div class="box-style">
+      <VRow class="mt-2 mr-2 mb-2">
+        <VCol cols="12" md="3" class="ml-3">
+          <VBtn @click="ownServices=true">
+            <VTooltip
+              location="top"
+              activator="parent"
+              transition="scroll-x-transition"
+            >
+              <span>Click to view your own services</span>
+          </VTooltip>
+            Own Services
+          </VBtn>
+        </VCol>
+        <VCol cols="12" md="3" class="ml-auto ">
+          <VTextField
+              v-model="searchValueAllServices"
+              placeholder="Search"
+              label="Search name or description of service"
+              clearable
+              dense
+            />
+        </VCol>
+      </VRow>
+      
     <!-- Item List -->
 
       <div class="item-list-container">
@@ -280,6 +297,12 @@ allServicesLoad()
     </div>
 
 
+
+  <!--Own Services Dialog-->
+  <VDialog
+    v-model="ownServices"
+    max-width="1200"
+  >
 
   <div class="box-style">
 
@@ -337,8 +360,13 @@ allServicesLoad()
         </VCol>
       </VRow>
     </VCardText>
-    </div>
+  </div>
+</VDialog>
 
+
+
+
+<!--Add New Service-->
 <VDialog
     v-model="addNewDialog"
     max-width="800"
@@ -486,47 +514,7 @@ allServicesLoad()
   </VDialog>
 
 
-  <!-- Add Picture Dialog -->
-  <VDialog
-    v-model="addPictureBox"
-    max-width="600"
-  >
-    <VCard title="Add Item Pictures">
-      <div class="upload-container">
-        <input
-          type="file"
-          ref="fileInput"
-          style="display: none"
-          accept="image/*"
-          @change="handleFileInputChange"
-        />
-        <div
-          class="upload-box"
-          @drop.prevent="handleDrop"
-          @dragover.prevent
-          @click="openFileInput"
-        >
-          <VIcon class="upload-icon">ri-image-add-line</VIcon>
-          <p class="upload-text">Drag & Drop your images here.</p>
-          <p class="upload-text">Click here to upload images (PNG, JPEG, JPG).</p>
-          <div v-if="pictures.length > 0" class="uploaded-images">
-            <p class="upload-text">Selected images: </p>
-          <div v-for="(picture, index) in pictures" :key="index" class="uploaded-image">
-            <img :src="picture.url" alt="Uploaded Image" />
-            <VBtn @click="removeImage(index)" icon="ri-close-line" class="remove-btn"/>
-          </div>
-        </div>
-        </div>
-      </div>
-   
-      <VCardActions>
-        <div class="button-container">
-          <VBtn color="secondary" @click="addPictureBox = false">Cancel</VBtn>
-          <VBtn color="success" @click="addNewDialog=true">Next</VBtn>
-        </div>
-      </VCardActions>
-    </VCard>
-  </VDialog>
+
 
   <!-- Add Picture Dialog -->
   <VDialog
@@ -570,7 +558,52 @@ allServicesLoad()
     </VCard>
   </VDialog>
 
-  <!--Snackbar-->
+
+
+  <!-- Add Picture Dialog -->
+  <VDialog
+    v-model="addPictureBox"
+    max-width="600"
+  >
+    <VCard title="Add Item Pictures">
+      <div class="upload-container">
+        <input
+          type="file"
+          ref="fileInput"
+          style="display: none"
+          accept="image/*"
+          @change="handleFileInputChange"
+        />
+        <div
+          class="upload-box"
+          @drop.prevent="handleDrop"
+          @dragover.prevent
+          @click="openFileInput"
+        >
+          <VIcon class="upload-icon">ri-image-add-line</VIcon>
+          <p class="upload-text">Drag & Drop your images here.</p>
+          <p class="upload-text">Click here to upload images (PNG, JPEG, JPG).</p>
+          <div v-if="pictures.length > 0" class="uploaded-images">
+            <p class="upload-text">Selected images: </p>
+          <div v-for="(picture, index) in pictures" :key="index" class="uploaded-image">
+            <img :src="picture.url" alt="Uploaded Image" />
+            <VBtn @click="removeImage(index)" icon="ri-close-line" class="remove-btn"/>
+          </div>
+        </div>
+        </div>
+      </div>
+   
+      <VCardActions>
+        <div class="button-container">
+          <VBtn color="secondary" @click="addPictureBox = false">Cancel</VBtn>
+          <VBtn color="success" @click="addNewDialog=true">Next</VBtn>
+        </div>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+
+
   <!--Snackbar-->
   <VSnackbar
       v-model="isAddAlert"

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Post;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -105,5 +106,59 @@ class AdminDashboardController extends Controller
         $newItemsPercentage = number_format(($newItemsCount / $count) * 100, 2);
 
         return response()->json(['number_of_items' => $count, 'new_items' => $newItemsCount, 'new_items_percentage' => $newItemsPercentage]);
+    }
+
+    public function getNumberOfServices()
+    {
+        $services = Service::all();
+        $count = $services->count();
+
+        //calculate the percentage of new added services in the last week
+        $newServices = Service::where('created_at', '>=', now()->subWeek())->get();
+        $newServicesCount = $newServices->count();
+        //get only two decimal points, make sure will have negative also
+        $newServicesPercentage = number_format(($newServicesCount / $count) * 100, 2);
+
+        return response()->json(['number_of_services' => $count, 'new_services' => $newServicesCount, 'new_services_percentage' => $newServicesPercentage]);
+    }
+
+    public function getStatusUsers()
+    {
+        $users = User::all();
+        $count = $users->count();
+
+        // calculate the number of active users and inactive users, and the percentage of active users
+        $activeUsers = User::where('status', 'active')->get();
+        $activeUsersCount = $activeUsers->count();
+        $inactiveUsersCount = $count - $activeUsersCount;
+        $activeUsersPercentage = number_format(($activeUsersCount / $count) * 100, 2);
+
+        return response()->json(['active_users' => $activeUsersCount, 'inactive_users' => $inactiveUsersCount, 'active_users_percentage' => $activeUsersPercentage]);
+    }
+
+    public function getAllPercentageTypeItems()
+    {
+        $items = Item::all();
+        $count = $items->count();
+
+        // get all the type of items and calculate the percentage of each of the type of items,
+        $typeItems = Item::select('type')->distinct()->get();
+        $typeItemsCount = [];
+        $typeItemsPercentage = [];
+        foreach ($typeItems as $typeItem) {
+            $typeItemsCount[$typeItem->type] = Item::where('type', $typeItem->type)->count();
+            $typeItemsPercentage[$typeItem->type] = number_format(($typeItemsCount[$typeItem->type] / $count) * 100, 2);
+        }
+
+        // sort the array by the percentage and get only the top 5
+        arsort($typeItemsPercentage);
+        $typeItemsPercentage = array_slice($typeItemsPercentage, 0, 5);
+
+        // change it to an array with name and percentage
+        $typeItemsPercentage = array_map(function ($key, $value) {
+            return ['name' => $key, 'percentage' => $value];
+        }, array_keys($typeItemsPercentage), $typeItemsPercentage);
+
+        return response()->json(['type_items_percentage' => $typeItemsPercentage]);
     }
 }

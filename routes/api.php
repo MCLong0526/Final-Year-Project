@@ -68,13 +68,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/count-auth-purchases', 'countAuthPurchases');
     });
     Route::controller(OrderServiceController::class)->prefix('order-services')->group(function () {
-        Route::post('/store', 'store');
+
         Route::get('/get-pending-sell-orders', 'getPendingSellOrders');
-        Route::put('/confirmed-order/{service_user_id}', 'confirmedOrder');
         Route::get('/get-confirmed-sell-orders', 'getConfirmedSellOrders');
         Route::get('/get-purchases-orders', 'getPurchasesOrders');
-        Route::put('/cancel-pending-order/{item_user_id}', 'cancelPendingOrder');
         Route::get('/count-auth-purchases', 'countAuthPurchases');
+        Route::get('/count-pending-orders', 'countPendingOrders');
+        Route::put('/cancel-pending-order/{item_user_id}', 'cancelPendingOrder');
+        Route::put('/confirmed-order/{service_user_id}', 'confirmedOrder');
+        Route::post('/store', 'store');
+
     });
     Route::controller(NotificationController::class)->prefix('notifications')->group(function () {
         Route::get('/get-auth-notifications', 'getAuthNotifications');
@@ -100,6 +103,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/get-number-of-users', 'getNumberOfUsers');
         Route::get('/get-number-of-items', 'getNumberOfItems');
         Route::get('/get-number-of-posts', 'getNumberOfPosts');
+        Route::get('/get-number-of-services', 'getNumberOfServices');
+        Route::get('/get-status-users', 'getStatusUsers');
+        Route::get('/get-all-percentage-type-items', 'getAllPercentageTypeItems');
 
     });
     Route::controller(ServiceController::class)->prefix('services')->group(function () {

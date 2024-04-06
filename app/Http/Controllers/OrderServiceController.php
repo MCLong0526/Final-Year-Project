@@ -296,4 +296,21 @@ class OrderServiceController extends Controller
             'noCancelledOrders' => $cancelledOrders,
         ], message: 'Orders counted successfully');
     }
+
+    public function countPendingOrders()
+    {
+        // Get the authenticated user's ID
+        $userId = Auth::id();
+
+        // get all the service_id that belongs to the user
+        $serviceIds = Service::where('user_id', $userId)->pluck('service_id');
+
+        //compare the service_id with the service_id in the service_user table and get the pending orders
+        $pendingOrders = DB::table('service_user')
+            ->whereIn('service_id', $serviceIds)
+            ->where('status', 'pending')
+            ->count();
+
+        return $this->success(data: $pendingOrders, message: 'Pending orders counted successfully');
+    }
 }

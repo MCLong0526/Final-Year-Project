@@ -1,10 +1,9 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
-import ItemList from '@/components/Item/ItemList.vue';
-import TableItem from '@/components/Item/ItemTable.vue';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { ref } from 'vue';
+import TableItem from '/resources/js/components/Item/ItemTable.vue';
 
 
 const user = ref([]);
@@ -33,6 +32,7 @@ const searchValueAllItems = ref('');
 const isAddAlert = ref(false);
 const hasErrorAlert = ref(false);
 const errorMessages = ref('');
+const ownSellingItems = ref(false);
 
 const conditions = [
   'New',
@@ -267,8 +267,8 @@ allItemLoad();
 
 <div class="box-style">
   <h2 class="mt-3 ml-3 text-overline-4" style="font-weight: 400;">Filter Items</h2>
-  <VRow class="mb-2 mt-2">
-    <VCol cols="12" md="3">
+  <VRow class="mb-2 mt-2 ml-2 mr-2">
+    <VCol cols="12" md="4">
       <VCombobox
         v-model="typeSearch"
         multiple
@@ -284,7 +284,7 @@ allItemLoad();
 
     </VCol>
     
-    <VCol cols="12" md="3">
+    <VCol cols="12" md="4">
       <VCombobox
         v-model="conditionSearch"
         :items="conditions"
@@ -296,7 +296,7 @@ allItemLoad();
         clearable
       />
     </VCol>
-    <VCol cols="12" md="3">
+    <VCol cols="12" md="4">
       <VCombobox
         v-model="sortPrice"
         :items="['Low to High', 'High to Low']"
@@ -308,7 +308,27 @@ allItemLoad();
       />
 
     </VCol>
-    <VCol cols="12" md="3" >
+    
+    
+  </VRow>
+  
+</div>
+  <div class="box-style">
+  <!-- Item List -->
+  <VRow class="mt-2 mr-2 mb-2">
+    <VCol cols="12" md="3" class="ml-3">
+      <VBtn @click="ownSellingItems=true">
+        <VTooltip
+          location="top"
+          activator="parent"
+          transition="scroll-x-transition"
+        >
+          <span>Click to view your selling items</span>
+      </VTooltip>
+        Own Selling Items
+      </VBtn>
+    </VCol>
+    <VCol cols="12" md="3" class="ml-auto ">
       <VTextField
         v-model="searchValueAllItems"
         placeholder="Search"
@@ -317,12 +337,7 @@ allItemLoad();
         dense
       />
     </VCol>
-    
   </VRow>
-</div>
-  <div class="box-style">
-  <!-- Item List -->
-
     <div class="item-list-container">
       <ItemList 
         :allItems="allItems"
@@ -344,6 +359,11 @@ allItemLoad();
       </VRow>
     </VCardText>
   </div>
+
+  <VDialog
+    v-model="ownSellingItems"
+    max-width="1200"
+  >
 
   <div class="box-style">
 
@@ -403,6 +423,7 @@ allItemLoad();
     </VRow>
   </VCardText>
 </div>
+</VDialog>
 
 
 

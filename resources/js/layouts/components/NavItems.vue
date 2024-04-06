@@ -5,12 +5,23 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
 import axios from 'axios';
 
 const purchasesNotification = ref(0);
-const orderNotification = ref(0);
+const orderItemNotification = ref(0);
+const orderServiceNotification = ref(0);
 
-const getUnreadNotification = () => {
+const getPendingItemNotification = () => {
   axios.get('/api/order-items/count-pending-orders')
     .then(response => {
-      orderNotification.value = response.data.data
+      orderItemNotification.value = response.data.data
+
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+const getPendingServiceNotification = () => {
+  axios.get('/api/order-services/count-pending-orders')
+    .then(response => {
+      orderServiceNotification.value = response.data.data
 
     })
     .catch(error => {
@@ -18,7 +29,9 @@ const getUnreadNotification = () => {
     })
 }
 
-getUnreadNotification()
+
+getPendingItemNotification()
+getPendingServiceNotification()
 
 </script>
 
@@ -101,10 +114,10 @@ getUnreadNotification()
     }"
   >
   <VerticalNavLink
-    v-if="orderNotification > 0"
+    v-if="orderItemNotification > 0"
     :item="{
       title: 'Sales Items',
-      badgeContent: orderNotification,
+      badgeContent: orderItemNotification,
       badgeClass: 'bg-error',
       icon: 'ri-shopping-cart-2-fill',
       to: '/sales-items',
@@ -119,6 +132,17 @@ getUnreadNotification()
     }"
   />
   <VerticalNavLink
+    v-if="orderServiceNotification > 0"
+    :item="{
+      title: 'Sales Services',
+      badgeContent: orderServiceNotification,
+      badgeClass: 'bg-error',
+      icon: 'ri-service-fill',
+      to: '/sales-services',
+    }"
+  />
+  <VerticalNavLink
+    v-else
     :item="{
       title: 'Sales Services',
       icon: 'ri-service-fill',
