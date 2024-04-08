@@ -71,13 +71,14 @@ class AdminDashboardController extends Controller
         $users = User::all();
         $count = $users->count();
 
-        //calculate the percentage of new added users in the last week
-        $newUsers = User::where('created_at', '>=', now()->subWeek())->get();
+        //calculate the percentage of new added users in the this month
+        $newUsers = User::where('created_at', '>=', now()->startOfMonth())->get();
         $newUsersCount = $newUsers->count();
+
         //get only two decimal points
         $newUsersPercentage = number_format(($newUsersCount / $count) * 100, 2);
 
-        return response()->json(['number_of_users' => $count, 'new_users' => $newUsersCount, 'new_users_percentage' => $newUsersPercentage]);
+        return response()->json(['number_of_users' => $count, 'new_users_percentage' => $newUsersPercentage]);
     }
 
     public function getNumberOfPosts()
@@ -85,13 +86,13 @@ class AdminDashboardController extends Controller
         $posts = Post::all();
         $count = $posts->count();
 
-        //calculate the percentage of new added posts in the last week
-        $newPosts = Post::where('created_at', '>=', now()->subWeek())->get();
+        //calculate the percentage of new added posts in the this month
+        $newPosts = Post::where('created_at', '>=', now()->startOfMonth())->get();
         $newPostsCount = $newPosts->count();
         //get only two decimal points, make it can more than 100%
         $newPostsPercentage = number_format(($newPostsCount / $count) * 100, 2);
 
-        return response()->json(['number_of_posts' => $count, 'new_posts' => $newPostsCount, 'new_posts_percentage' => $newPostsPercentage]);
+        return response()->json(['number_of_posts' => $count, 'new_posts_percentage' => $newPostsPercentage]);
     }
 
     public function getNumberOfItems()
@@ -99,13 +100,13 @@ class AdminDashboardController extends Controller
         $items = Item::all();
         $count = $items->count();
 
-        //calculate the percentage of new added items in the last week
-        $newItems = Item::where('created_at', '>=', now()->subWeek())->get();
+        //calculate the percentage of new added items in the this month
+        $newItems = Item::where('created_at', '>=', now()->startOfMonth())->get();
         $newItemsCount = $newItems->count();
         //get only two decimal points, make sure will have negative also
         $newItemsPercentage = number_format(($newItemsCount / $count) * 100, 2);
 
-        return response()->json(['number_of_items' => $count, 'new_items' => $newItemsCount, 'new_items_percentage' => $newItemsPercentage]);
+        return response()->json(['number_of_items' => $count, 'new_items_percentage' => $newItemsPercentage]);
     }
 
     public function getNumberOfServices()
@@ -113,13 +114,13 @@ class AdminDashboardController extends Controller
         $services = Service::all();
         $count = $services->count();
 
-        //calculate the percentage of new added services in the last week
-        $newServices = Service::where('created_at', '>=', now()->subWeek())->get();
+        //calculate the percentage of new added services in the this month
+        $newServices = Service::where('created_at', '>=', now()->startOfMonth())->get();
         $newServicesCount = $newServices->count();
         //get only two decimal points, make sure will have negative also
         $newServicesPercentage = number_format(($newServicesCount / $count) * 100, 2);
 
-        return response()->json(['number_of_services' => $count, 'new_services' => $newServicesCount, 'new_services_percentage' => $newServicesPercentage]);
+        return response()->json(['number_of_services' => $count, 'new_services_percentage' => $newServicesPercentage]);
     }
 
     public function getStatusUsers()
@@ -160,5 +161,31 @@ class AdminDashboardController extends Controller
         }, array_keys($typeItemsPercentage), $typeItemsPercentage);
 
         return response()->json(['type_items_percentage' => $typeItemsPercentage]);
+    }
+
+    public function getAllPercentageTypeServices()
+    {
+        $services = Service::all();
+        $count = $services->count();
+
+        // get all the type of services and calculate the percentage of each of the type of services,
+        $typeServices = Service::select('type')->distinct()->get();
+        $typeServicesCount = [];
+        $typeServicesPercentage = [];
+        foreach ($typeServices as $typeService) {
+            $typeServicesCount[$typeService->type] = Service::where('type', $typeService->type)->count();
+            $typeServicesPercentage[$typeService->type] = number_format(($typeServicesCount[$typeService->type] / $count) * 100, 2);
+        }
+
+        // sort the array by the percentage and get only the top 5
+        arsort($typeServicesPercentage);
+        $typeServicesPercentage = array_slice($typeServicesPercentage, 0, 5);
+
+        // change it to an array with name and percentage
+        $typeServicesPercentage = array_map(function ($key, $value) {
+            return ['name' => $key, 'percentage' => $value];
+        }, array_keys($typeServicesPercentage), $typeServicesPercentage);
+
+        return response()->json(['type_services_percentage' => $typeServicesPercentage]);
     }
 }

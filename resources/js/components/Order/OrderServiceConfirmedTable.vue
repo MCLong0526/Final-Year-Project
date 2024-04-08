@@ -65,7 +65,7 @@ const openWhatsApp = (clickedUser) => {
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-calendar-schedule-line" />
-          Meet Date
+          Service Date Time
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-verified-badge-line" />

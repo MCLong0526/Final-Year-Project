@@ -53,14 +53,14 @@ const extractServiceDateTime = (pendingOrders) => {
 
 };
 
-// convert 04/11/2024, 7:48 AM-10:48 AM to yyyy-mm-dd hh:mm:ss-hh:mm:ss
+// convert 2024/04/10, 7:32 AM-8:32 AM to yyyy-mm-dd hh:mm:ss-hh:mm:ss
 const convertDateTime = (dateTime) => {
   const date = dateTime.split(',')[0].trim();
   const startTime = dateTime.split(',')[1].split('-')[0].trim();
   const endTime = dateTime.split(',')[1].split('-')[1].trim();
-  const year = date.split('/')[2];
+  const year = date.split('/')[0];
   const month = date.split('/')[1];
-  const day = date.split('/')[0];
+  const day = date.split('/')[2];
   const startHour = startTime.split(' ')[1] === 'AM' ? parseInt(startTime.split(':')[0]) : parseInt(startTime.split(':')[0]) + 12;
   const startMinute = parseInt(startTime.split(':')[1]);
   const endHour = endTime.split(' ')[1] === 'AM' ? parseInt(endTime.split(':')[0]) : parseInt(endTime.split(':')[0]) + 12;

@@ -1,9 +1,9 @@
 <script setup>
 
 import axios from 'axios';
-import CardStatisticsHorizantal from '/resources/js/@core/components/cards/CardStatisticsHorizontal.vue';
-import VChartStatisticsItem from '/resources/js/components/Dashboard/ChartStatisticsItem.vue';
-import DonutChartForStatus from '/resources/js/components/Dashboard/DonutChartForStatus.vue';
+import CardStatisticsHorizantal from '/resources/js/components/AdminDashboard/CardStatisticsHorizontal.vue';
+import VChartStatisticsItem from '/resources/js/components/AdminDashboard/ChartStatisticsType.vue';
+import DonutChartForStatus from '/resources/js/components/AdminDashboard/DonutChartForStatus.vue';
 
 const numberOfUsers = ref(0);
 const newUsersPercentage = ref(0);
@@ -17,8 +17,10 @@ const isActiveUsers = ref(0);
 const isInactiveUsers = ref(0);
 const activeUserPercentage = ref(0);
 const allItemTypes = ref([]);
+const allItemServices = ref([]);
 const isReady = ref(false);
 const isReady2 = ref(false);
+const isReady3 = ref(false);
 
 const getUsers = () => {
   axios.get('/api/admin-dashboard/get-number-of-users')
@@ -84,9 +86,20 @@ const getStatusUsers = () => {
 const getAllItemTypes = () => {
   axios.get('/api/admin-dashboard/get-all-percentage-type-items')
     .then(response => {
-      console.log(response.data)
       allItemTypes.value = response.data.type_items_percentage
       isReady2.value = true;
+    
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+
+const getAllServiceTypes = () => {
+  axios.get('/api/admin-dashboard/get-all-percentage-type-services')
+    .then(response => {
+      allItemServices.value = response.data.type_services_percentage
+      isReady3.value = true;
     
     })
     .catch(error => {
@@ -100,6 +113,7 @@ getPosts()
 getServices()
 getStatusUsers()
 getAllItemTypes()
+getAllServiceTypes()
 </script>
 
 <template>
@@ -173,7 +187,7 @@ getAllItemTypes()
   <VRow>
     <VCol
       cols="12"
-      md="3"
+      md="4"
       sm="6"
     >
     <VCard
@@ -206,6 +220,26 @@ getAllItemTypes()
           v-if="isReady2"
           v-bind="{
             itemData: allItemTypes,
+          }"
+        />
+  
+      
+      </VCard>
+    </VCol>
+    <VCol
+      cols="12"
+      md="4"
+      sm="6"
+    >
+      <VCard 
+        title="Top Five Service Types"
+        subtitle="Percentage of each service type in the system."
+        class="mb-0"
+      >
+        <VChartStatisticsItem
+          v-if="isReady3"
+          v-bind="{
+            itemData: allItemServices,
           }"
         />
   

@@ -590,7 +590,7 @@ const priceValidator = (value) => {
                     cols="12"
                     md="3"
                   >
-                    <label for="firstNameHorizontalIcons">Price</label>
+                    <label for="firstNameHorizontalIcons">Price Per Hour</label>
                   </VCol>
 
                   <VCol

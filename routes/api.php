@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderItemController;
@@ -106,7 +107,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/get-number-of-services', 'getNumberOfServices');
         Route::get('/get-status-users', 'getStatusUsers');
         Route::get('/get-all-percentage-type-items', 'getAllPercentageTypeItems');
+        Route::get('/get-all-percentage-type-services', 'getAllPercentageTypeServices');
 
+    });
+    Route::controller(DashboardController::class)->prefix('dashboard')->group(function () {
+        Route::get('/get-schedules', 'getSchedules');
+        Route::get('/get-auth-earned', 'getAuthEarned');
+        Route::get('/get-number-of-items', 'getNumberOfItems');
+        Route::get('/get-number-of-posts', 'getNumberOfPosts');
+        Route::get('/get-number-of-services', 'getNumberOfServices');
+        Route::get('/get-number-of-likes', 'getNumberOfLikes');
     });
     Route::controller(ServiceController::class)->prefix('services')->group(function () {
         Route::get('/get-all-services', 'index');
