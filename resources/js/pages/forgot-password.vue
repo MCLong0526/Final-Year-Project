@@ -82,7 +82,7 @@ const goToLoginPage = () => {
 
       <VCardText class="pt-2">
         <h5 class="text-h5 font-weight-semibold mb-1">
-          Forgot Password
+          <VIcon size="20" class="mr-2" icon="ri-lock-password-line" />Forgot Password?
         </h5>
         <p class="mb-0">
           Enter your account email and we will send you instructions to reset your password.
