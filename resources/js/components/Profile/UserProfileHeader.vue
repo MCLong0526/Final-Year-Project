@@ -12,7 +12,6 @@ import avatar8 from '/resources/images/avatars/avatar-8.png';
 import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
 
-
 let csrfToken = '';
 
 const rules = [fileList => !fileList || !fileList.length || fileList[0].size < 5000000 || 'Avatar size should be less than 5 MB!']

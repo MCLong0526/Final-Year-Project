@@ -1,3 +1,76 @@
+
+<script setup>
+import { confirmedValidator, passwordValidator, requiredValidator } from '@/@core/utils/validators';
+import axios from 'axios';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { VForm } from 'vuetify/components/VForm';
+
+const router = useRouter();
+const refForm = ref() 
+const password = ref('')
+const currentPassword = ref('')
+const confirmPassword = ref('')
+const isPasswordVisible = ref(false)
+const isConfirmPasswordVisible = ref(false)
+const editPasswordAlert = ref(false)
+const passwordMatch = ref(false)
+const hasErrorAlert = ref(false)
+
+const passwordRequirements = [
+  'Minimum 8 characters long',
+  'At least one lowercase, uppercase letter, digit, and special character',
+  'Special characters allowed: !@#$%^&*()-_=+[{]}|;:,<.>/?',
+];
+
+const editPassword = () => {
+  checkPassword();
+  
+  if (passwordMatch.value=='false') {
+    password.value = '';
+    currentPassword.value = '';
+    confirmPassword.value = '';
+    
+   refForm.value.resetValidation();
+    hasErrorAlert.value=true;
+    
+    return;
+  }
+    axios.put('/api/users/update-password', {
+    password: password.value,
+    password_confirmation: confirmPassword.value
+
+  })
+  .then(response => {
+    password.value = '';
+    currentPassword.value = '';
+    confirmPassword.value = '';
+
+    refForm.value.resetValidation();
+    editPasswordAlert.value=true;
+    setTimeout(() => {
+      router.push({ path: '/login', query: { forceReload: true } }).catch(() => {});
+    }, 3000);
+  })
+  
+}
+
+const checkPassword = () => {
+    axios.post('/api/users/check-password', {
+        current_password: currentPassword.value,
+    }).then(response => {
+        passwordMatch.value = response.data.password_match;
+        console.log(response.data.password_match);
+        
+    }).catch(error => {
+      
+        console.error(error);
+    });
+};
+
+</script>
+
+
 <template>
   <VCard title="Change Password">
 
@@ -10,6 +83,33 @@
     >
       Please remember your new password.
     </VAlert>
+     <VCardText class="mb-2">
+        <p class="text-base">
+          <VIcon
+            size="20"
+            icon="ri-information-line"
+            class="me-3"
+          />
+          <strong>Password Requirements:</strong>
+        </p>
+
+        <ul class="d-flex flex-column gap-y-3">
+          <li
+            v-for="item in passwordRequirements"
+            :key="item"
+            class="d-flex"
+          >
+            <div>
+              <VIcon
+                size="7"
+                icon="ri-circle-fill"
+                class="me-3"
+              />
+            </div>
+            <span class="text-base">{{ item }}</span>
+          </li>
+        </ul>
+      </VCardText>
 
     <VCardText>
       <VForm 
@@ -114,12 +214,14 @@
           md="12"
         >
         <VBtn
-            type="submit"
-            color="primary"
-            @click="editPassword"
-          >
-            Change Password
-          </VBtn>
+  
+          type="submit"
+          color="primary"
+          @click="editPassword"
+        >
+          Change Password
+        </VBtn>
+      
           
         </VCol>
       </VRow>
@@ -136,7 +238,7 @@
       color="success"
     >
     <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
-      Your password has been successfully changed.
+      Your password has been successfully changed. Will be redirected to the login page in a moment.
     </VSnackbar>
     <!--Snackbar-->
     <VSnackbar
@@ -151,68 +253,3 @@ There was an error changing your password.<br>
 </VSnackbar>
 
 </template>
-
-<script setup>
-import { confirmedValidator, passwordValidator, requiredValidator } from '@/@core/utils/validators';
-import axios from 'axios';
-import { ref } from 'vue';
-import { VForm } from 'vuetify/components/VForm';
-
-const refForm = ref() 
-const password = ref('')
-const currentPassword = ref('')
-const confirmPassword = ref('')
-const isPasswordVisible = ref(false)
-const isConfirmPasswordVisible = ref(false)
-const editPasswordAlert = ref(false)
-const passwordMatch = ref(false)
-const hasErrorAlert = ref(false)
-
-const editPassword = () => {
-  checkPassword();
-  
-  if (passwordMatch.value=='false') {
-    password.value = '';
-    currentPassword.value = '';
-    confirmPassword.value = '';
-    
-   refForm.value.resetValidation();
-    hasErrorAlert.value=true;
-    
-    
-    return;
-  }
-
-
-    axios.put('/api/users/update-password', {
-    password: password.value,
-    password_confirmation: confirmPassword.value
-
-  })
-  .then(response => {
-    password.value = '';
-    currentPassword.value = '';
-    confirmPassword.value = '';
-
-    refForm.value.resetValidation();
-    editPasswordAlert.value=true;
-
-
-  })
-  
-}
-
-const checkPassword = () => {
-    axios.post('/api/users/check-password', {
-        current_password: currentPassword.value,
-    }).then(response => {
-        passwordMatch.value = response.data.password_match;
-        console.log(response.data.password_match);
-        
-    }).catch(error => {
-      
-        console.error(error);
-    });
-};
-
-</script>

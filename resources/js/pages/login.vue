@@ -1,4 +1,5 @@
-<script setup>import { passwordValidator, requiredValidator } from '@/@core/utils/validators';
+<script setup>
+import { passwordValidator, requiredValidator } from '@/@core/utils/validators';
 import { useAuthStore } from '@/plugins/store/AuthStore';
 import logo from '@images/logos/logoUni.png';
 import { ref } from 'vue';
@@ -37,6 +38,10 @@ const login = async () => {
   
 }
 
+const navigateToForgotPassword = () => {
+  router.replace(route.query.to ? String(route.query.to) : '/forgot-password')
+}
+
 // customize validator
 const emailValidator = (v) => {
   const regex = /^[0-9]{5}@siswa\.unimas\.my$/;
@@ -49,7 +54,8 @@ const isPasswordVisible = ref(false)
 
 <template>
 
-  <div class="auth-wrapper d-flex align-center justify-center pa-4">
+  <div class="auth-wrapper">
+    <div class="auth-content">
     <VCard
       class="auth-card pa-4 pt-7"
       max-width="448"
@@ -122,9 +128,9 @@ const isPasswordVisible = ref(false)
               <!-- remember me checkbox -->
               <div class="d-flex align-center justify-space-between flex-wrap mt-1 mb-4">
                 <a
-                  class="ms-2 mb-1"
-                  href="javascript:void(0)"
-                >
+    class="ms-2 mb-1 text-primary"
+    @click="navigateToForgotPassword"
+  >
                   Forgot Password?
                 </a>
               </div>
@@ -157,11 +163,33 @@ const isPasswordVisible = ref(false)
         </VForm>
       </VCardText>
     </VCard>
-
-   
+    </div>
   </div>
 </template>
 
-<style lang="scss">
-@use "@core-scss/pages/page-auth.scss";
+<style scoped>
+.auth-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url('/resources/images/background/background.jpg') no-repeat center center;
+  background-size: cover;
+  block-size: 100vh;
+}
+
+.auth-content {
+  position: absolute;
+  z-index: 1;
+  background: rgba(255, 255, 255, 90%);
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 20%);
+  inline-size: 100%;
+  max-inline-size: 448px;
+}
+
+.auth-card {
+  padding: 24px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 90%);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 10%);
+}
 </style>

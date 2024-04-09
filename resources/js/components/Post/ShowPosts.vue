@@ -243,9 +243,8 @@ const removeImage = () => {
 //edit post
 const editDialog=(post)=>{
   editPostDialog.value = true;
-  selectedPost.value = post
+  selectedPost.value = Object.assign({}, post);
   selectedPost.value.picture = post.picture;
-  console.log(selectedPost.value)
 }
 
 const editPost = (post) => {
