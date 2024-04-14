@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatsController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
@@ -125,6 +126,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/delete/{service_id}', 'destroy');
         Route::put('/update/{service_id}', 'update');
 
+    });
+
+    Route::controller(ChatsController::class)->prefix('chat')->group(function () {
+        Route::get('/messages', 'fetchMessages');
+        Route::post('/messages', 'sendMessage');
     });
 
 });

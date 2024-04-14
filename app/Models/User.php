@@ -51,6 +51,11 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'user_id', 'user_id');
+    }
+
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id');
