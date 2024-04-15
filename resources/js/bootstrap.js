@@ -3,7 +3,7 @@ window.Pusher = require('pusher-js');
 
 window.Echo = new Echo({
     broadcaster: 'pusher',
-    key: process.env.MIX_PUSHER_APP_KEY,
-    cluster: process.env.MIX_PUSHER_APP_CLUSTER,
-    forceTLS: true
+    key: 'bfdcd4030f09a5a101b7',
+    cluster: 'ap1',
+    encrypted: true
 });

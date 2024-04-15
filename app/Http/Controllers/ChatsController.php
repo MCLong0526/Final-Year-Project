@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewChatMessage;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +30,12 @@ class ChatsController extends Controller
 
         $message = new Message();
         $message->sender_id = $user->user_id;
-        $message->receiver_id = 9;
+        $message->receiver_id = $request->receiver_id;
         $message->message = $request->message;
         $message->save();
+
+        // Pass the entire message object to the NewChatMessage constructor
+        event(new NewChatMessage($message));
 
         return ['status' => 'Message Sent!'];
     }

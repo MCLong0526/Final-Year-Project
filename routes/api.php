@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::controller(UserController::class)->prefix('users')->group(function () {
         Route::get('/', 'index');
         Route::post('/check-password', 'checkPassword');
@@ -130,6 +131,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::controller(ChatsController::class)->prefix('chat')->group(function () {
         Route::get('/messages', 'fetchMessages');
+
         Route::post('/messages', 'sendMessage');
     });
 
