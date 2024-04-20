@@ -16,8 +16,8 @@ export const routes = [
         meta: { requiresAuth: true },
       },
       {
-        path: 'test',
-        component: () => import('@/pages/test.vue'),
+        path: 'chat',
+        component: () => import('@/pages/chat.vue'),
         
       },
       {

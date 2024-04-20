@@ -58,14 +58,11 @@ getPendingServiceNotification()
     }"
   />
 
-
-  
-
   <VerticalNavLink
     :item="{
-      title: 'Test',
-      icon: 'ri-test-tube-line',
-      to: '/test',
+      title: 'Chat',
+      icon: 'ri-chat-1-line',
+      to: '/chat',
     }"
   />
 
