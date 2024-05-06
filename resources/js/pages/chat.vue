@@ -4,8 +4,8 @@ import { useAuthStore } from '@/plugins/store/AuthStore';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { ref } from 'vue';
-const store = useAuthStore();
 
+const store = useAuthStore();
 const newMessage = ref('');
 const messages = ref([]);
 const messagesShowed = ref([]);
@@ -63,7 +63,6 @@ const fetchMessages = debounce(() => {
   
   // show the messages of the clicked user
   if (messageClicked.value || showLoading.value === true) {
-    console.log('showing messages');
     messagesShowed.value =Object.assign([], messages.value.filter(message => message.sender.user_id === clickedMessage.value.user.user_id || message.receiver.user_id === clickedMessage.value.user.user_id));
     setTimeout(() => {
     const chat = document.querySelector('.message');
@@ -99,12 +98,12 @@ const latestUserMessages = computed(() => {
       userMap.set(userId, { user: message.sender.user_id !== store.user.user_id ? message.sender : message.receiver, message: message.message, created_at: message.created_at });
     }
   });
+
   return Array.from(userMap.values()); // Convert map values to array
 });
 
 // get the messages of the clicked user
 const getMessages = (userMessage) => {
-  console.log('clicked');
   messageClicked.value = true;
   clickedMessage.value = userMessage;    // so that can know which user is clicked
   const userId = userMessage.user.user_id;
@@ -169,8 +168,6 @@ watch(searchUser, debounce(() => {
     fetchMessages();
     return;
   }
-  
-  
   
 }, 800));
 

@@ -187,7 +187,9 @@ const submitOrder = async () => {
 </script>
 
 <template>
-  <VRow class="mt-1 ml-1 mr-1">
+  <VRow
+    v-if="allServices.length > 0" 
+    class="mt-1 ml-1 mr-1">
     <VCol
       v-for="(service) in allServices"
       :key="service.service_id"
@@ -220,6 +222,22 @@ const submitOrder = async () => {
             {{ service.name }}
         </VRow>
 
+      </VCard>
+    </VCol>
+  </VRow>
+  <VRow v-else>
+    <VCol cols="12">
+      <VCard>
+        <VAlert  
+          variant="tonal"
+          type="warning"
+          class="mt-2 text-center"
+          color="primary"
+          dense
+          closable
+        >
+          No service available at the moment.
+        </VAlert>
       </VCard>
     </VCol>
   </VRow>
@@ -294,7 +312,7 @@ const submitOrder = async () => {
         </VCardText>
 
         <h3 class="mt-2">Description</h3>
-        <VCardText>
+        <VCardText style="white-space: pre-line;">
           {{ clickedService.description }}
           </VCardText>
 

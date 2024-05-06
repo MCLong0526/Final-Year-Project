@@ -1,6 +1,7 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
+// import { useRouter } from 'vue-router';
 import { VForm } from 'vuetify/components/VForm';
 
 const props = defineProps({
@@ -22,6 +23,7 @@ const props = defineProps({
   },
 })
 
+// const router = useRouter();
 const addCommentDialog = ref(false)
 const selectedComment = ref(null); // Initialize as null or with a default value
 
@@ -124,15 +126,12 @@ const addNewComment = (post) => {
     requestData.replier_id = null;
   }
 
-  console.log(requestData);
-
   axios.post('/api/comments/store', requestData)
     .then(response => {
-      console.log(response.data);
       addCommentDialog.value = false;
       clearSelectedComment();
-      newComment.value = '';
-      props.getPosts();
+      newComment.value = '';     
+    
     })
     .catch(error => {
       console.log(error);
@@ -266,6 +265,15 @@ const editPost = (post) => {
 };
 //edit done.
 
+// // go to chat page
+// const goToChatPage = (user) => {
+//   // Redirect to the chat page with the user object as a route parameter
+//   router.push({ name: 'chat', params: { user: JSON.stringify(user) } });
+// };
+
+
+
+
 </script>
 
 <template>
@@ -277,7 +285,7 @@ const editPost = (post) => {
           <VCard variant="outlined" class="mx-auto" max-width="600" style="border-radius: 20px; background-color: #f8f9fa;">
             <VCardItem>
               <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center" >
                   <VAvatar v-if="post.user.avatar" size="40">
                     <VImg :src="post.user.avatar" />
                   </VAvatar>
@@ -356,8 +364,18 @@ const editPost = (post) => {
                 size="small"
                 class="ml-1"
               >
-                <span>View {{ post.comments.length }} Comments</span>
+                <span>View all {{ post.comments.length }} Comments</span>
               
+              </VBtn>
+            </VCardActions>
+            <VCardActions v-else>
+              <VBtn
+                color="secondary"
+                @click="addComment(post)"
+                size="small"
+                class="ml-1"
+              >
+                <span>Add a comment...</span>
               </VBtn>
             </VCardActions>
             
@@ -380,7 +398,6 @@ const editPost = (post) => {
         type="warning"
         class="mt-2 text-center"
         color="primary"
-        closable
         dense
       >
         No posts available

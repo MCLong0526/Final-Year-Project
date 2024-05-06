@@ -289,10 +289,11 @@ const confirmedOrder = () => {
             <strong>Quantity</strong>
             <span>: {{ clickedItem.quantity }}</span>
           </div>
-          <div class="detail-row">
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Remark</strong>
-            <span>: {{ clickedItem.remark_buyer }}</span>
+            <span style="white-space: pre-line;">: {{ clickedItem.remark_buyer }}</span>
           </div>
+
           <h3 class="mt-6">Customer Information</h3>
         
 
@@ -331,7 +332,7 @@ const confirmedOrder = () => {
 
         
 
-      <VCardText class="pt-5 d-flex justify-content-center" style="margin-inline-start:300px">
+      <VCardText class="pt-5 d-flex justify-content-center mt-4" style="margin-inline-start:300px">
         <VBtn
           color="error"
           class="me-4"

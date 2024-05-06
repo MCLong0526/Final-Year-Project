@@ -209,14 +209,14 @@ const openWhatsApp = (clickedUser) => {
   <VDialog
     v-model="openApprovedDialog"
     scrollable
-    max-width="500"
+    max-width="550"
   >
 
     <!-- Dialog Content -->
     <VCard>
       <VCardTitle class="mt-2 mb-1">Order Details</VCardTitle>
       <VDivider class="mb-2"/>
-        <VCardText>
+        <VCardText style="max-block-size: 400px; overflow-y: auto;">
           <div class="detail-row">
             <strong>Order ID</strong>
             <span>: #{{ clickedService.id }}</span>
@@ -258,18 +258,19 @@ const openWhatsApp = (clickedUser) => {
             <strong>Place to service</strong>
             <span>: {{ clickedService.place_to_service }}</span>
           </div>
-          <div class="detail-row">
+          <VDivider class="mt-2 mb-2"/>
+          <div class="detail-row" style="display: flex; align-items: flex-start;"> 
             <strong>Customer Remark</strong>
-            <span>: {{ clickedService.remark_customer }}</span>
+            <span style="white-space: pre-line;">: {{ clickedService.remark_customer }}</span>
           </div>
-          <div class="detail-row">
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Provider Remark</strong>
-            <span>: {{ clickedService.remark_provider }}</span>
+            <span style="white-space: pre-line;">: {{ clickedService.remark_provider }}</span>
           </div>
 
         </VCardText>
           
-      <VCardText class="pt-5">
+      <VCardText class="pt-5 mt-4">
         <VRow>
           <VCol cols="12" md="3">
             <VBtn

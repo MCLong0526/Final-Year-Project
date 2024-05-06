@@ -89,7 +89,9 @@ watch(meetDateTime, (newValue) => {
 </script>
 
 <template>
-  <VRow class="mt-1 ml-1 mr-1">
+  <VRow 
+    v-if="allItems.length > 0"
+    class="mt-1 ml-1 mr-1">
     <VCol
       v-for="(item) in allItems"
       :key="item.item_id"
@@ -127,6 +129,22 @@ watch(meetDateTime, (newValue) => {
               {{ item.condition }}
             
             </VRow>
+      </VCard>
+    </VCol>
+  </VRow>
+  <VRow v-else>
+    <VCol cols="12">
+      <VCard>
+        <VAlert  
+          variant="tonal"
+          type="warning"
+          class="mt-2 text-center"
+          color="primary"
+          dense
+          closable
+        >
+        No selling items available at the moment.
+        </VAlert>
       </VCard>
     </VCol>
   </VRow>
@@ -201,9 +219,10 @@ watch(meetDateTime, (newValue) => {
         </VCardText>
 
         <h3 class="mt-2">Description</h3>
-        <VCardText>
+        <VCardText style="white-space: pre-line;">
           {{ clickedItem.description }}
-          </VCardText>
+        </VCardText>
+
 
       </VCardText>
 
@@ -259,7 +278,7 @@ watch(meetDateTime, (newValue) => {
                 cols="12"
                 md="3"
               >
-                <label for="firstNameHorizontalIcons">Date To Meet</label>
+                <label for="firstNameHorizontalIcons">Preferred Meet Up Date and Time</label>
               </VCol>
 
               <VCol
@@ -271,7 +290,7 @@ watch(meetDateTime, (newValue) => {
                   :clearable="true"
                   :min-date="new Date()"
                   v-model="meetDateTime"
-                  placeholder="Select Date"
+                  placeholder="Select Date and Time"
                   required
                 />
               </VCol>
@@ -352,6 +371,14 @@ watch(meetDateTime, (newValue) => {
                 cols="12"
                 md="9"
               >
+              <VTooltip
+                location="top"
+                open-delay="1000"
+                activator="parent"
+                transition="scroll-y-transition"
+              >
+                <span>To remove the date and time, click on the reset button.</span>
+              </VTooltip>
                 <VTextarea
                   v-model="remark_buyer_dateTime"
                   disabled
@@ -392,7 +419,7 @@ watch(meetDateTime, (newValue) => {
 
           <!-- 👉 submit and reset button -->
           <VCol
-            offset-md="6"
+            offset-md="7"
             cols="12"
             md="9"
             class="d-flex gap-4"

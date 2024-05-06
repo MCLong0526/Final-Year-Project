@@ -288,9 +288,9 @@ const confirmedOrder = () => {
             <strong>Place to service</strong>
             <span>: {{ clickedService.place_to_service }}</span>
           </div>
-          <div class="detail-row">
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Remark customer</strong>
-            <span>: {{ clickedService.remark_customer }}</span>
+            <span style="white-space: pre-line;">: {{ clickedService.remark_customer }}</span>
           </div>
           <div class="detail-row">
             <strong>Service duration</strong>
@@ -357,7 +357,7 @@ const confirmedOrder = () => {
 
         
 
-      <VCardText class="pt-5 d-flex justify-content-center" style="margin-inline-start:300px">
+      <VCardText class="pt-5 d-flex mt-4 justify-content-center" style="margin-inline-start:300px">
         <VBtn
           color="error"
           class="me-4"

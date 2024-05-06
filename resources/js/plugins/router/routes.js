@@ -21,6 +21,14 @@ export const routes = [
         
       },
       {
+        path: 'chat/:user',
+        name: 'chat',
+        component: () => import('@/pages/chat.vue'),
+        props: true
+      },
+      
+      
+      {
         path: 'user-management',
         component: () => import('@/pages/user-management.vue'),
         meta: { requiresAuth: true },

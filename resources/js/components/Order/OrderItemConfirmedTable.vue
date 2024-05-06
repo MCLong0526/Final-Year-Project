@@ -216,7 +216,7 @@ const openWhatsApp = (clickedUser) => {
     <VCard>
       <VCardTitle class="mt-2 mb-1">Order Details</VCardTitle>
       <VDivider class="mb-2"/>
-        <VCardText>
+        <VCardText style="max-block-size: 400px; overflow-y: auto;">
           <div class="detail-row">
             <strong>Order ID</strong>
             <span>: #{{ clickedItem.id }}</span>
@@ -248,13 +248,14 @@ const openWhatsApp = (clickedUser) => {
             <strong>Place to meet</strong>
             <span>: {{ clickedItem.place_to_meet }}</span>
           </div>
-          <div class="detail-row">
+          <VDivider class="mt-2 mb-2"/>
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Buyer Remark</strong>
-            <span>: {{ clickedItem.remark_buyer }}</span>
+            <span style="white-space: pre-line;">: {{ clickedItem.remark_buyer }}</span>
           </div>
-          <div class="detail-row">
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Seller Remark</strong>
-            <span>: {{ clickedItem.remark_seller }}</span>
+            <span style="white-space: pre-line;">: {{ clickedItem.remark_seller }}</span>
           </div>
 
         </VCardText>

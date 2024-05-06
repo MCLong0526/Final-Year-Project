@@ -7,6 +7,7 @@ import { debounce } from 'lodash';
 import { watch } from 'vue';
 import { VForm } from 'vuetify/components/VForm';
 
+
 const store = useAuthStore();
 const addPostDialog = ref(false)
 const addImage = ref(false)
@@ -146,6 +147,7 @@ const fetchPostsIfAtBottom = () => {
 
 window.addEventListener('scroll', fetchPostsIfAtBottom);
 
+
 watch(searchPost, debounce(() => {
   page = 1;
   posts.value = [];
@@ -159,42 +161,58 @@ getPosts();
 
 <template>
   <VRow>
-    <VCol cols="12" md="3">
-      <VBtn
-        color="primary"
-        @click="addPostDialog = true"
-      >
-        
-        <span>Add Post</span>
-        <VIcon
-          icon="ri-chat-new-line"
-          class="ml-2"
-        />
-      </VBtn>
-    </VCol>
-    <VCol cols="12" md="3" />
-    <VCol cols="12" md="3" />
-    <VCol cols="12" md="3" >
-      <VTextField
-        v-model="searchPost"
-        label="Search"
-        clearable
-        prepend-inner-icon="ri-search-line"
-        placeholder="Placeholder Text"
-      />
-    </VCol>
+    <VCol cols="12" md="9">
       
+      <div class="box-style">
+        <VRow class="mt-2 ml-2 mr-2">
+          <VCol cols="12" md="3">
+            <VBtn
+              color="primary"
+              @click="addPostDialog = true"
+            >
+              
+              <span>Add Post</span>
+              <VIcon
+                icon="ri-chat-new-line"
+                class="ml-2"
+              />
+            </VBtn>
+          </VCol>
+          <VCol cols="12" md="3" />
+          <VCol cols="12" md="3" />
+          <VCol cols="12" md="3" >
+            <VTextField
+              v-model="searchPost"
+              label="Search"
+              clearable
+              prepend-inner-icon="ri-search-line"
+              placeholder="Placeholder Text"
+            />
+          </VCol>
+        </VRow>
+        <!--All Posts-->
+          <ShowPosts 
+            :posts="posts"
+            :getPosts="getPosts"
+            :showLoading="showLoading"
+            :typePosts="typePosts"
+          />
+        </div>
+
+    </VCol>
+    <VCol cols="12" md="3">
+      <VCard
+        title="Followed Users"
+      >
+        <VCardText>
+          <p>
+            This is a list of users that you are following.
+          </p>
+        </VCardText>
+      </VCard>
+    </VCol>
   </VRow>
-  
 
-
-  <!--All Posts-->
-  <ShowPosts 
-    :posts="posts"
-    :getPosts="getPosts"
-    :showLoading="showLoading"
-    :typePosts="typePosts"
-  />
 
 
   <!--Create New Post-->
@@ -372,6 +390,15 @@ getPosts();
   display: flex;
   justify-content: space-between;
   gap: 440px;
+}
+
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px
 }
 
 </style>
