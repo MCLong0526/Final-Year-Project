@@ -36,6 +36,36 @@ const addImage = ref(false)
 const isPostSuccessAlert = ref(false)
 const deletePostDialog = ref(false)
 const snackType = ref(null)
+const errorMessage = ref(null)
+
+const followDialog = ref(false)
+const clickedUser = ref([])
+const user = ref([]);
+const isFollowErrorAlert = ref(false)
+const isFollowSuccessAlert = ref(false)
+
+// get the authenticated user
+const getUser = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Token not found');
+    }
+
+    const response = await axios.get('/api/auth/get-user-by-token', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    user.value = response.data.user;
+    
+  } catch (error) {
+
+    console.error(error);
+  }
+};
 
 //like and unlike a post
 const toggleLike = (post) => {
@@ -265,15 +295,28 @@ const editPost = (post) => {
 };
 //edit done.
 
-// // go to chat page
-// const goToChatPage = (user) => {
-//   // Redirect to the chat page with the user object as a route parameter
-//   router.push({ name: 'chat', params: { user: JSON.stringify(user) } });
-// };
+const openFollowDialog = (selectedUser) => {
+  if(selectedUser.user_id!=user.value.user_id){
+    
+
+    axios.post('/api/users/follow-user/' + selectedUser.user_id)
+      .then(response => {
+        console.log(response.data);
+        isFollowSuccessAlert.value = true;
+        followDialog.value=true;
+        clickedUser.value = selectedUser;
+      })
+      .catch(error => {
+        
+        errorMessage.value = error.response.data.message;
+        isFollowErrorAlert.value = true;
+        console.log(error);
+      });
+  }
+};
 
 
-
-
+getUser();
 </script>
 
 <template>
@@ -285,12 +328,45 @@ const editPost = (post) => {
           <VCard variant="outlined" class="mx-auto" max-width="600" style="border-radius: 20px; background-color: #f8f9fa;">
             <VCardItem>
               <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center" >
+                <div class="d-flex align-items-center">
+                  <VTooltip
+                    open-delay="500"
+                    location="top"
+                    activator="parent"
+                    transition="scroll-y-transition"
+                  >
+                    <span v-if="post.user.user_id==user.user_id">This is your post</span>
+                    <span v-if="post.user.user_id!=user.user_id && post.is_following==true">Already following {{ post.user.username }}</span>
+                    <span v-if="post.user.user_id!=user.user_id && post.is_following==false">Click to follow {{ post.user.username }}</span>
+                  </VTooltip>
                   <VAvatar v-if="post.user.avatar" size="40">
                     <VImg :src="post.user.avatar" />
                   </VAvatar>
                   <div class="ml-2">
-                    <div>{{ post.user.username }}</div>
+                    <div>{{ post.user.username }} 
+                      <VChip
+                        v-if="post.user.user_id!=user.user_id && post.is_following==true"
+                        color="success"
+                        label="You"
+                        size="small"
+                        class="ml-2"
+                      >
+                        <VIcon size="16" class="me-1">ri-check-line</VIcon>
+                        <span class="text-xs">Following</span>
+                      </VChip>
+                      <VBtn
+                        v-if="post.user.user_id!=user.user_id && post.is_following==false"
+                        color="primary"
+                        size="x-small"
+                        class="ml-2"
+                        @click="openFollowDialog(post.user)"
+                      >
+                        <VIcon size="16" class="me-1">ri-user-follow-line</VIcon>
+                  
+                      <span class="text-xs">Follow</span>
+                      </VBtn>
+                    </div>
+                    
                     <div style="color: #6c757d; font-size: 12px;">{{ post.user.email }} &middot; <span style="font-style: italic;">{{ post.created_at }}</span></div>
                   </div>
                 </div>
@@ -636,6 +712,36 @@ const editPost = (post) => {
     </VCard>
   </VDialog>
 
+  <!--Follow Dialog-->
+  <VDialog
+    v-model="followDialog"
+    max-width="600"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Follow User">  
+      <VCardText>
+        <VAlert
+          color="primary"
+          icon="ri-chat-smile-line"
+          variant="tonal"
+        >
+          You are now following {{ clickedUser.username }}!<br>
+          <b>Let's chat with {{ clickedUser.username }}.</b>
+        </VAlert>
+      </VCardText>
+
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="secondary"
+          @click="followDialog = false"
+        >
+          Close
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
   <!-- Approved Successfully Order -->
   <VSnackbar
       v-model="isPostSuccessAlert"
@@ -646,6 +752,24 @@ const editPost = (post) => {
     <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
     <span v-if="snackType==='edit'">Post updated successfully!</span>
     <span v-if="snackType==='delete'">Post deleted successfully!</span>
+  </VSnackbar>
+  <VSnackbar
+      v-model="isFollowErrorAlert"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+    <VIcon size="20" class="me-2">ri-error-warning-line</VIcon>
+    <span>{{ errorMessage }}</span>
+  </VSnackbar>
+  <VSnackbar
+      v-model="isFollowSuccessAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+    <span>You are now following {{ clickedUser.username }}!</span>
   </VSnackbar>
 
  

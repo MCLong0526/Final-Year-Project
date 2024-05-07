@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', 'index');
         Route::post('/check-password', 'checkPassword');
         Route::post('/store', 'store');
+        Route::post('/follow-user/{user_id}', 'followUser');
         Route::delete('/delete/{user_id}', 'destroy');
         Route::put('/update/{user_id}', 'update');
         Route::put('/update-profile/{user_id}', 'editProfile');

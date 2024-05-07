@@ -7,8 +7,8 @@ import { debounce } from 'lodash';
 import { watch } from 'vue';
 import { VForm } from 'vuetify/components/VForm';
 
-
 const store = useAuthStore();
+const user = ref([]);
 const addPostDialog = ref(false)
 const addImage = ref(false)
 const postPerPage = ref(5)
@@ -19,6 +19,31 @@ const picture = ref([])
 const posts = ref([])
 const searchPost = ref('')
 const typePosts = ref('all')
+const isPostSuccessAlert = ref(false)
+
+// get the authenticated user
+const getUser = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Token not found');
+    }
+
+    const response = await axios.get('/api/auth/get-user-by-token', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    user.value = response.data.user;
+    
+  } catch (error) {
+
+    console.error(error);
+  }
+};
+
 
 //image part:
 const handleDrop = (event) => {
@@ -64,10 +89,11 @@ const storePost = () => {
   })
     .then(response => {
       addPostDialog.value = false;
-      content.value = '';
+      content.value = null;
       picture.value = [];
       // must reset the posts array to empty to fetch the new post
       posts.value = [];
+      isPostSuccessAlert.value = true;
       getPosts();
     })
     .catch(error => {
@@ -121,7 +147,6 @@ const getPosts = debounce(() => {
       });
 
       posts.value = [...posts.value, ...newPosts]; // Append new posts to the existing posts
-
     })
     .catch(error => {
       console.log(error);
@@ -147,7 +172,6 @@ const fetchPostsIfAtBottom = () => {
 
 window.addEventListener('scroll', fetchPostsIfAtBottom);
 
-
 watch(searchPost, debounce(() => {
   page = 1;
   posts.value = [];
@@ -155,32 +179,142 @@ watch(searchPost, debounce(() => {
 }, 500));
 
 getPosts();
-
+getUser();
 </script>
 
 
 <template>
   <VRow>
-    <VCol cols="12" md="9">
+    <VCol cols="12" md="8">
+      <div class="box-style">
+        <VCardText>
+          <VForm 
+          ref="refForm" 
+          @submit.prevent>
+          <VRow>
+            <!-- 👉 First Name -->
+            <VCol cols="12">
+              <VRow no-gutters>
+                <VCol
+                  cols="12"
+                  md="1"
+                >
+                <div class="d-flex align-items-center" >
+                  <VAvatar v-if="user.avatar" size="50">
+                    <VImg :src="user.avatar" />
+                  </VAvatar>
+                </div>
+                </VCol>
+
+                <VCol
+                  cols="12"
+                  md="11"
+                >
+                  <VTextField
+                    v-model="content"
+                    prepend-inner-icon="ri-message-2-line"
+                    rounded
+                    placeholder="What's on your mind?"
+                    :rules="[requiredValidator]"
+                  />
+                </VCol>
+                
+              </VRow>
+            </VCol>
+            
+            <VCol cols="12" v-if="addImage===true">
+              <VRow no-gutters>
+                <VCol
+                  cols="12"
+                  md="3"
+                />
+                
+                <VCol
+                  cols="12"
+                  md="8"
+                >
+                  <div class="upload-container">
+                    <input
+                      type="file"
+                      ref="fileInput"
+                      style="display: none"
+                      accept="image/*"
+                      @change="handleFileInputChange"
+                    />
+                    <div
+                      class="upload-box"
+                      @drop.prevent="handleDrop"
+                      @dragover.prevent
+                      @click="openFileInput"
+                    >
+                      <VIcon class="upload-icon">ri-image-add-line</VIcon>
+                      <p class="upload-text">Drag & Drop your picture here.</p>
+                      <p class="upload-text">Click here to upload picture (PNG, JPEG, JPG).</p>
+                      <div v-if="picture.length > 0" class="uploaded-images">
+                        <p class="upload-text">Selected picture: </p>
+                      <div v-for="(image, index) in picture" :key="index" class="uploaded-image">
+                        <img :src="image.url" alt="Uploaded Image" />
+                        <VBtn @click="removeImage(index)" icon="ri-close-line" class="remove-btn"/>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                </VCol>
+              </VRow>
+            </VCol>
+        
+
+            <!-- 👉 submit and reset button -->
+            <VCol
+              offset-md="3"
+              cols="12"
+              md="9"
+              class="d-flex gap-4"
+            >
+            <VBtn
+              color="secondary"
+              variant="tonal"
+              
+              @click="addImage = !addImage"
+              >
+              <VIcon icon="ri-chat-upload-line" size="20" />
+              <span class="ml-2">Upload Image</span>
+              <VTooltip
+                  open-delay="500"
+                  location="top"
+                  activator="parent"
+                  transition="scroll-y-transition"
+                >
+                  <span>Click here to upload image!</span>
+                </VTooltip>
+            </VBtn>
+            <VBtn
+              type="submit"
+              @click="$refs.refForm.validate().then(() => storePost())"
+            >
+              <VIcon icon="ri-send-plane-2-line" size="20" />
+              <span class="ml-2">Create Post </span>
+              <VTooltip
+                  open-delay="500"
+                  location="top"
+                  activator="parent"
+                  transition="scroll-y-transition"
+                >
+                  <span>Click here to add new post!</span>
+                </VTooltip>
+            </VBtn>
+            
+          </VCol>
+          </VRow>
+        </VForm>
+        </VCardText>
+        <!-- </VCard> -->
+      </div>
       
       <div class="box-style">
         <VRow class="mt-2 ml-2 mr-2">
-          <VCol cols="12" md="3">
-            <VBtn
-              color="primary"
-              @click="addPostDialog = true"
-            >
-              
-              <span>Add Post</span>
-              <VIcon
-                icon="ri-chat-new-line"
-                class="ml-2"
-              />
-            </VBtn>
-          </VCol>
-          <VCol cols="12" md="3" />
-          <VCol cols="12" md="3" />
-          <VCol cols="12" md="3" >
+          <VCol cols="12" md="7" />
+          <VCol cols="12" md="5" >
             <VTextField
               v-model="searchPost"
               label="Search"
@@ -200,7 +334,7 @@ getPosts();
         </div>
 
     </VCol>
-    <VCol cols="12" md="3">
+    <VCol cols="12" md="4">
       <VCard
         title="Followed Users"
       >
@@ -331,6 +465,16 @@ getPosts();
       </VCardText>
     </VCard>
   </VDialog>
+   <!-- Approved Successfully Order -->
+   <VSnackbar
+      v-model="isPostSuccessAlert"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+    <span>Post created successfully!</span>
+  </VSnackbar>
 
 
 </template>

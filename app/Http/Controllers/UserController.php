@@ -192,4 +192,28 @@ class UserController extends Controller
             'password_match' => Hash::check($request->current_password, $user->password),
         ]);
     }
+
+    public function followUser(string $id)
+    {
+        //if the $id and auth()->id() are the same, return an error message
+        if ($id === auth()->id()) {
+            return response()->json(['message' => 'You cannot follow yourself'], 400);
+        }
+
+        $user = User::where('user_id', $id)->firstOrFail();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Check whether the auth()->id() is already following the $id, make sure there is no duplicate following
+        if (auth()->user()->following->contains($id)) {
+            return response()->json(['message' => 'You are already following this user'], 400);
+        }
+
+        // Attach the user to the authenticated user's followings using the create method
+        $user->following()->attach($id, ['user_id' => auth()->id(), 'following_id' => $id]);
+
+        return response()->json(['message' => 'User followed successfully', 'user' => $user]);
+    }
 }

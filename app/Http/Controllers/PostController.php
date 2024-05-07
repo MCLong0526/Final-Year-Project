@@ -27,6 +27,18 @@ class PostController extends Controller
             ->withCount('comments', 'likes')
             ->orderBy('created_at', 'desc')
             ->paginate($postPerPage);
+        //add a column to check whether the auth user is following the user who created the post or not, if following, return true, else return false
+        $posts->map(function ($post) {
+            $id = $post->user_id;
+            //check whether the auth()->id, and post user_id is in user_followers table or not
+            if (auth()->user()->following->contains($id)) {
+                $post->is_following = true;
+            } else {
+                $post->is_following = false;
+            }
+
+            return $post;
+        });
 
         return $this->success(data: $posts, message: 'Posts retrieved successfully');
     }
