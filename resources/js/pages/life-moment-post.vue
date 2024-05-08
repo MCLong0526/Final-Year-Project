@@ -1,5 +1,6 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
+import FollowingList from '@/components/Post/FollowingList.vue';
 import ShowPosts from '@/components/Post/ShowPosts.vue';
 import { useAuthStore } from '@/plugins/store/AuthStore';
 import axios from 'axios';
@@ -20,6 +21,7 @@ const posts = ref([])
 const searchPost = ref('')
 const typePosts = ref('all')
 const isPostSuccessAlert = ref(false)
+const followingUsers = ref([])
 
 // get the authenticated user
 const getUser = async () => {
@@ -147,6 +149,7 @@ const getPosts = debounce(() => {
       });
 
       posts.value = [...posts.value, ...newPosts]; // Append new posts to the existing posts
+
     })
     .catch(error => {
       console.log(error);
@@ -170,6 +173,18 @@ const fetchPostsIfAtBottom = () => {
   }
 };
 
+const getFollowingUsers = () => {
+  axios.get('/api/users/get-following')
+    .then(response => {
+      followingUsers.value = response.data.data;
+      console.log(followingUsers.value)
+
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+
 window.addEventListener('scroll', fetchPostsIfAtBottom);
 
 watch(searchPost, debounce(() => {
@@ -180,6 +195,8 @@ watch(searchPost, debounce(() => {
 
 getPosts();
 getUser();
+getFollowingUsers();
+
 </script>
 
 
@@ -328,6 +345,7 @@ getUser();
           <ShowPosts 
             :posts="posts"
             :getPosts="getPosts"
+            :getFollowingUsers="getFollowingUsers"
             :showLoading="showLoading"
             :typePosts="typePosts"
           />
@@ -338,11 +356,9 @@ getUser();
       <VCard
         title="Followed Users"
       >
-        <VCardText>
-          <p>
-            This is a list of users that you are following.
-          </p>
-        </VCardText>
+        <FollowingList
+          :followingUsers="followingUsers"
+        />
       </VCard>
     </VCol>
   </VRow>

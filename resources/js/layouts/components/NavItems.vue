@@ -57,6 +57,13 @@ getPendingServiceNotification()
       to: '/admin-dashboard',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'User Management',
+      icon: 'ri-folder-user-line',
+      to: '/user-management',
+    }"
+  />
 
   <VerticalNavLink
     :item="{
@@ -66,13 +73,7 @@ getPendingServiceNotification()
     }"
   />
 
-  <VerticalNavLink
-    :item="{
-      title: 'User Management',
-      icon: 'ri-folder-user-line',
-      to: '/user-management',
-    }"
-  />
+  
   <VerticalNavLink
     :item="{
       title: 'Life Moment Post',

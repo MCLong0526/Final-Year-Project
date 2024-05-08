@@ -13,6 +13,10 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  getFollowingUsers: {
+    type: Function,
+    required: true,
+  },
   showLoading: {
     type: Boolean,
     required: true,
@@ -37,8 +41,10 @@ const isPostSuccessAlert = ref(false)
 const deletePostDialog = ref(false)
 const snackType = ref(null)
 const errorMessage = ref(null)
+const successMessage = ref(null)
 
 const followDialog = ref(false)
+const unFollowDialog = ref(false)
 const clickedUser = ref([])
 const user = ref([]);
 const isFollowErrorAlert = ref(false)
@@ -297,14 +303,22 @@ const editPost = (post) => {
 
 const openFollowDialog = (selectedUser) => {
   if(selectedUser.user_id!=user.value.user_id){
-    
-
     axios.post('/api/users/follow-user/' + selectedUser.user_id)
       .then(response => {
-        console.log(response.data);
+        console.log(response.data.message);
+        successMessage.value = response.data.message;
         isFollowSuccessAlert.value = true;
         followDialog.value=true;
         clickedUser.value = selectedUser;
+
+
+        //pass back to update the following status
+        props.getFollowingUsers();
+        // wait 2 second then refresh the page
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+
       })
       .catch(error => {
         
@@ -313,6 +327,32 @@ const openFollowDialog = (selectedUser) => {
         console.log(error);
       });
   }
+};
+
+const openUnfollowDialog = (selectedUser) => {
+  clickedUser.value = selectedUser;
+  unFollowDialog.value = true;
+};
+
+const unFollowUser = () => {
+  axios.post('/api/users/unfollow-user/' + clickedUser.value.user_id)
+    .then(response => {
+      console.log(response.data.message);
+      successMessage.value = response.data.message;
+      isFollowSuccessAlert.value = true;
+      unFollowDialog.value = false;
+      //pass back to update the following status
+      props.getFollowingUsers();
+      // wait 2 second then refresh the page
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    })
+    .catch(error => {
+      errorMessage.value = error.response.data.message;
+      isFollowErrorAlert.value = true;
+      console.log(error);
+    });
 };
 
 
@@ -336,7 +376,7 @@ getUser();
                     transition="scroll-y-transition"
                   >
                     <span v-if="post.user.user_id==user.user_id">This is your post</span>
-                    <span v-if="post.user.user_id!=user.user_id && post.is_following==true">Already following {{ post.user.username }}</span>
+                    <span v-if="post.user.user_id!=user.user_id && post.is_following==true">Click to unfollow {{ post.user.username }}</span>
                     <span v-if="post.user.user_id!=user.user_id && post.is_following==false">Click to follow {{ post.user.username }}</span>
                   </VTooltip>
                   <VAvatar v-if="post.user.avatar" size="40">
@@ -344,20 +384,22 @@ getUser();
                   </VAvatar>
                   <div class="ml-2">
                     <div>{{ post.user.username }} 
-                      <VChip
+                      <VBtn
                         v-if="post.user.user_id!=user.user_id && post.is_following==true"
                         color="success"
-                        label="You"
-                        size="small"
+                        size="x-small"
+                        variant="tonal"
                         class="ml-2"
+                        @click="openUnfollowDialog(post.user)"
                       >
                         <VIcon size="16" class="me-1">ri-check-line</VIcon>
                         <span class="text-xs">Following</span>
-                      </VChip>
+                      </VBtn>
                       <VBtn
                         v-if="post.user.user_id!=user.user_id && post.is_following==false"
                         color="primary"
                         size="x-small"
+                        variant="tonal"
                         class="ml-2"
                         @click="openFollowDialog(post.user)"
                       >
@@ -725,8 +767,10 @@ getUser();
           icon="ri-chat-smile-line"
           variant="tonal"
         >
+        <span>
           You are now following {{ clickedUser.username }}!<br>
           <b>Let's chat with {{ clickedUser.username }}.</b>
+        </span>
         </VAlert>
       </VCardText>
 
@@ -737,6 +781,41 @@ getUser();
           @click="followDialog = false"
         >
           Close
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <!--Unfollow Dialog-->
+  <VDialog
+    v-model="unFollowDialog"
+    max-width="600"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Are you sure you want to unfollow?">
+      <VCardText>
+        <VAlert
+          color="error"
+          icon="ri-chat-smile-line"
+          variant="tonal"
+        >
+          You are about to unfollow {{ clickedUser.username }}. Are you sure you want to proceed?
+        </VAlert>
+      </VCardText>
+
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="secondary"
+          @click="unFollowDialog = false"
+        >
+          Close
+        </VBtn>
+        <VBtn
+          color="error"
+          @click="unFollowUser"
+        >
+          Unfollow
         </VBtn>
       </VCardActions>
     </VCard>
@@ -769,7 +848,7 @@ getUser();
       color="success"
     >
     <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
-    <span>You are now following {{ clickedUser.username }}!</span>
+    <span>{{ successMessage }}</span>
   </VSnackbar>
 
  

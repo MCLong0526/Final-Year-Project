@@ -25,6 +25,7 @@ declare module 'vue' {
     EarnWeeklyCard: typeof import('./resources/js/components/Dashboard/EarnWeeklyCard.vue')['default']
     ErrorHeader: typeof import('./resources/js/components/ErrorHeader.vue')['default']
     Export: typeof import('./resources/js/components/Export.vue')['default']
+    FollowingList: typeof import('./resources/js/components/Post/FollowingList.vue')['default']
     ItemList: typeof import('./resources/js/components/Item/ItemList.vue')['default']
     ItemTable: typeof import('./resources/js/components/Item/ItemTable.vue')['default']
     MoreBtn: typeof import('./resources/js/@core/components/MoreBtn.vue')['default']

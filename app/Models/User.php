@@ -73,7 +73,6 @@ class User extends Authenticatable
             ->withPivot('status', 'service_dateTime', 'order_dateTime', 'remark_customer', 'approximated_price', 'remark_provider', 'place_to_service');
     }
 
-    // User.php
     public function following()
     {
         return $this->belongsToMany(User::class, 'following', 'user_id', 'following_id')->withTimestamps();

@@ -1,9 +1,18 @@
 
 <script setup>
 import { useAuthStore } from '@/plugins/store/AuthStore';
+import chatBackground from '/resources/images/avatars/chatbackground.png';
+
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { ref } from 'vue';
+
+const props = defineProps({
+  newChatUser: {
+    type: Object,
+    required: false
+  }
+});
 
 const store = useAuthStore();
 const newMessage = ref('');
@@ -60,19 +69,34 @@ const fetchMessages = debounce(() => {
     }
   });
 
-  
-  // show the messages of the clicked user
-  if (messageClicked.value || showLoading.value === true) {
-    messagesShowed.value =Object.assign([], messages.value.filter(message => message.sender.user_id === clickedMessage.value.user.user_id || message.receiver.user_id === clickedMessage.value.user.user_id));
-    setTimeout(() => {
-    const chat = document.querySelector('.message');
-    chat.scrollTop = chat.scrollHeight;
-  }, 100);
-  }
-    })
-    .catch(error => {
-      console.log(error);
-    });
+  if(props.newChatUser !== null && props.newChatUser !== undefined){
+      messageClicked.value = true;
+      clickedMessage.value = props.newChatUser;    // so that can know which user is clicked
+      receiver.value = props.newChatUser;
+      messagesShowed.value = messages.value.filter(message => message.sender.user_id === props.newChatUser.user_id || message.receiver.user_id === props.newChatUser.user_id);
+      if(messagesShowed.value.length < 1){
+        newMessage.value = 'Hi, I am ' + store.user.username + '. Let\'s start chatting';
+      }
+      setTimeout(() => {
+        const chat = document.querySelector('.message');
+        chat.scrollTop = chat.scrollHeight;
+      }, 100);
+    }
+
+
+    // show the messages of the clicked user
+    if ((messageClicked.value || showLoading.value === true) && clickedMessage.value.user !== undefined) {
+      messagesShowed.value =Object.assign([], messages.value.filter(message => message.sender.user_id === clickedMessage.value.user.user_id || message.receiver.user_id === clickedMessage.value.user.user_id));
+      setTimeout(() => {
+      const chat = document.querySelector('.message');
+      chat.scrollTop = chat.scrollHeight;
+      }, 100);
+    }
+
+  })
+  .catch(error => {
+    console.log(error);
+  });
 
   
 }, 800);
@@ -80,12 +104,13 @@ const fetchMessages = debounce(() => {
 // show the avatar of the user
 const showAvatar = (index) => {
   if (index === 0) {
-    return true; // Always show the avatar for the first message
+    return true; // Show avatar for the first message
   }
-  const currentHasAvatar = messages.value[index].sender.avatar !== null;
-  const previousHasAvatar = messages.value[index - 1].sender.avatar !== null;
 
-  return currentHasAvatar || previousHasAvatar;
+  const prevMessage = messagesShowed.value[index - 1];
+  const currentMessage = messagesShowed.value[index];
+
+  return prevMessage.sender.user_id !== currentMessage.sender.user_id || !prevMessage.sender.avatar;
 };
 
 
@@ -109,6 +134,9 @@ const getMessages = (userMessage) => {
   const userId = userMessage.user.user_id;
   receiver.value = userMessage.user;
   messagesShowed.value = messages.value.filter(message => message.sender.user_id === userId || message.receiver.user_id === userId);
+  if(messagesShowed.value.length < 1){
+    newMessage.value = 'Hi, I am ' + store.user.username + '. Let\'s start chatting';
+  }
   setTimeout(() => {
     const chat = document.querySelector('.message');
     chat.scrollTop = chat.scrollHeight;
@@ -119,12 +147,16 @@ const getMessages = (userMessage) => {
 const sendMessage = async () => {
   await axios.post('/api/chat/messages', { message: newMessage.value, receiver_id: receiver.value.user_id});
   newMessage.value = '';
+  
+  // Immediately fetch messages after sending a new message
   fetchMessages();
+  
   setTimeout(() => {
     const chat = document.querySelector('.message');
     chat.scrollTop = chat.scrollHeight;
   }, 100);
 };
+
 
 //send message on enter
 const sendMessageOnEnter = () => {
@@ -163,6 +195,7 @@ watch(searchUser, debounce(() => {
     //clear latestUserMessages
     messages.value = [];
     latestUserMessages.value = [];
+
     fetchMessages();
   }else{
     fetchMessages();
@@ -177,10 +210,12 @@ getUser();
 
 <template>
   <VContainer>
-    <h1>Messages</h1>
-    <VCard class="chat-box">
+
+    <!-- Chat box in chat page-->
+    <h1 v-if="props.newChatUser==null">Messages</h1>
+    <VCard v-if="props.newChatUser==null" class="chat-box">
     <VRow no-gutters>
-      <VCol cols="12" md="3" >
+      <VCol cols="12" md="3">
         <VCard class="user-list">
           <div class="d-flex mt-3 mb-3 ml-3" >
             <VRow>
@@ -228,6 +263,8 @@ getUser();
 
         </VCard>
         </VCol>
+
+        <!-- Chat box -->
         <VCol v-if="messageClicked===true" cols="12" md="9" >
 
         <VCard class="user-list">
@@ -244,29 +281,81 @@ getUser();
           </div>
 
           <VDivider />
-          <VCardText >
+          <VCardText>
             <!-- Display messages -->
             
-            <div class="message">
+            <div v-if="messagesShowed.length>0" class="message">
               <!--button to load more message-->
               <div class="text-center">
-                <VBtn variant="text" @click="fetchMoreMessage" color="primary"><VIcon class="mr-1" icon="ri-arrow-up-circle-line"/> Load more messages</VBtn>
+                <VBtn v-if="messagesShowed.length>9" variant="text" @click="fetchMoreMessage" color="primary"><VIcon class="mr-1" icon="ri-arrow-up-circle-line"/> Load more messages</VBtn>
               </div>
               
               <div v-for="(message, index) in messagesShowed" :key="message.id" :class="{'right-message': message.sender.user_id === store.user.user_id, 'left-message': message.sender.user_id !== store.user.user_id}">
                 <div v-if="message.sender.user_id !== store.user.user_id" class="message-container left-message">
                   <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
-                  <span><VChip label class="mt-1 ml-2 mb-1">{{ message.message }}</VChip></span>
+                  <span>
+                    <VChip v-if="showAvatar(index)" label class="mt-1 ml-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                      <template v-if="message.message.length > 40">
+                        <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                      </template>
+                      <template v-else>
+                        {{ message.message }}
+                      </template>
+
+
+                    </VChip>
+                    <VChip v-else label class="mt-1 ml-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                      <template v-if="message.message.length > 40">
+                        <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                      </template>
+                      <template v-else>
+                        {{ message.message }}
+                      </template>
+
+                    </VChip>
+                  </span>
                 </div>
                 <div v-else class="message-container right-message">
-                  <span><VChip label color="primary" class="mt-1 mr-2 mb-1">{{ message.message }}</VChip></span>
+                  <span>
+                    <VChip v-if="showAvatar(index)" label color="primary" class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                      <template v-if="message.message.length > 40">
+                        <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                      </template>
+                      <template v-else>
+                        {{ message.message }}
+                      </template>
+
+                    </VChip>
+                    <VChip v-else label color="primary" class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                      <template v-if="message.message.length > 40">
+                        <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                      </template>
+                      <template v-else>
+                        {{ message.message }}
+                      </template>
+
+                    </VChip>
+                  </span>
                   <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
                 </div>
               </div>
             </div>
+
+            <div v-else class="text-center" style=" margin-block:40px 40px">
+              <VCardTitle>Messages</VCardTitle>
+              <VImg :src="chatBackground" style=" block-size: auto;inline-size: 100px; margin-block-start: 20px;margin-inline-start:220px"/>
+              <VCardTitle class="text-overline">You guys are friends on UNIMAS Web Application</VCardTitle>
+              <VCardText>
+                <VList>
+                  <VListItem>
+                    <VListItemTitle>Let's start chatting</VListItemTitle>
+                  </VListItem>
+                </VList>
+              </VCardText>
+            </div>
             
             <!-- Message input -->
-            <VRow class="mt-8">
+            <VRow class="mt-4 mb-0 ml-2 mr-2" style="position: absolute; inset-block-end: 0; inset-inline: 0 0;">
               <VCol cols="12">
                 <VTextField v-model="newMessage" label="Type your message here" @keyup.enter="sendMessageOnEnter">
                   <template #append>
@@ -281,8 +370,114 @@ getUser();
         
       </VCol>
       <VCol v-else cols="12" md="9" >
-        <VCard class="user-list text-center">
+        <VRow>
+          <VCol cols="12" md="3">
+            <!--Add a image here (avatar-11) by using the import on script setup-->
+            <VImg :src="chatBackground" style=" block-size: auto;inline-size: 600px; margin-block-start: 160px; margin-inline-start: 50px;"/>
+          </VCol>
+          <VCol cols="12" md="9">
+            <div class="text-center" style=" margin-block:180px 180px">
+          <VCardTitle><VIcon icon="ri-emotion-happy-line" color="success"/> Chit Chat with Friends</VCardTitle>
+          <VCardTitle class="text-overline">Try to make friends on UNIMAS Web Application</VCardTitle>
+          <VCardText>
+            <VList>
+              <VListItem>
+                <VListItemTitle class="text-overline">If you haven't followed anyone,</VListItemTitle>
+                <VListItemTitle class="text-overline"><b> you can follow someone in the Life Moment Post page</b></VListItemTitle>
+              
+              </VListItem>
+            </VList>
+          </VCardText>
+          </div>
+          </VCol>
+        </VRow>
+      </VCol>
+    </VRow>
+  </VCard>
+
+
+
+
+  <!-- Chat box in life moment post-->
+  <VCard v-else>
+    <VCard class="user-list">
+      <!-- Receiver information -->
+
+      <div class="d-flex align-items-center mt-3 mb-3 ml-3" >
+        <VAvatar v-if="props.newChatUser.avatar" size="50">
+          <VImg :src="props.newChatUser.avatar" />
+        </VAvatar>
+        <div class="ml-2">
+          <div>{{ props.newChatUser.username }}</div>
+          <div style="color: #6c757d; font-size: 12px;">{{ props.newChatUser.email }}</div>
+        </div>
+      </div>
+
+      <VDivider />
+      <VCardText>
+        <!-- Display messages -->
+        
+        <div v-if="messagesShowed.length>0" class="message">
+          <!--button to load more message-->
+          <div class="text-center">
+            <VBtn v-if="messagesShowed.length>9" variant="text" @click="fetchMoreMessage" color="primary"><VIcon class="mr-1" icon="ri-arrow-up-circle-line"/> Load more messages</VBtn>
+          </div>
+          
+          <div v-for="(message, index) in messagesShowed" :key="message.id" :class="{'right-message': message.sender.user_id === store.user.user_id, 'left-message': message.sender.user_id !== store.user.user_id}">
+            <div v-if="message.sender.user_id !== store.user.user_id" class="message-container left-message">
+              <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
+              <span>
+                <VChip v-if="showAvatar(index)" label class="mt-1 ml-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                  <template v-if="message.message.length > 40">
+                    <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                  </template>
+                  <template v-else>
+                    {{ message.message }}
+                  </template>
+
+
+                </VChip>
+                <VChip v-else label class="mt-1 ml-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                  <template v-if="message.message.length > 40">
+                    <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                  </template>
+                  <template v-else>
+                    {{ message.message }}
+                  </template>
+
+                </VChip>
+              </span>
+            </div>
+            <div v-else class="message-container right-message">
+              <span>
+                <VChip v-if="showAvatar(index)" label color="primary" class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                  <template v-if="message.message.length > 40">
+                    <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                  </template>
+                  <template v-else>
+                    {{ message.message }}
+                  </template>
+
+                </VChip>
+                <VChip v-else label color="primary" class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                  <template v-if="message.message.length > 40">
+                    <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                  </template>
+                  <template v-else>
+                    {{ message.message }}
+                  </template>
+
+                </VChip>
+              </span>
+              <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-center" style=" margin-block:40px 40px">
           <VCardTitle>Messages</VCardTitle>
+          <VImg :src="chatBackground" style=" block-size: auto;inline-size: 100px; margin-block-start: 20px;margin-inline-start:220px"/>
+          <VCardTitle class="text-overline">You guys are friends on UNIMAS Web Application</VCardTitle>
           <VCardText>
             <VList>
               <VListItem>
@@ -290,12 +485,23 @@ getUser();
               </VListItem>
             </VList>
           </VCardText>
-        </VCard>
+        </div>
         
-      </VCol>
-
-    </VRow>
+        <!-- Message input -->
+        <VRow class="mt-4 mb-0 ml-2 mr-2" style="position: absolute; inset-block-end: 0; inset-inline: 0 0;" >
+          <VCol cols="12">
+            <VTextField v-model="newMessage" label="Type your message here" @keyup.enter="sendMessageOnEnter">
+              <template #append>
+                <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
+              </template>
+            </VTextField>
+          </VCol>
+        </VRow>
+      </VCardText> 
+    </VCard>
   </VCard>
+
+
   </VContainer>
 </template>
 
@@ -320,17 +526,17 @@ getUser();
 }
 
 .left-message {
-  text-align: start;
+  text-align: end;
 }
 
 .right-message {
-  text-align: end;
+  text-align: start;
 }
 
 .avatar {
   border-radius: 50%;
-  block-size: 30px;
-  inline-size: 30px;
+  block-size: 35px;
+  inline-size: 35px;
 }
 
 .message{
@@ -344,6 +550,7 @@ getUser();
   align-items: center;
   margin-block-end: 10px; /* Add margin between messages */
   margin-inline: 0; /* Reset left and right margins */
+
 }
 
 .left-message .message-container {

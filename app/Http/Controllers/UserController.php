@@ -208,12 +208,44 @@ class UserController extends Controller
 
         // Check whether the auth()->id() is already following the $id, make sure there is no duplicate following
         if (auth()->user()->following->contains($id)) {
-            return response()->json(['message' => 'You are already following this user'], 400);
+            return response()->json(['message' => 'User already followed'], 400);
         }
 
         // Attach the user to the authenticated user's followings using the create method
         $user->following()->attach($id, ['user_id' => auth()->id(), 'following_id' => $id]);
 
         return response()->json(['message' => 'User followed successfully', 'user' => $user]);
+    }
+
+    public function unfollowUser(string $id)
+    {
+        $user = User::where('user_id', $id)->firstOrFail();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Check whether the auth()->id() is already following the $id
+        if (auth()->user()->following->contains($id)) {
+            // delete the user from the authenticated user's followings
+            auth()->user()->following()->detach($id);
+
+            return response()->json(['message' => 'User unfollowed successfully', 'user' => $user]);
+        }
+
+        return response()->json(['message' => 'User is not followed yet', 'user' => $user]);
+    }
+
+    public function getFollowing()
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $following = $user->following;
+
+        return $this->success(data: $following, message: 'Following retrieved successfully');
     }
 }
