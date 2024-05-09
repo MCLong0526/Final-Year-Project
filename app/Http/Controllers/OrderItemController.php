@@ -191,6 +191,10 @@ class OrderItemController extends Controller
                 'remark_seller' => $request->remark_seller,
             ]);
         } else {
+            // check the meet_dateTime is not null
+            $request->validate([
+                'meet_dateTime' => 'required',
+            ]);
             DB::table('item_user')->where('id', $id)->update([
                 'status' => 'Approved',
                 'meet_dateTime' => $request->meet_dateTime,

@@ -1,7 +1,6 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
-// import { useRouter } from 'vue-router';
 import { VForm } from 'vuetify/components/VForm';
 
 const props = defineProps({
@@ -27,7 +26,7 @@ const props = defineProps({
   },
 })
 
-// const router = useRouter();
+const emit = defineEmits(['update:posts']);
 const addCommentDialog = ref(false)
 const selectedComment = ref(null); // Initialize as null or with a default value
 
@@ -266,7 +265,6 @@ const removeImage = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
           selectedPost.value.picture.picture_path = e.target.result;
-          // Do something with the updated picture_path, such as sending it to the server
         };
         reader.readAsDataURL(blob);
       });
@@ -314,10 +312,8 @@ const openFollowDialog = (selectedUser) => {
 
         //pass back to update the following status
         props.getFollowingUsers();
-        // wait 2 second then refresh the page
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        
+        props.getPosts();
 
       })
       .catch(error => {
@@ -343,10 +339,9 @@ const unFollowUser = () => {
       unFollowDialog.value = false;
       //pass back to update the following status
       props.getFollowingUsers();
-      // wait 2 second then refresh the page
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+
+      props.getPosts();
+      
     })
     .catch(error => {
       errorMessage.value = error.response.data.message;

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Mail\ForgotPasswordMail;
+use App\Mail\VerificationCodeMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -151,6 +152,53 @@ class AuthController extends Controller
         }
 
         return str_shuffle($password);
+    }
+
+    public function verifyCode(Request $request)
+    {
+        // Validate the request->email, check if the email exists in the database
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Generate a new verification code
+        $verificationCode = rand(100000, 999999);
+
+        // Update user's verification code in the database
+        $user->verification_code = $verificationCode;
+        $user->save();
+
+        // Send the verification code to the user email
+        try {
+            Mail::to($user->email)->send(new VerificationCodeMail($verificationCode));
+
+        } catch (\Exception $e) {
+            // Log the error or handle it as needed
+            return response()->json(['error' => 'Failed to send email'], 500);
+        }
+
+        // If everything is successful, return success response
+        return response()->json(['message' => 'Verification code sent to your email']);
+    }
+
+    public function checkVerificationCode(Request $request)
+    {
+        // Validate the request->email, check if the email exists in the database
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Check if the verification code is correct
+        if ($user->verification_code != $request->verification_code) {
+            return response()->json(['message' => 'Verification code is incorrect'], 400);
+        }
+
+        // If everything is successful, return success response
+        return response()->json(['message' => 'Verification code is correct']);
     }
 
     public function forgotPassword(Request $request)

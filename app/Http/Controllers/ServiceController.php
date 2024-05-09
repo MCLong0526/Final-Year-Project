@@ -26,6 +26,9 @@ class ServiceController extends Controller
             ->when(request()->filled('sort_price'), function ($query) {
                 $query->orderBy('price_per_hour', request('sort_price'));
             })
+            // make sure the latest services are shown first, and the don't want to show the services that are unavailable
+            ->where('availability', 'available')
+            ->latest()
             ->paginate($servicePerPage);
 
         return $this->success(data: $services, message: 'Services retrieved successfully');
@@ -112,6 +115,7 @@ class ServiceController extends Controller
 
             })
             ->where('user_id', auth()->id())
+            ->latest()
             ->paginate($servicePerPage);
 
         return $this->success(data: $services, message: 'Services retrieved successfully');

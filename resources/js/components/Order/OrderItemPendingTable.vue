@@ -1,6 +1,7 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
+import { VForm } from 'vuetify/components/VForm';
 
 const props = defineProps({
   pendingOrders: {
@@ -13,6 +14,7 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['update:pendingOrders'])
 const clickedItem = ref({})
 const openPendingDialog = ref(false)
 const openDecisionDialog = ref(false)
@@ -78,6 +80,11 @@ const confirmedOrder = () => {
 
   if(decision.value === 'reject') {
     meet_dateTime.value = null;
+  }else{
+    if(new Date(meet_dateTime.value) < new Date()) {
+    meet_dateTime.value = null;
+    return;
+  }
   }
   const data = {
     meet_dateTime: meet_dateTime.value,
@@ -99,20 +106,12 @@ const confirmedOrder = () => {
 
       // refresh the pending orders
       props.getPendingOrders();
-
-      // refresh the page 1.5 seconds after the order is confirmed
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
       
     })
     .catch(error => {
       console.log(error)
     })
 }
-
-
-
 
 
 </script>
@@ -385,6 +384,7 @@ const confirmedOrder = () => {
                 label="Select Date"
                 prepend-inner-icon="ri-calendar-2-line"
                 scrollable  
+                :rules="[requiredValidator]"
                 chips
 
               />

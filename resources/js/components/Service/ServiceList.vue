@@ -1,5 +1,4 @@
 <script setup>
-import { requiredValidator } from '@/@core/utils/validators';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import axios from 'axios';
@@ -151,6 +150,13 @@ watch([serviceStartTime, serviceEndTime], ([startTime, endTime]) => {
 
 
 const submitOrder = async () => {
+
+  if (!serviceDate.value || !serviceStartTime.value || !serviceEndTime.value || !placeToService.value) {
+    errorMessages.value = 'Please fill in Service Date, Service Start Time, Service End Time and Place To Meet';
+    hasErrorAlert.value = true;
+    return;
+  }
+
   const formData = {
     place_to_service: placeToService.value,
     remark_customer: remark_buyer_dateTime.value + '\n' + remark_buyer.value,
@@ -509,13 +515,21 @@ const submitOrder = async () => {
                 cols="12"
                 md="3"
               >
-                <label for="placeHorizontalIcons">Place To Meet</label>
+                <label for="placeHorizontalIcons">Preferred Place to Meet</label>
               </VCol>
 
               <VCol
                 cols="12"
                 md="9"
               >
+              <VTooltip
+                  location="top"
+                  open-delay="500"
+                  activator="parent"
+                  transition="scroll-y-transition"
+                >
+                <span> You can create your own place to meet by typing in the input field.</span>
+                </VTooltip>
               <VCombobox
                 v-model="placeToService"
                 :items="placesInUnimas"
@@ -529,6 +543,7 @@ const submitOrder = async () => {
                   <VListItem>
                     <VListItemTitle>
                       No results matching. Press <kbd>enter</kbd> to use it.
+                      <small>You can create your own place to meet by typing in the input field.</small>
                     </VListItemTitle>
                   </VListItem>
                 </template>
@@ -545,19 +560,27 @@ const submitOrder = async () => {
                 cols="12"
                 md="3"
               >
-                <label for="remarkHorizontalIcons">Remark for ServiceDateTime</label>
+                <label for="remarkHorizontalIcons">Remark for Service Date and Time</label>
               </VCol>
 
               <VCol
                 cols="12"
                 md="9"
               >
+              <VTooltip
+                location="top"
+                open-delay="500"
+                activator="parent"
+                transition="scroll-y-transition"
+              >
+                <span>To remove the date and time, click on the reset button.</span>
+              </VTooltip>
                 <VTextField
                   v-model="remark_buyer_dateTime"
                   disabled
                   prepend-inner-icon="ri-chat-4-line"
                   placeholder="Enter Remark"
-                  :rules="[requiredValidator]"
+      
                 />
               </VCol>
             </VRow>
@@ -581,7 +604,6 @@ const submitOrder = async () => {
                   v-model="remark_buyer"
                   prepend-inner-icon="ri-chat-4-line"
                   placeholder="Enter Remark"
-                  :rules="[requiredValidator]"
                 />
               </VCol>
             </VRow>
@@ -590,7 +612,7 @@ const submitOrder = async () => {
 
           <!-- 👉 submit and reset button -->
           <VCol
-            offset-md="6"
+            offset-md="8"
             cols="12"
             md="9"
             class="d-flex gap-4"

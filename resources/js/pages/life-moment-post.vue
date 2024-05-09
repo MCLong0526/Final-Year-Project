@@ -18,10 +18,13 @@ const showLoading = ref(false)
 const content = ref('')
 const picture = ref([])
 const posts = ref([])
+const postsToShow = ref([])
 const searchPost = ref('')
 const typePosts = ref('all')
 const isPostSuccessAlert = ref(false)
 const followingUsers = ref([])
+const followingUsersInPost = ref([])
+const isTagging = ref(false)
 
 // get the authenticated user
 const getUser = async () => {
@@ -84,7 +87,6 @@ const removeImage = (index) => {
 
 //store post
 const storePost = () => {
-  console.log(picture.value)
   axios.post('/api/posts/store', {
     content: content.value,
     picture: picture.value,
@@ -105,6 +107,7 @@ const storePost = () => {
 
 // get posts
 const getPosts = debounce(() => {
+  postsToShow.value = [];
   let requestURL = '/api/posts?page='+page+'&per_page='+postPerPage.value;
   if (searchPost.value && searchPost.value.length > 2 && searchPost.value !== null) {
     requestURL += '&search=' + searchPost.value;
@@ -148,8 +151,17 @@ const getPosts = debounce(() => {
         post.is_liked = post.likes.some(like => like.user_id === store.user.user_id);
       });
 
-      posts.value = [...posts.value, ...newPosts]; // Append new posts to the existing posts
+      //compare the new posts with the existing posts, if the post_id is the same, then replace the existing post with the new post
+      posts.value.forEach((post, index) => {
+        newPosts.forEach(newPost => {
+          if (post.post_id === newPost.post_id) {
+            posts.value[index] = newPost;
+          }
+        });
+      });
 
+      posts.value = [...posts.value, ...newPosts]; // Append new posts to the existing posts
+      
     })
     .catch(error => {
       console.log(error);
@@ -177,7 +189,6 @@ const getFollowingUsers = () => {
   axios.get('/api/users/get-following')
     .then(response => {
       followingUsers.value = response.data.data;
-      console.log(followingUsers.value)
 
     })
     .catch(error => {
@@ -192,6 +203,34 @@ watch(searchPost, debounce(() => {
   posts.value = [];
   getPosts();
 }, 500));
+
+// Tagging users in post
+watch(content, () => {
+  setTimeout(() => {
+    if (content.value.charAt(content.value.length - 1) === '@') {
+      isTagging.value = true;
+      followingUsersInPost.value = followingUsers.value;
+    } else if (content.value.includes('@') && isTagging.value===false && followingUsersInPost.value.length > 0) {
+      isTagging.value = true;
+      const searchTerm = content.value.split('@').slice(-1)[0].split(' ')[0].toLowerCase();
+      followingUsersInPost.value = followingUsers.value.filter(user => user.username.toLowerCase().includes(searchTerm));
+    } else {
+      isTagging.value = false;
+      
+    }
+  }, 500);
+});
+
+const tagUser = (user) => {
+  // Remove the word that is being typed to search for the user before tagging the user
+  const contentWithoutSearchTerm = content.value.split('@').slice(0, -1).join('@');
+  // Add the tagged user's username to the content with a space
+  content.value = `${contentWithoutSearchTerm}@${user.username} `;
+  followingUsersInPost.value = [];
+  isTagging.value = false;
+};
+
+//end tagging users in post
 
 getPosts();
 getUser();
@@ -234,6 +273,27 @@ getFollowingUsers();
                     placeholder="What's on your mind?"
                     :rules="[requiredValidator]"
                   />
+                  <VList 
+                    v-if="isTagging && followingUsers.length > 0"  
+                    style="max-block-size: 80px; overflow-y: auto;"
+                  >
+                    <VListItem
+                      v-for="(user, index) in followingUsersInPost"
+                      :key="index"
+                      @click="tagUser(user)"
+                     
+                    >
+                    <VAvatar size="32"
+                      :color="user.avatar ? '' : 'primary'"
+                      :class="`${!user.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
+                      :variant="!user.avatar ? 'tonal' : undefined"
+                      style="margin-inline-end: 8px;">
+                      <VImg
+                      :src="user.avatar"/>
+                    </VAvatar>
+                    {{ user.username }}
+                    </VListItem>
+                  </VList>
                 </VCol>
                 
               </VRow>

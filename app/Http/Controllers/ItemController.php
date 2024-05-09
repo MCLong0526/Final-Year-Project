@@ -31,7 +31,7 @@ class ItemController extends Controller
             ->when(request()->filled('sort_price'), function ($query) {
                 $query->orderBy('price', request('sort_price'));
             })
-
+            ->latest()
             ->paginate($itemPerPage);
 
         return $this->success(data: $items, message: 'Items retrieved successfully');
@@ -126,6 +126,7 @@ class ItemController extends Controller
                 $query->where('name', 'like', '%'.request('search').'%');
 
             })
+            ->latest()
             ->paginate($itemPerPage);
 
         return $this->success(data: $items, message: 'Items retrieved successfully');

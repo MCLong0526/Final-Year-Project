@@ -184,6 +184,10 @@ class OrderServiceController extends Controller
         date_default_timezone_set('Asia/Kuala_Lumpur');
 
         if ($request->service_dateTime === null) {
+            // return error message if the remark_provider is empty
+            $request->validate([
+                'remark_provider' => 'required',
+            ]);
             DB::table('service_user')->where('id', $id)->update([
                 'status' => 'Rejected',
                 'service_dateTime' => $request->service_dateTime,

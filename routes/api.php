@@ -143,5 +143,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::post('/authenticate', 'authenticate');
     Route::post('/forgot-password', 'forgotPassword');
+    Route::post('/verify-code', 'verifyCode');
+    Route::post('/check-verification-code', 'checkVerificationCode');
 
 });

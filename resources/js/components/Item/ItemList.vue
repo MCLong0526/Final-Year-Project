@@ -47,6 +47,13 @@ const seeItem = (item) => {
 };
 
 const submitOrder = async () => {
+
+  if (!meetDateTime.value || !placeToMeet.value || !quantity.value) {
+    errorMessages.value = 'Please fill in Meet Up Date and Time, Place to Meet, and Quantity.';
+    hasErrorAlert.value = true;
+    return;
+  }
+
   const formData = {
     place_to_meet: placeToMeet.value,
     quantity: quantity.value,
@@ -76,8 +83,8 @@ const submitOrder = async () => {
 watch(meetDateTime, (newValue) => {
   if (newValue) {
     const dateObj = new Date(newValue);
-    //change the hour and minutes to 12 hours format, and arrange the formattedDate to yyyy/mm/dd hh:mm AM/PM
-    const formattedDate = `${dateObj.getFullYear()}/${dateObj.getMonth() + 1}/${dateObj.getDate()} ${dateObj.getHours() % 12 || 12}:${dateObj.getMinutes()} ${dateObj.getHours() >= 12 ? 'PM' : 'AM'}`;
+    // Change the hour and minutes to 12-hour format, and arrange the formattedDate to yyyy/mm/dd hh:mm AM/PM
+    const formattedDate = `${dateObj.getFullYear()}/${dateObj.getMonth() + 1}/${dateObj.getDate()} ${dateObj.getHours() % 12 || 12}:${String(dateObj.getMinutes()).padStart(2, '0')} ${dateObj.getHours() >= 12 ? 'PM' : 'AM'}`;
     if (remark_buyer_dateTime.value.includes('Preferred meet up date and time:')) {
       remark_buyer_dateTime.value = `${remark_buyer_dateTime.value}\n• ${formattedDate}`;
     } else {
@@ -85,6 +92,7 @@ watch(meetDateTime, (newValue) => {
     }
   }
 });
+
 
 </script>
 
@@ -285,6 +293,14 @@ watch(meetDateTime, (newValue) => {
                 cols="12"
                 md="9"
               >
+                <VTooltip
+                    location="top"
+                    open-delay="500"
+                    activator="parent"
+                    transition="scroll-y-transition"
+                >
+                  <span> You can select more than one date and time for seller to choose.</span>
+                </VTooltip>
                 <VueDatePicker
                   teleport-center
                   :clearable="true"
@@ -292,6 +308,7 @@ watch(meetDateTime, (newValue) => {
                   v-model="meetDateTime"
                   placeholder="Select Date and Time"
                   required
+                  
                 />
               </VCol>
             </VRow>
@@ -304,25 +321,37 @@ watch(meetDateTime, (newValue) => {
                 cols="12"
                 md="3"
               >
-                <label for="placeHorizontalIcons">Place To Meet</label>
+                <label for="placeHorizontalIcons">Preferred Place to Meet</label>
               </VCol>
 
               <VCol
                 cols="12"
                 md="9"
               >
+                <VTooltip
+                  location="top"
+                  open-delay="500"
+                  activator="parent"
+                  transition="scroll-y-transition"
+                >
+                <span> You can create your own place to meet by typing in the input field.</span>
+                </VTooltip>
               <VCombobox
                 v-model="placeToMeet"
                 :items="placesInUnimas"
+                prepend-inner-icon="ri-map-pin-line"
                 hide-selected
                 :hide-no-data="false"
                 placeholder="Select Place"
                 persistent-hint
+                :rules="[requiredValidator]"
               >
+              
                 <template #no-data>
                   <VListItem>
                     <VListItemTitle>
-                      No results matching. Press <kbd>enter</kbd> to use it.
+                      No results matching. Press <kbd>enter</kbd> to use it.<br>
+                      <small>You can create your own place to meet by typing in the input field.</small>
                     </VListItemTitle>
                   </VListItem>
                 </template>
@@ -373,7 +402,7 @@ watch(meetDateTime, (newValue) => {
               >
               <VTooltip
                 location="top"
-                open-delay="1000"
+                open-delay="500"
                 activator="parent"
                 transition="scroll-y-transition"
               >
@@ -410,7 +439,6 @@ watch(meetDateTime, (newValue) => {
                   v-model="remark_buyer"
                   prepend-inner-icon="ri-chat-4-line"
                   placeholder="Enter Remark"
-                  :rules="[requiredValidator]"
                 />
               </VCol>
             </VRow>

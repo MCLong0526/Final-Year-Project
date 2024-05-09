@@ -13,6 +13,7 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['update:pendingOrders'])
 const clickedService = ref({})
 const openPendingDialog = ref(false)
 const openDecisionDialog = ref(false)
@@ -71,11 +72,16 @@ const convertDateTime = (dateTime) => {
 
 //confirm order
 const confirmedOrder = () => {
-  service_dateTime.value = convertDateTime(service_dateTime.value);
 
-  if(decision.value === 'reject') {
+  if(decision.value === 'approve'){
+    service_dateTime.value = convertDateTime(service_dateTime.value);
+  }else{
     service_dateTime.value = null;
+    if(remark_provider.value === ''){
+      return
+    }
   }
+
   const data = {
     service_dateTime: service_dateTime.value,
     remark_provider: remark_provider.value
@@ -96,10 +102,6 @@ const confirmedOrder = () => {
 
       // refresh the pending orders
       props.getPendingOrders();
-      // refresh the page 1.5 seconds after the order is confirmed
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
       
     })
     .catch(error => {
@@ -428,10 +430,17 @@ const confirmedOrder = () => {
                 md="9"
               >
                 <VTextarea
+                  v-if="decision === 'reject'"
                   v-model="remark_provider"
                   prepend-inner-icon="ri-chat-4-line"
-                  placeholder="Enter Remark for Customer"
+                  placeholder="Enter remark for customer (Reason for Rejection)"
                   :rules="[requiredValidator]"
+                />
+                <VTextarea
+                  v-else
+                  v-model="remark_provider"
+                  prepend-inner-icon="ri-chat-4-line"
+                  placeholder="Enter remark for customer (optional)"
                 />
               </VCol>
             </VRow>

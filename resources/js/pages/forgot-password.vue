@@ -10,13 +10,16 @@ const authThemeMask = computed(() => {
   return vuetifyTheme.global.name.value === 'light' ? authV1MaskLight : authV1MaskDark
 })
 
-const route = useRoute()
 const router = useRouter()
 const email = ref('')
+const verification_code = ref('')
 const errorMessages = ref('')
+const successMessages = ref('')
 const hasErrorAlert = ref(false)
 const isSuccessAlert = ref(false)
 const startLoading = ref(false)
+const codeCorrect = ref(false)
+const codeSend = ref(false)
 
 // customize validator
 const emailValidator = (v) => {
@@ -24,7 +27,58 @@ const emailValidator = (v) => {
   return regex.test(v) || 'Email format is invalid (12345@siswa.unimas.my)';
 };
 
-const sendResetInstructions = async () => {
+const sendVerificationCode = async () => {
+  startLoading.value = true;
+  // Validate the email format
+  if (!emailValidator(email.value)) {
+    errorMessages.value = 'Email format is invalid (12345@siswa.unimas.my)';
+    hasErrorAlert.value = true;
+    return;
+  }
+
+  try {
+    // Send the reset instructions if the email is valid
+    const response = await axios.post('/api/auth/verify-code', { email: email.value });
+
+    // Get the message from the response
+    successMessages.value = response.data.message;
+
+    // Clear the email value after sending the reset instructions
+    startLoading.value = false;
+    isSuccessAlert.value = true;
+    codeSend.value = true;
+  } catch (error) {
+    // Handle any errors that occur during the API request
+    hasErrorAlert.value = true;
+    errorMessages.value = error.response.data.message;
+    console.error('Error:', error);
+  }
+};
+
+
+const verifyCode = async () => {
+  hasErrorAlert.value = false;
+  try {
+    // Verify the code if the email is valid
+    const response = await axios.post('/api/auth/check-verification-code', { email: email.value, verification_code: verification_code.value });
+
+    // Get the message from the response
+    successMessages.value = response.data.message;
+
+    // Clear the email and code values after verifying the code
+    verification_code.value = null;
+    isSuccessAlert.value = true;
+    codeCorrect.value = true;
+  } catch (error) {
+    // Handle any errors that occur during the API request
+    hasErrorAlert.value = true;
+    errorMessages.value = error.response.data.message;
+    console.error('Error:', error);
+  }
+};
+
+
+const sendTemporaryPassword = async () => {
   startLoading.value = true;
   // Validate the email format
   if (!emailValidator(email.value)) {
@@ -52,6 +106,11 @@ const goToLoginPage = () => {
   router.push({ path: '/login', query: { forceReload: true } }).catch(() => {});
 };
 
+// customize validator
+const codeValidator = (v) => {
+  const regex = /^[0-9]{6}$/;
+  return regex.test(v) || 'Verification code format is invalid (123456)';
+};
 
 </script>
 
@@ -84,8 +143,13 @@ const goToLoginPage = () => {
         <h5 class="text-h5 font-weight-semibold mb-1">
           <VIcon size="20" class="mr-2" icon="ri-lock-password-line" />Forgot Password?
         </h5>
-        <p class="mb-0">
-          Enter your account email and we will send you instructions to reset your password.
+        <p class="mb-0" v-if="codeCorrect===false">
+          Verify your email address first.
+          <br><span><b>A verification code will be sent to your email.</b></span>
+        </p>
+        <p class="mb-0" v-if="codeCorrect===true">
+          Verification code is correct.
+          <br><span><b>Click the button below to send a temporary password to your email.</b></span>
         </p>
 
       </VCardText>
@@ -98,10 +162,18 @@ const goToLoginPage = () => {
             <!-- email -->
             <VCol cols="12">
               <VTextField
+                v-if="codeSend === false && codeCorrect===false"
                 v-model="email"
                 label="Email"
                 type="email"
                 :rules="[requiredValidator, emailValidator]"
+              />
+              <VTextField
+                v-if="codeSend === true && codeCorrect===false"
+                v-model="verification_code"
+                label="Verification Code"
+                type="integer"
+                :rules="[requiredValidator, codeValidator]"
               />
             </VCol>
 
@@ -121,13 +193,32 @@ const goToLoginPage = () => {
 
               <!-- forgot password -->
               <VBtn
+                v-if="codeSend === false && codeCorrect===false"
                 block
                 type="button"
-                @click="$refs.refForm.validate().then(() => sendResetInstructions())"
+                @click="$refs.refForm.validate().then(() => sendVerificationCode())"
                 
               >
-                Send Reset Instructions
+                Send Verification Code <VIcon class="ms-2" icon="ri-mail-send-fill" />
               </VBtn>
+              <VBtn
+                v-if="codeSend === true && codeCorrect===false"
+                block
+                type="button"
+                @click="$refs.refForm.validate().then(() => verifyCode())"
+                
+              >
+                Verify Code <VIcon class="ms-2" icon="ri-mail-check-fill" />
+              </VBtn>
+              <VBtn
+                v-if="codeCorrect === true"
+                block
+                type="button"
+                @click="$refs.refForm.validate().then(() => sendTemporaryPassword())"
+              >
+                Send Temporary Password <VIcon class="ms-2" icon="ri-key-2-fill" />
+              </VBtn>
+              
             
             </VCol>
 
@@ -162,7 +253,7 @@ const goToLoginPage = () => {
       color="success"
     >
     <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
-        Password has been reset successfully. Please check your email.
+        {{ successMessages }}
     </VSnackbar>
 </template>
 

@@ -16,6 +16,7 @@ const isConfirmPasswordVisible = ref(false)
 const editPasswordAlert = ref(false)
 const passwordMatch = ref(false)
 const hasErrorAlert = ref(false)
+const loading = ref(false)
 
 const passwordRequirements = [
   'Minimum 8 characters long',
@@ -42,6 +43,7 @@ const editPassword = () => {
 
   })
   .then(response => {
+    loading.value = true;
     password.value = '';
     currentPassword.value = '';
     confirmPassword.value = '';
@@ -72,7 +74,10 @@ const checkPassword = () => {
 
 
 <template>
-  <VCard title="Change Password">
+  <VCard title="Change Password" :disabled="loading" class="relative">
+    <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50" style=" margin-block-start: 200px;margin-inline-start: 240px">
+      <VProgressCircular  :size="50" color="success" indeterminate  />
+    </div>
 
     <VAlert
       color="error"
@@ -205,8 +210,6 @@ const checkPassword = () => {
             </VRow>
           </VCol>
 
-
-        
         <VCol
 
          style=" display: flex;align-items: center; justify-content: center;"
@@ -228,6 +231,7 @@ const checkPassword = () => {
     </VForm>
     </VCardText>
     </VCard>
+    
 
 
     <!--Snackbar-->
@@ -253,3 +257,13 @@ There was an error changing your password.<br>
 </VSnackbar>
 
 </template>
+
+<style scoped>
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+</style>

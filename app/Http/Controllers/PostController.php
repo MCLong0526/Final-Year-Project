@@ -6,6 +6,7 @@ use App\Http\Requests\PostRequest;
 use App\Models\Like;
 use App\Models\Notification;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -73,6 +74,9 @@ class PostController extends Controller
             $post->created_at = now();
             $post->save();
 
+            // Send notifications to tagged users
+            $this->sendTaggedUserNotifications($request->input('content'));
+
             return response()->json(['message' => 'Posts created successfully']);
         } else {
             foreach ($pictures as $picture) {
@@ -97,9 +101,38 @@ class PostController extends Controller
                 $post->save();
             }
 
+            // Send notifications to tagged users
+            $this->sendTaggedUserNotifications($request->input('content'));
+
             return response()->json(['message' => 'Posts created successfully']);
         }
+    }
 
+    private function sendTaggedUserNotifications($content)
+    {
+        // Send notification to the users who are tagged in the post
+        // The tagged users are in the content of the post that start with @ and end with space,
+        // for example, @user1 @user2, so the tagged users are user1 and user2, it is the user's username
+        $taggedUsers = explode(' ', $content);
+        $taggedUsers = array_filter($taggedUsers, function ($taggedUser) {
+            return strpos($taggedUser, '@') === 0;
+        });
+
+        foreach ($taggedUsers as $taggedUser) {
+            $taggedUser = str_replace('@', '', $taggedUser);
+            $taggedUser = User::where('username', $taggedUser)->first();
+
+            if ($taggedUser) {
+                $notification = new Notification();
+                $notification->receiver_id = $taggedUser->user_id;
+                $notification->sender_id = Auth::id();
+                $notification->information = Auth::user()->username.' tagged you in a post';
+                $notification->status = 'Unread';
+                $notification->created_at = now();
+
+                $notification->save();
+            }
+        }
     }
 
     /**
