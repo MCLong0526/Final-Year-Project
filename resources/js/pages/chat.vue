@@ -76,11 +76,13 @@ const fetchMessages = debounce(() => {
       messagesShowed.value = messages.value.filter(message => message.sender.user_id === props.newChatUser.user_id || message.receiver.user_id === props.newChatUser.user_id);
       if(messagesShowed.value.length < 1){
         newMessage.value = 'Hi, I am ' + store.user.username + '. Let\'s start chatting';
-      }
-      setTimeout(() => {
+      }else{
+        setTimeout(() => {
         const chat = document.querySelector('.message');
         chat.scrollTop = chat.scrollHeight;
       }, 100);
+      }
+      
     }
 
 

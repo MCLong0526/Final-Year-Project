@@ -120,7 +120,6 @@ const openEventDialog = (event) => {
 const getUpComingMeetup = () => {
   axios.get('/api/calendar/upcoming-meetups')
     .then(response => {
-      console.log(response.data.data);
       const twoEvents = response.data.data;
       allEvents.value = twoEvents;
       const events = [];

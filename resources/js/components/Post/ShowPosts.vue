@@ -14,7 +14,7 @@ const props = defineProps({
   },
   getFollowingUsers: {
     type: Function,
-    required: true,
+    required: false,
   },
   showLoading: {
     type: Boolean,
