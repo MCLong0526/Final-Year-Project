@@ -1,13 +1,11 @@
 <script setup>
 import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTitle.vue';
-// import { useAuthStore } from '@/plugins/store/AuthStore';
+import { useAuthStore } from '@/plugins/store/AuthStore';
 import VerticalNavGroup from '@layouts/components/VerticalNavGroup.vue';
 import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
 import axios from 'axios';
-// import { useRoute } from 'vue-router';
 
-// const store = useAuthStore();
-// const route = useRoute();
+const store = useAuthStore();
 const purchasesNotification = ref(0);
 const orderItemNotification = ref(0);
 const orderServiceNotification = ref(0);
@@ -33,13 +31,14 @@ const getPendingServiceNotification = () => {
     })
 }
 
-// const isAdmin = computed(() => {
-//   return store.user.roles.some(role => role.name === 'Admin');
-// });
+const isAdmin = computed(() => {
+  return store.user.roles.some(role => role.name === 'Admin');
+});
 
-// const isSeller = computed(() => {
-//   return store.user.roles.some(role => role.name === 'Seller');
-// });
+const isSeller = computed(() => {
+  return store.user.roles.some(role => role.name === 'Seller');
+});
+
 
 getPendingItemNotification()
 getPendingServiceNotification()
@@ -62,6 +61,7 @@ getPendingServiceNotification()
   />
 
   <VerticalNavLink
+     v-if="isAdmin === true" 
     :item="{
       title: 'Admin Dashboard',
       icon: 'ri-dashboard-fill',
@@ -69,6 +69,7 @@ getPendingServiceNotification()
     }"
   />
   <VerticalNavLink
+   v-if="isAdmin === true" 
     :item="{
       title: 'User Management',
       icon: 'ri-folder-user-line',
@@ -117,6 +118,7 @@ getPendingServiceNotification()
     }"
   />
   <VerticalNavGroup
+    v-if="isSeller === true"
     :item="{
       title: 'Sales',
       icon: 'ri-shopping-bag-2-line',

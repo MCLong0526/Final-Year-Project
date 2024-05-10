@@ -96,9 +96,11 @@ class AuthController extends Controller
         return response()->json(['error' => 'Incorrect username or password.'], 401);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        Auth::logout();
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
 
         return redirect('/login')->with('success', 'Logout successful');
     }

@@ -8,33 +8,6 @@ const router = createRouter({
   routes,
 })
 
-
-// router.beforeEach((to, from, next) => {
-//   if (to.matched.some(record => record.meta.requiresAuth)) {
-//     // Check if the route requires authentication
-//     const auth = useAuthStore();
-//     if (!auth.isLoggedIn) {
-//       // If not authenticated, redirect to the login page
-//       next({ name: 'Login' });
-//     }
-//      else {
-//       // If authenticated, check for role-based access
-//       const requiresRole = to.meta.requiresRole;
-//       const userRole = auth.user.role;
-//       if (requiresRole && userRole !== requiresRole) {
-//         // If user's role does not match the required role, redirect to unauthorized page
-//         next({ name: 'Unauthorized' });
-//       } else {
-//         // If user's role matches or no role is required, proceed to the route
-//         next();
-//       }
-//     }
-//   } else {
-//     // If the route does not require authentication, proceed as usual
-//     next();
-//   }
-// });
-
 // router.beforeEach(async (to, from, next) => {
 //   const authStore = useAuthStore();
 //   const { isLoggedIn } = storeToRefs(authStore);

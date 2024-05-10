@@ -10,13 +10,13 @@ const authStore = useAuthStore();
 const user = ref([]);
 
 const logout = () => {
-  authStore.logout();
-  //remove all the auth data from local storage
+  // Remove all the auth data from local storage
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  //redirect to login page
+  // Redirect to login page
   router.push('/login');
 };
+
 
 // get the authenticated user
 const getUser = async () => {
