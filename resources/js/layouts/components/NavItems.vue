@@ -1,9 +1,13 @@
 <script setup>
 import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTitle.vue';
+// import { useAuthStore } from '@/plugins/store/AuthStore';
 import VerticalNavGroup from '@layouts/components/VerticalNavGroup.vue';
 import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
 import axios from 'axios';
+// import { useRoute } from 'vue-router';
 
+// const store = useAuthStore();
+// const route = useRoute();
 const purchasesNotification = ref(0);
 const orderItemNotification = ref(0);
 const orderServiceNotification = ref(0);
@@ -29,6 +33,13 @@ const getPendingServiceNotification = () => {
     })
 }
 
+// const isAdmin = computed(() => {
+//   return store.user.roles.some(role => role.name === 'Admin');
+// });
+
+// const isSeller = computed(() => {
+//   return store.user.roles.some(role => role.name === 'Seller');
+// });
 
 getPendingItemNotification()
 getPendingServiceNotification()

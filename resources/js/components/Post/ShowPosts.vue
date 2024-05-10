@@ -80,7 +80,6 @@ const toggleLike = (post) => {
     // Post is already liked, so unlike it
     axios.post('/api/posts/unlike/' + postId)
       .then(response => {
-        console.log(response.data);
         post.is_liked = false;
         post.likes_count--;
       })
@@ -91,7 +90,6 @@ const toggleLike = (post) => {
     // Post is not liked, so like it
     axios.post('/api/posts/like/' + postId)
       .then(response => {
-        console.log(response.data);
         post.is_liked = true;
         post.likes_count++;
       })
@@ -131,7 +129,6 @@ const addComment = async(post) =>{
       }));
 
       comments.value = combinedComments;
-      console.log(comments.value);
     })
     .catch(error => {
       console.log(error);
@@ -165,7 +162,10 @@ const addNewComment = (post) => {
     .then(response => {
       addCommentDialog.value = false;
       clearSelectedComment();
-      newComment.value = '';     
+      newComment.value = '';   
+      
+      // Refresh the comments
+      props.getPosts();
     
     })
     .catch(error => {
@@ -281,7 +281,6 @@ const editDialog=(post)=>{
 }
 
 const editPost = (post) => {
-  console.log(post);
 
   axios.put('/api/posts/update/' + post.post_id, {
     content: post.content,
@@ -303,7 +302,6 @@ const openFollowDialog = (selectedUser) => {
   if(selectedUser.user_id!=user.value.user_id){
     axios.post('/api/users/follow-user/' + selectedUser.user_id)
       .then(response => {
-        console.log(response.data.message);
         successMessage.value = response.data.message;
         isFollowSuccessAlert.value = true;
         followDialog.value=true;
@@ -333,7 +331,6 @@ const openUnfollowDialog = (selectedUser) => {
 const unFollowUser = () => {
   axios.post('/api/users/unfollow-user/' + clickedUser.value.user_id)
     .then(response => {
-      console.log(response.data.message);
       successMessage.value = response.data.message;
       isFollowSuccessAlert.value = true;
       unFollowDialog.value = false;

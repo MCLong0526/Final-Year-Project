@@ -244,9 +244,9 @@ const openWhatsApp = (clickedUser) => {
             <span v-if="clickedItem.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/>{{ clickedItem.meet_dateTime }}</VChip></span>
             <span v-else>: <VChip color="warning" size="small">Not Set</VChip></span>
           </div>
-          <div class="detail-row">
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Place to meet</strong>
-            <span>: {{ clickedItem.place_to_meet }}</span>
+            <span style="white-space: pre-line;">: {{ clickedItem.place_to_meet }}</span>
           </div>
           <VDivider class="mt-2 mb-2"/>
           <div class="detail-row" style="display: flex; align-items: flex-start;">

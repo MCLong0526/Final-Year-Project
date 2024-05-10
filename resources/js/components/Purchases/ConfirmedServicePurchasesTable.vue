@@ -195,7 +195,7 @@ window.open(apilink, '_blank');
   <VDialog
     v-model="openConfirmedDialog"
     scrollable
-    max-width="450"
+    max-width="550"
   >
 
     <!-- Dialog Content -->

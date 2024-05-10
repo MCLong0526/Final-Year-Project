@@ -118,15 +118,30 @@ const getConfirmedOrders = debounce(() => {
       // remove the seconds in service_dateTime in confirmedOrders
       confirmedOrders.value.forEach((service) => {
         if (service.service_dateTime) {
-          const dateTimeParts = service.service_dateTime.split(' ');
-          const startTime = dateTimeParts[1].split('-')[0];
-          const endTime = dateTimeParts[1].split('-')[1];
-          const startTimeParts = startTime.split(':');
-          const endTimeParts = endTime.split(':');
-          const formattedDateTime = `${dateTimeParts[0]} ${startTimeParts[0]}:${startTimeParts[1]}-${endTimeParts[0]}:${endTimeParts[1]}`;
-          service.service_dateTime = formattedDateTime;
+            const dateTimeParts = service.service_dateTime.split(' ');
+            const startTime = dateTimeParts[1].split('-')[0];
+            const endTime = dateTimeParts[1].split('-')[1];
+            const startTimeParts = startTime.split(':');
+            const endTimeParts = endTime.split(':');
+            let startHour = parseInt(startTimeParts[0]);
+            let endHour = parseInt(endTimeParts[0]);
+            let startSuffix = 'AM';
+            let endSuffix = 'AM';
+
+            if (startHour >= 12) {
+                startHour -= 12;
+                startSuffix = 'PM';
+            }
+            if (endHour >= 12) {
+                endHour -= 12;
+                endSuffix = 'PM';
+            }
+
+            const formattedDateTime = `${dateTimeParts[0]} ${startHour}:${startTimeParts[1]} ${startSuffix}-${endHour}:${endTimeParts[1]} ${endSuffix}`;
+            service.service_dateTime = formattedDateTime;
         }
       });
+
 
 
       // change the item picture path to http://127.0.0.1:8000/storage/

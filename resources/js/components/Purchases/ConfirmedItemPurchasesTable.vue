@@ -209,32 +209,34 @@ window.open(apilink, '_blank');
             <span>: #{{ clickedItem.id }}</span>
           </div>
           <div class="detail-row">
-            <strong>Status</strong>
-            <span v-if="clickedItem.status=='Approved'">: <VChip color="success" size="small"><VIcon icon="ri-check-fill" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
-            <span v-if="clickedItem.status=='Rejected'">: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
-            <span v-if="clickedItem.status=='Cancelled'">: <VChip color="secondary" size="small"><VIcon icon="ri-close-circle-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
-          </div>
-          <div class="detail-row">
-            <strong>Item</strong>
-            <span>: {{ clickedItem.item.name }}</span>
+            <strong>Order Date Time</strong>
+            <span>: {{ clickedItem.order_dateTime }}</span>
           </div>
           <div class="detail-row">
             <strong>Seller</strong>
             <span>: {{ clickedItem.item.user.username }}</span>
           </div>
           <div class="detail-row">
-            <strong>Order Date Time</strong>
-            <span>: {{ clickedItem.order_dateTime }}</span>
+            <strong>Status</strong>
+            <span v-if="clickedItem.status=='Approved'">: <VChip color="success" size="small"><VIcon icon="ri-check-fill" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
+            <span v-if="clickedItem.status=='Rejected'">: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
+            <span v-if="clickedItem.status=='Cancelled'">: <VChip color="secondary" size="small"><VIcon icon="ri-close-circle-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
+          </div>
+          <VDivider class="mt-2 mb-2"/>
+          <div class="detail-row">
+            <strong>Item</strong>
+            <span>: {{ clickedItem.item.name }}</span>
           </div>
           <div class="detail-row" >
             <strong>Meet Date Time</strong>
             <span v-if="clickedItem.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/>{{ clickedItem.meet_dateTime }}</VChip></span>
             <span v-else>: <VChip color="warning" size="small">Not Set</VChip></span>
           </div>
-          <div class="detail-row">
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Place to meet</strong>
-            <span>: {{ clickedItem.place_to_meet }}</span>
+            <span style="white-space: pre-line;">: {{ clickedItem.place_to_meet }}</span>
           </div>
+          <VDivider class="mt-2 mb-2"/>
           <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Buyer Remark</strong>
             <span style="white-space: pre-line;">: {{ clickedItem.remark_buyer }}</span>

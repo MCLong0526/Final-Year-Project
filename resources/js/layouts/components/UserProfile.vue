@@ -2,7 +2,7 @@
 import { useAuthStore } from '@/plugins/store/AuthStore';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
-import avatar1 from '/resources/images/avatars/avatar-1.png';
+import avatar1 from '/resources/images/avatars/avatar-21.jpg';
  
 const router = useRouter();
 const authStore = useAuthStore();

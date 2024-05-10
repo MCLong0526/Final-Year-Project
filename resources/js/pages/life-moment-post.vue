@@ -189,6 +189,7 @@ const getFollowingUsers = () => {
   axios.get('/api/users/get-following')
     .then(response => {
       followingUsers.value = response.data.data;
+      console.log(followingUsers.value)
 
     })
     .catch(error => {

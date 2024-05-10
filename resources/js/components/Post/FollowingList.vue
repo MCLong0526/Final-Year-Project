@@ -31,7 +31,9 @@ const openChatDialog = (user) => {
     > 
       <VListItem>
         <template #prepend>
-          <VAvatar :image="user.avatar" size="50"/>
+          <VAvatar v-if="user.avatar" size="50">
+            <VImg :src="user.avatar" />
+          </VAvatar>
         </template>
         <VListItemTitle class="">
           {{ user.username }}

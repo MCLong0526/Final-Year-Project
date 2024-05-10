@@ -1,12 +1,18 @@
 <script setup>
-import avatar1 from '/resources/images/avatars/avatar-1.png';
-import avatar2 from '/resources/images/avatars/avatar-2.png';
-import avatar3 from '/resources/images/avatars/avatar-3.png';
-import avatar4 from '/resources/images/avatars/avatar-4.png';
-import avatar5 from '/resources/images/avatars/avatar-5.png';
-import avatar6 from '/resources/images/avatars/avatar-6.png';
-import avatar7 from '/resources/images/avatars/avatar-7.png';
-import avatar8 from '/resources/images/avatars/avatar-8.png';
+import avatar1 from '/resources/images/avatars/avatar-16.jpg';
+import avatar2 from '/resources/images/avatars/avatar-17.jpg';
+import avatar3 from '/resources/images/avatars/avatar-18.jpg';
+import avatar4 from '/resources/images/avatars/avatar-19.jpg';
+import avatar5 from '/resources/images/avatars/avatar-20.jpg';
+import avatar6 from '/resources/images/avatars/avatar-21.jpg';
+import avatar7 from '/resources/images/avatars/avatar-22.jpg';
+import avatar8 from '/resources/images/avatars/avatar-23.jpg';
+import avatar9 from '/resources/images/avatars/avatar-24.jpg';
+import avatar10 from '/resources/images/avatars/avatar-25.jpg';
+import avatar11 from '/resources/images/avatars/avatar-26.jpg';
+import avatar12 from '/resources/images/avatars/avatar-27.jpg';
+import avatar13 from '/resources/images/avatars/avatar-28.jpg';
+
 
 
 import { requiredValidator } from '@/@core/utils/validators';
@@ -169,45 +175,70 @@ const avatars = [
   {
     avatar: avatar1,
     name: 'Avatar 1',
-    value: 'images/avatars/avatar-1.png'
+    value: 'images/avatars/avatar-16.jpg'
     
   },
   {
     avatar: avatar2,
     name: 'Avatar 2',
-    value: 'images/avatars/avatar-2.png'
+    value: 'images/avatars/avatar-17.jpg'
 
   },
   {
     avatar: avatar3,
     name: 'Avatar 3',
-    value: 'images/avatars/avatar-3.png'
+    value: 'images/avatars/avatar-18.jpg'
   },
   {
     avatar: avatar4,
     name: 'Avatar 4',
-    value: 'images/avatars/avatar-4.png'
+    value: 'images/avatars/avatar-19.jpg'
   },
   {
     avatar: avatar5,
     name: 'Avatar 5',
-    value: 'images/avatars/avatar-5.png'
+    value: 'images/avatars/avatar-20.jpg'
   },
   {
     avatar: avatar6,
     name: 'Avatar 6',
-    value: 'images/avatars/avatar-6.png'
+    value: 'images/avatars/avatar-21.jpg'
   },
   {
     avatar: avatar7,
     name: 'Avatar 7',
-    value: 'images/avatars/avatar-7.png'
+    value: 'images/avatars/avatar-22.jpg'
   },
   {
     avatar: avatar8,
     name: 'Avatar 8',
-    value: 'images/avatars/avatar-8.png'
-  }
+    value: 'images/avatars/avatar-23.jpg'
+  },
+  {
+    avatar: avatar9,
+    name: 'Avatar 9',
+    value: 'images/avatars/avatar-24.jpg'
+  },
+  {
+    avatar: avatar10,
+    name: 'Avatar 10',
+    value: 'images/avatars/avatar-25.jpg'
+  },
+  {
+    avatar: avatar11,
+    name: 'Avatar 11',
+    value: 'images/avatars/avatar-26.jpg'
+  },
+  {
+    avatar: avatar12,
+    name: 'Avatar 12',
+    value: 'images/avatars/avatar-27.jpg'
+  },
+  {
+    avatar: avatar13,
+    name: 'Avatar 13',
+    value: 'images/avatars/avatar-28.jpg'
+  },
 ]
 
 
