@@ -205,7 +205,7 @@ const openWhatsApp = (clickedUser) => {
 
 
 
-  <!--Approved Item Dialog-->
+  <!--Approved Service Dialog-->
   <VDialog
     v-model="openApprovedDialog"
     scrollable

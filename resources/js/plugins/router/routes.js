@@ -73,6 +73,11 @@ export const routes = [
         path:'purchase-services',
         component: () => import('@/pages/purchase-services.vue'),
         meta: { requiresAuth: true },
+      },
+      {
+        path:'calendar',
+        component: () => import('@/pages/calendar.vue'),
+        meta: { requiresAuth: true },
       }
     ],
   },

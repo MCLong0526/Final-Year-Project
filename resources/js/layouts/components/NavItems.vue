@@ -76,6 +76,13 @@ getPendingServiceNotification()
       to: '/user-management',
     }"
   />
+  <VerticalNavLink
+    :item="{
+      title: 'Calendar',
+      icon: 'ri-calendar-2-line',
+      to: '/calendar',
+    }"
+  />
 
   <VerticalNavLink
     :item="{

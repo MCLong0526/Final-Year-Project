@@ -572,7 +572,7 @@ getUser();
         </template>
       </VCardText>
       <VCardText v-else>
-        <div class="text-center"><VAlert variant="outlined" color="primary">No comments yet, be the first to comment!</VAlert></div>
+        <div class="text-center"><VAlert icon="ri-discuss-line" variant="outlined" color="primary">No comments yet, be the first to comment! </VAlert></div>
       </VCardText>
 
         <!-- Add new comment -->

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ChatsController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
@@ -136,6 +137,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/messages', 'fetchMessages');
 
         Route::post('/messages', 'sendMessage');
+    });
+
+    Route::controller(CalendarController::class)->prefix('calendar')->group(function () {
+        Route::get('/upcoming-meetups', 'upComingMeetups');
     });
 
 });
