@@ -99,7 +99,6 @@ class CalendarController extends Controller
         $allServiceOrders = DB::table('service_user')
             ->whereIn('service_id', $serviceIds)
             ->where('status', 'Approved')
-            ->orWhere('status', 'Rejected')
 
             ->get();
 

@@ -123,6 +123,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/get-number-of-posts', 'getNumberOfPosts');
         Route::get('/get-number-of-services', 'getNumberOfServices');
         Route::get('/get-number-of-likes', 'getNumberOfLikes');
+        Route::get('/get-weekly-earned', 'getWeeklyEarned');
+        Route::get('/get-monthly-earned', 'getMonthlyEarned');
     });
     Route::controller(ServiceController::class)->prefix('services')->group(function () {
         Route::get('/get-all-services', 'index');

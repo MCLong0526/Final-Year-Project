@@ -59,7 +59,7 @@ const resolveDotColor = title => {
           class="me-4"
         >
           <VIcon
-            icon="ri-bank-line"
+            icon="ri-wallet-3-line"
             size="32"
           />
         </VAvatar>

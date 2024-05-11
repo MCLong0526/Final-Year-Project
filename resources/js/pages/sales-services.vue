@@ -94,8 +94,7 @@ const getConfirmedOrders = debounce(() => {
   axios.get(requestURL)
     .then(({data}) => {
 
-      confirmedOrders.value = data.data
-
+      confirmedOrders.value = data.data;
 
       // change the order_dateTime format to yyyy-mm-dd hh:mm am/pm, remove the seconds
       confirmedOrders.value.forEach((service) => {
@@ -176,8 +175,10 @@ const getConfirmedOrders = debounce(() => {
         };
 
         const remark = service.remark_customer;
+
         const start = remark.split('• ')[1].split(',')[1].split('-')[0].trim();
         const end = remark.split('• ')[1].split(',')[1].split('-')[1].trim().split('\n')[0];
+        
         //remove the things after \n in the end
         service.duration = duration(start, end);
       });

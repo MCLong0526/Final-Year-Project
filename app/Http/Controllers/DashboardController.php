@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\Post;
 use App\Models\Service;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -103,7 +104,11 @@ class DashboardController extends Controller
         $newPosts = $posts->where('created_at', '>=', now()->startOfMonth());
         $newPostsCount = $newPosts->count();
         //get only two decimal points, make it can more than 100%
-        $newPostsPercentage = number_format(($newPostsCount / $count) * 100, 2);
+        if ($count > 0) {
+            $newPostsPercentage = number_format(($newPostsCount / $count) * 100, 2);
+        } else {
+            $newPostsPercentage = 0;
+        }
 
         return response()->json(['number_of_posts' => $count, 'new_posts_percentage' => $newPostsPercentage]);
     }
@@ -119,7 +124,11 @@ class DashboardController extends Controller
 
         $newItemsCount = $newItems->count();
         //get only two decimal points, make sure will have negative also
-        $newItemsPercentage = number_format(($newItemsCount / $count) * 100, 2);
+        if ($count > 0) {
+            $newItemsPercentage = number_format(($newItemsCount / $count) * 100, 2);
+        } else {
+            $newItemsPercentage = 0;
+        }
 
         return response()->json(['number_of_items' => $count, 'new_items_percentage' => $newItemsPercentage]);
     }
@@ -134,7 +143,11 @@ class DashboardController extends Controller
         $newServices = $services->where('created_at', '>=', now()->startOfMonth());
         $newServicesCount = $newServices->count();
         //get only two decimal points, make sure will have negative also
-        $newServicesPercentage = number_format(($newServicesCount / $count) * 100, 2);
+        if ($count > 0) {
+            $newServicesPercentage = number_format(($newServicesCount / $count) * 100, 2);
+        } else {
+            $newServicesPercentage = 0;
+        }
 
         return response()->json(['number_of_services' => $count, 'new_services_percentage' => $newServicesPercentage]);
     }
@@ -146,6 +159,8 @@ class DashboardController extends Controller
 
         // Get all the services where the user_id is equal to the current authenticated user's id
         $services = Service::where('user_id', $user->user_id)->get();
+
+        $all_auth_service_user = [];
 
         // Use DB to get all the service_user entries where the service's user_id is equal to the current authenticated user's id
         foreach ($services as $service) {
@@ -182,37 +197,150 @@ class DashboardController extends Controller
         ]);
     }
 
-    // public function getSchedules()
-    // {
-    //     $user = Auth::user();
-    //     $services = Service::where('user_id', $user->user_id)->get();
-    //     $items = Item::where('user_id', $user->user_id)->get();
+    // get weekly earnings by authenticated user through services
+    public function getWeeklyEarned()
+    {
+        // Get the current authenticated user
+        $user = Auth::user();
 
-    //     $all_schedules = [];
+        $all_auth_service_user = [];
 
-    //     // use DB to get all the service_user where the service_id is equal to the $service->service_id
-    //     foreach ($services as $service) {
-    //         $service_user = DB::table('service_user')->where('service_id', $service->service_id)->get();
-    //         // get all the $service_user where the status is equal to "Approved"
-    //         foreach ($service_user as $service_user) {
-    //             if ($service_user->status == 'Approved') {
-    //                 $all_schedules[] = $service_user;
-    //             }
-    //         }
-    //     }
+        // Get all the services where the user_id is equal to the current authenticated user's id
+        $services = Service::where('user_id', $user->user_id)->get();
 
-    //     // use DB to get all the item_user where the item_id is equal to the $item->item_id
-    //     foreach ($items as $item) {
-    //         $item_user = DB::table('item_user')->where('item_id', $item->item_id)->get();
-    //         // get all the $item_user where the status is equal to "Approved"
-    //         foreach ($item_user as $item_user) {
-    //             if ($item_user->status == 'Approved') {
-    //                 $all_schedules[] = $item_user;
-    //             }
-    //         }
-    //     }
+        // Use DB to get all the service_user entries where the service's user_id is equal to the current authenticated user's id
+        foreach ($services as $service) {
+            $service_user = DB::table('service_user')->where('service_id', $service->service_id)->get();
+            // store all the $service_user to $all_auth_service_user, else no need to store it
+            if ($service_user) {
+                $all_auth_service_user[] = $service_user;
+            }
 
-    //     return $this->success($all_schedules);
+        }
 
-    // }
+        $total_earned = 0;
+        $number_of_approved = 0;
+        //filter it by this week only according to the service_dateTime, it is a string so we can use the Carbon method
+        $week_start = now()->startOfWeek();
+        $week_end = now()->endOfWeek();
+
+        // calculate all the approximated_price from the $all_auth_service_user, but the status must be equal "Approved" and save it to $all_auth_service_user_approved
+        // add also the day of each service_dateTime to the total_earned, like day:monday, earned: 100, is an object in total_earned
+        // Calculate the total earned for each day of the week
+        $earned_by_day = [
+            'Monday' => 0,
+            'Tuesday' => 0,
+            'Wednesday' => 0,
+            'Thursday' => 0,
+            'Friday' => 0,
+            'Saturday' => 0,
+            'Sunday' => 0,
+        ];
+
+        foreach ($all_auth_service_user as $service_user) {
+            foreach ($service_user as $service_user) {
+                if ($service_user->status == 'Approved') {
+                    $service_dateTime = new Carbon($service_user->service_dateTime);
+                    if ($service_dateTime->between($week_start, $week_end)) {
+                        $day_of_week = $service_dateTime->isoFormat('dddd');
+                        $earned_by_day[$day_of_week] += $service_user->approximated_price;
+                        $number_of_approved++;
+                    }
+                }
+            }
+        }
+
+        // Format the total earned for each day
+        $formatted_earned_by_day = [];
+        foreach ($earned_by_day as $day => $earned) {
+            $formatted_earned_by_day[$day] = number_format($earned, 2);
+        }
+
+        // total earned in a week
+        foreach ($formatted_earned_by_day as $day => $earned) {
+            $total_earned += $earned;
+        }
+
+        return $this->success([
+            'total_earned' => $formatted_earned_by_day,
+            'number_of_approved' => $number_of_approved,
+            'total_earned_week' => number_format($total_earned, 2),
+        ]);
+
+    }
+
+    public function getMonthlyEarned()
+    {
+        // Get the current authenticated user
+        $user = Auth::user();
+
+        $all_auth_service_user = [];
+
+        // Get all the services where the user_id is equal to the current authenticated user's id
+        $services = Service::where('user_id', $user->user_id)->get();
+
+        // Use DB to get all the service_user entries where the service's user_id is equal to the current authenticated user's id
+        foreach ($services as $service) {
+            $service_user = DB::table('service_user')->where('service_id', $service->service_id)->get();
+            // store all the $service_user to $all_auth_service_user, else no need to store it
+            if ($service_user) {
+                $all_auth_service_user[] = $service_user;
+            }
+
+        }
+        $number_of_approved = 0;
+        $total_earned = 0;
+        //filter it by this year only according to the service_dateTime, it is a string so we can use the Carbon method
+        $year_start = now()->startOfYear();
+        $year_end = now()->endOfYear();
+
+        // calculate all the approximated_price from the $all_auth_service_user, but the status must be equal "Approved" and save it to $all_auth_service_user_approved
+        // add also the month of each service_dateTime to the total_earned, like january: 100, february: 200, etc
+        // Calculate the total earned for each month of the year
+        $earned_by_month = [
+            'January' => 0,
+            'February' => 0,
+            'March' => 0,
+            'April' => 0,
+            'May' => 0,
+            'June' => 0,
+            'July' => 0,
+            'August' => 0,
+            'September' => 0,
+            'October' => 0,
+            'November' => 0,
+            'December' => 0,
+        ];
+
+        foreach ($all_auth_service_user as $service_user) {
+            foreach ($service_user as $service_user) {
+                if ($service_user->status == 'Approved') {
+                    $service_dateTime = new Carbon($service_user->service_dateTime);
+                    if ($service_dateTime->between($year_start, $year_end)) {
+                        $month_of_year = $service_dateTime->isoFormat('MMMM');
+                        $earned_by_month[$month_of_year] += $service_user->approximated_price;
+                        $number_of_approved++;
+                    }
+                }
+            }
+        }
+
+        // Format the total earned for each month
+        $formatted_earned_by_month = [];
+        foreach ($earned_by_month as $month => $earned) {
+            $formatted_earned_by_month[$month] = number_format($earned, 2);
+        }
+
+        // total earned in a year
+        foreach ($formatted_earned_by_month as $month => $earned) {
+            $total_earned += $earned;
+        }
+
+        return $this->success([
+            'total_earned' => $formatted_earned_by_month,
+            'number_of_approved' => $number_of_approved,
+            'total_earned_year' => number_format($total_earned, 2),
+        ]);
+
+    }
 }

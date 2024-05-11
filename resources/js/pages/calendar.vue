@@ -1,6 +1,8 @@
 <script setup>
 import dayGridPlugin from '@fullcalendar/daygrid';
+import listPlugin from '@fullcalendar/list';
 import FullCalendar from '@fullcalendar/vue3';
+
 import axios from 'axios';
 import { ref, watch } from 'vue';
 
@@ -18,11 +20,11 @@ const clickedService = ref({});
 
 // calendar options
 const calendarOptions = ref({
-  plugins: [dayGridPlugin],
-  initialView: 'dayGridMonth',
+  plugins: [dayGridPlugin, listPlugin],
+  initialView: 'listMonth',
   events: [],
   headerToolbar: {
-    start: "",
+    start: "dayGridMonth,listMonth listWeek",
     center: "title",
     end: "today,prevYear,prev,next,nextYear",
   },
@@ -37,21 +39,27 @@ const calendarOptions = ref({
     }
     
     const timeText = endTime ? `${startTime} - ${endTime}` : startTime;
-
     return { html: `
-      <div style="font-size: 12px; white-space: nowrap; overflow: hidden; width: 200px;">
-        <span style="color: #9370DB;" class="text-overline">${timeText}</span>
-      </div>
-      <div style="font-size: 14px; white-space: nowrap; overflow: hidden; width: 200px;">
-        <span style="color: #000;" class="text-overline">${arg.event.title}</span>
+      <div style="font-size: 10px; white-space: nowrap; overflow: hidden; width: 200px;">
+        <span style="color: #9370DB;"><b>${timeText}</b></span><br>
+        <span style="color: #000;">Type: ${arg.event.extendedProps.type === 'item' ? 'Selling Item' : 'Provide Service'}</span><br>
+        <span style="color: #000;">Name: ${arg.event.title}</span>
       </div>
     ` };
+      
   },
   
   // can click the event to open VDialog
   eventClick: function(arg) {
     //pass the event to the dialog
     openEventDialog(arg.event);
+  },
+
+  //change the headerToolbar button text
+  buttonText: {
+    month: 'Calendar',
+    listWeek: 'Weekly List',
+    listMonth: 'Lists',
 
   },
   
@@ -129,7 +137,8 @@ const getUpComingMeetup = () => {
           title: item.item.name,
           start: item.meet_dateTime.replace(" ", "T"),
           end: item.meet_dateTime.replace(" ", "T"),
-          color: 'green',
+          color: '#68b5e8',
+          
           event_id: item.id,
           type: 'item', // Set the type to 'item' for item orders
         });
@@ -148,7 +157,7 @@ const getUpComingMeetup = () => {
           title: service.service.name,
           start: start,
           end: end,
-          color: 'red',
+          color: '#7ee879',
           event_id: service.id,
           type: 'service', // Set the type to 'service' for service orders
         });
@@ -238,7 +247,10 @@ getUpComingMeetup();
           
         </VCol>
         <VCol cols="12" md="9">
-          <FullCalendar :options='calendarOptions' />
+          <FullCalendar 
+            :options='calendarOptions'
+            
+          />
         </VCol>
       </VRow>
 
@@ -431,13 +443,7 @@ getUpComingMeetup();
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
 }
 
-.item-event {
-  background-color: green;
-}
 
-.service-event {
-  background-color: red;
-}
 
 /* Example CSS for styling the buttons */
 .fc button {

@@ -1,7 +1,8 @@
 <script setup>
 import axios from 'axios';
+import HorizontalEarnCard from '/resources/js/components/Dashboard/ApexCardHorizontalEarn.vue';
 import CardStatisticsHorizantal from '/resources/js/components/Dashboard/CardStatisticsHorizontal.vue';
-import EarnWeeklyCard from '/resources/js/components/Dashboard/EarnWeeklyCard.vue';
+import TotalEarnedCard from '/resources/js/components/Dashboard/EarnWeeklyCard.vue';
 
 const numberOfItems = ref(0);
 const newItemsPercentage = ref(0);
@@ -67,15 +68,6 @@ const getAuthServices = () => {
     })
 }
 
-// const getSchedules = async () => {
-//   try {
-//     const response = await axios.get('/api/dashboard/get-schedules');
-//     allSchedules.value = response.data.data;
-//     console.log(allSchedules.value);
-//   } catch (error) {
-//     console.error(error);
-//   }
-// };
 const getAuthEarned = async () => {
   try {
     const response = await axios.get('/api/dashboard/get-auth-earned');
@@ -94,7 +86,7 @@ getAuthEarned();
 getAuthItems();
 getAuthPosts();
 getAuthServices();
-// getSchedules();
+
 </script>
 
 <template>
@@ -165,27 +157,54 @@ getAuthServices();
   </VCol>
   </VRow>
   <VRow>
-    <!-- <VCol
-      cols="12"
-      md="6"
-      lg="4"
-    >
-      <ScheduleMeetUp />
-
-    </VCol> -->
     <VCol
       cols="12"
       md="3"
       lg="3"
 
     >
-    <EarnWeeklyCard 
-    v-if="ready1==true"
-    :number_of_approved="number_of_approved"
-    :number_of_pending="number_of_pending"
-    :number_of_rejected="number_of_rejected"
-    :total_earned="total_earned"
-    />
+    <TotalEarnedCard
+      v-if="ready1==true"
+      :number_of_approved="number_of_approved"
+      :number_of_pending="number_of_pending"
+      :number_of_rejected="number_of_rejected"
+      :total_earned="total_earned"
+      />
+    </VCol>
+    <VCol
+      cols="12"
+      md="9"
+      lg="9"
+    >
+    <div class="card">
+      <div class="card-body">
+        <HorizontalEarnCard />
+      </div>
+    </div>
     </VCol>
   </VRow>
 </template>
+
+<style scoped>
+.card {
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 10%);
+  margin-block-end: 20px;
+}
+
+.box-inside {
+  margin: 20px;
+}
+
+
+.card-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-block-end: 0;
+}
+
+
+
+</style>

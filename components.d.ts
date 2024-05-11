@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    ApexCardHorizontalEarn: typeof import('./resources/js/components/Dashboard/ApexCardHorizontalEarn.vue')['default']
     AppBarSearch: typeof import('./resources/js/@core/components/AppBarSearch.vue')['default']
     AvatarGroup: typeof import('./resources/js/components/AvatarGroup.vue')['default']
     CardStatisticsHorizontal: typeof import('./resources/js/@core/components/cards/CardStatisticsHorizontal.vue')['default']
@@ -47,6 +48,7 @@ declare module 'vue' {
     ServiceList: typeof import('./resources/js/components/Service/ServiceList.vue')['default']
     ServiceTable: typeof import('./resources/js/components/Service/ServiceTable.vue')['default']
     ShowPosts: typeof import('./resources/js/components/Post/ShowPosts.vue')['default']
+    SwitchWeek: typeof import('./resources/js/components/Dashboard/SwitchWeek.vue')['default']
     TableTeam: typeof import('./resources/js/components/TableTeam.vue')['default']
     TableUser: typeof import('./resources/js/components/TableUser.vue')['default']
     TableWorkCategory: typeof import('./resources/js/components/TableWorkCategory.vue')['default']
