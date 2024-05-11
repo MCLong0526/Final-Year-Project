@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserProfileRequest;
 use App\Http\Requests\UserRequest;
+use App\Models\Item;
 use App\Models\Role;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -247,5 +249,37 @@ class UserController extends Controller
         $following = $user->following;
 
         return $this->success(data: $following, message: 'Following retrieved successfully');
+    }
+
+    public function getUserDetails(string $id)
+    {
+        $user = User::where('user_id', $id)->firstOrFail();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        } else {
+            // check whether the authenticated user is following the user
+            $user->is_followed = auth()->user()->following->contains($id);
+
+            //calculate the number of items the user has, make sure the user_id of the item is the same as the $id
+            $items = Item::where('user_id', $user->user_id)->get();
+            $count = $items->count();
+            $user->items_count = $count;
+
+            //calculate the number of services the user has, make sure the user_id of the service is the same as the $id
+            $services = Service::where('user_id', $user->user_id)->get();
+            $count = $services->count();
+            $user->services_count = $count;
+
+            //calculate the number of followers the user has, using the following table because don not have a followers table, just check the following table where the following_id is the same as the $id
+            $followers = User::whereHas('following', function ($query) use ($id) {
+                $query->where('following_id', $id);
+            })->get();
+            $count = $followers->count();
+            $user->followers_count = $count;
+
+        }
+
+        return $this->success(data: $user, message: 'User details retrieved successfully');
     }
 }

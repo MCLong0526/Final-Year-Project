@@ -384,7 +384,7 @@ getUser();
                         class="ml-2"
                         @click="openUnfollowDialog(post.user)"
                       >
-                        <VIcon size="16" class="me-1">ri-check-line</VIcon>
+                        <VIcon icon="ri-check-line" size="16" class="me-1" />
                         <span class="text-xs">Following</span>
                       </VBtn>
                       <VBtn
@@ -395,7 +395,7 @@ getUser();
                         class="ml-2"
                         @click="openFollowDialog(post.user)"
                       >
-                        <VIcon size="16" class="me-1">ri-user-follow-line</VIcon>
+                        <VIcon icon="ri-user-follow-line" size="16" class="me-1"/>
                   
                       <span class="text-xs">Follow</span>
                       </VBtn>

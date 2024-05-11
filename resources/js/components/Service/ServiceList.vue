@@ -1,5 +1,6 @@
 <script setup>
 import VueDatePicker from '@vuepic/vue-datepicker';
+import UserProfileDialog from '@/components/Profile/UserProfileDialog.vue';
 import '@vuepic/vue-datepicker/dist/main.css';
 import axios from 'axios';
 import { watch } from 'vue';
@@ -46,6 +47,8 @@ const estimatedPrice = ref(0);
 const hasAddAlert = ref(false);
 const hasErrorAlert = ref(false);
 const errorMessages = ref('');
+const openDialog = ref(false);
+const clickedUser = ref({});
 
 // minTime and maxTime is an Object in format { hours: 11, minutes: 30 }
 const minTime = ref({ hours: 0, minutes: 0 });
@@ -189,6 +192,12 @@ const submitOrder = async () => {
   }
 };
 
+const openProfileDialog = (user) => {
+  openDialog.value = true;
+  clickedUser.value = user;
+};
+
+
 
 </script>
 
@@ -278,7 +287,21 @@ const submitOrder = async () => {
         </VCardTitle>
 
         <h3 class="mt-2">Service Provider Information</h3>
-        <VCardText class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;">
+        <VCardText  v-if="clickedService.isOwn === false" class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;cursor: pointer;" @click="openProfileDialog(clickedService.user)">
+        <VAvatar size="40"
+            :color="clickedService.user.avatar ? '' : 'primary'"
+            :class="`${!clickedService.user.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
+            :variant="!clickedService.user.avatar ? 'tonal' : undefined"
+            style="margin-inline-end: 8px;">
+            <VImg
+            :src="clickedService.user.avatar"/>
+        </VAvatar>
+        <div style="display: inline-block; vertical-align: top;">
+          <div>{{ clickedService.user.username }}</div>
+          <div style="color: #6c757d; font-size: 12px;">{{ clickedService.user.email }}</div>
+        </div>
+        </VCardText>
+        <VCardText  v-else class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;">
       
         <VAvatar size="40"
             :color="clickedService.user.avatar ? '' : 'primary'"
@@ -635,6 +658,14 @@ const submitOrder = async () => {
       </VForm>
       </VCardText>
     </VCard>
+  </VDialog>
+
+  <!--Profile Dialog-->
+  <VDialog
+    v-model="openDialog"
+    max-width="450"
+  >
+    <UserProfileDialog :clickedUser="clickedUser" />
   </VDialog>
 
    <!-- Add Alert -->

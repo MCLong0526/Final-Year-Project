@@ -1,5 +1,6 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
+import UserProfileDialog from '@/components/Profile/UserProfileDialog.vue';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import axios from 'axios';
@@ -18,6 +19,8 @@ const props = defineProps({
 
 const openItemDialog = ref(false);
 const clickedItem = ref({});
+const openDialog = ref(false);
+const clickedUser = ref({});
 const checkStatusDialog = ref(false);
 const meetDateTime = ref('');
 const quantity = ref('');
@@ -92,6 +95,11 @@ watch(meetDateTime, (newValue) => {
     }
   }
 });
+
+const openProfileDialog = (user) => {
+  openDialog.value = true;
+  clickedUser.value = user;
+};
 
 
 </script>
@@ -187,7 +195,7 @@ watch(meetDateTime, (newValue) => {
         </VCardTitle>
 
         <h3 class="mt-2">Seller Information</h3>
-        <VCardText class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;">
+        <VCardText class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;cursor: pointer;" @click="openProfileDialog(clickedItem.user)">
       
         <VAvatar size="40"
             :color="clickedItem.user.avatar ? '' : 'primary'"
@@ -472,6 +480,13 @@ watch(meetDateTime, (newValue) => {
     </VCard>
   </VDialog>
 
+  <VDialog
+    v-model="openDialog"
+    max-width="450"
+  >
+    <UserProfileDialog :clickedUser="clickedUser" />
+  </VDialog>
+
   <!-- Add Alert -->
   <VSnackbar
       v-model="isAddAlert"
@@ -492,6 +507,8 @@ watch(meetDateTime, (newValue) => {
     <VIcon size="20" class="me-2">ri-alert-line</VIcon>
       {{ errorMessages }}
   </VSnackbar>
+
+ 
  
 </template>
 

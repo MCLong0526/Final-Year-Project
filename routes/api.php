@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(UserController::class)->prefix('users')->group(function () {
         Route::get('/', 'index');
         Route::get('/get-following', 'getFollowing');
+        Route::get('/get-user-details/{user_id}', 'getUserDetails');
         Route::post('/check-password', 'checkPassword');
         Route::post('/store', 'store');
         Route::post('/follow-user/{user_id}', 'followUser');
