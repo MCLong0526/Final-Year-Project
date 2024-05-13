@@ -15,7 +15,7 @@
         <div id="loading-bg">
             <div class="loading-logo">
                 <!-- Use the LOGO1.png image -->
-                <img src="/images/logos/logo.png" alt="UNIMAS Logo" style="width: 100px; height: auto;">
+                <img src="/images/logos/logo.png" alt="UNIMAS Logo2" style="width: 100px; height: auto;">
             </div>
             <div class="loading">
                 <div class="effect-1 effects"></div>
