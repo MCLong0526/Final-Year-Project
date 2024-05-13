@@ -73,10 +73,10 @@
 
       // ℹ️ Update the margin-inline-end when vertical nav is in mini state. We done same for link & group.
       @at-root {
-          .layout-nav-type-vertical.layout-vertical-nav-collapsed .layout-vertical-nav:not(.hovered) .nav-section-title {
-            margin-inline: 4px 0;
-          }
+        .layout-nav-type-vertical.layout-vertical-nav-collapsed .layout-vertical-nav:not(.hovered) .nav-section-title {
+          margin-inline: 4px 0;
         }
+      }
 
       margin-block-end: variables.$vertical-nav-section-title-mb;
 
@@ -119,6 +119,7 @@
         pointer-events: none;
       }
     }
+    
 
     // 👉 Vertical nav link
     .nav-link {

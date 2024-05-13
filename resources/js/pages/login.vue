@@ -1,7 +1,7 @@
 <script setup>
 import { passwordValidator, requiredValidator } from '@/@core/utils/validators';
 import { useAuthStore } from '@/plugins/store/AuthStore';
-import logo from '@images/logos/logoUni.png';
+import logo from '@images/logos/logo2.png';
 import { ref } from 'vue';
 import { useTheme } from 'vuetify';
 import { VForm } from 'vuetify/components/VForm';
@@ -67,7 +67,7 @@ const isPasswordVisible = ref(false)
               :src="logo"
               alt="Materio"
               class="mr-2"
-              height="160"
+              height="180"
               width="200"
             />
             
@@ -128,9 +128,10 @@ const isPasswordVisible = ref(false)
               <!-- remember me checkbox -->
               <div class="d-flex align-center justify-space-between flex-wrap mt-1 mb-4">
                 <a
-    class="ms-2 mb-1 text-primary"
-    @click="navigateToForgotPassword"
-  >
+                  style="cursor: pointer;"
+                  class="ms-2 mb-1 text-primary"
+                  @click="navigateToForgotPassword"
+                >
                   Forgot Password?
                 </a>
               </div>
@@ -144,21 +145,6 @@ const isPasswordVisible = ref(false)
                 Login
               </VBtn>
             </VCol>
-
-            <!-- create account -->
-            <VCol
-              cols="12"
-              class="text-center text-base"
-            >
-              <span>New on our platform?</span>
-              <RouterLink
-                class="text-primary ms-2"
-                to="/"
-              >
-                Create an account
-              </RouterLink>
-            </VCol>
-            
           </VRow>
         </VForm>
       </VCardText>
@@ -180,6 +166,7 @@ const isPasswordVisible = ref(false)
 .auth-content {
   position: absolute;
   z-index: 1;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 90%);
   box-shadow: 10px 10px 10px rgba(0, 0, 0, 20%);
   inline-size: 100%;
@@ -191,5 +178,6 @@ const isPasswordVisible = ref(false)
   border-radius: 8px;
   background: rgba(255, 255, 255, 90%);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 10%);
+  
 }
 </style>

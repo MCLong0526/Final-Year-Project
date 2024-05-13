@@ -123,6 +123,7 @@ const handleNavScroll = evt => {
   inset-inline-start: 0;
   transition: inline-size 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
   will-change: transform, inline-size;
+  
 
   .nav-header {
     display: flex;
@@ -185,4 +186,5 @@ const handleNavScroll = evt => {
     transition: transform 0.25s ease-in-out;
   }
 }
+
 </style>

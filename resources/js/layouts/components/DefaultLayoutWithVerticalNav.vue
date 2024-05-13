@@ -2,7 +2,7 @@
 import NavItems from '@/layouts/components/NavItems.vue';
 import Notification from '@/layouts/components/Notification.vue';
 import UserProfile from '@/layouts/components/UserProfile.vue';
-import UnimasLogo from '@images/logos/logoUni.png';
+import UnimasLogo from '@images/logos/logo2.png';
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
 

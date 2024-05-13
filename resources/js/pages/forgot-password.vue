@@ -1,6 +1,6 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
-import logo from '@images/logos/LOGO1.png';
+import logo from '@images/logos/logo.png';
 import axios from 'axios';
 import { useTheme } from 'vuetify';
 import { VForm } from 'vuetify/components/VForm';
@@ -129,8 +129,8 @@ const codeValidator = (v) => {
               :src="logo"
               alt="Materio"
               class="mr-2"
-              height="150"
-              width="100"
+              height="180"
+              width="200"
             />
             
           </div>
