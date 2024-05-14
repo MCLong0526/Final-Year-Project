@@ -47,11 +47,8 @@ checkSeries()
 const getDonutChartConfig = themeColors => {
 
   const donutColors = {
-    series1: '#fdd835',
-    series2: '#00d4bd',
-    series3: '#826bf8',
-    series4: '#32baff',
-    series5: '#ffa1a1',
+    series1: '#557cf2',
+    series2: '#334a91',
   }
 
   const { themeSecondaryTextColor, themePrimaryTextColor } = colorVariables(themeColors)
@@ -59,7 +56,7 @@ const getDonutChartConfig = themeColors => {
   return {
     stroke: { width: 0 },
     labels: ['Active Users', 'Inactive Users'],
-    colors: [donutColors.series3, donutColors.series2, donutColors.series5, donutColors.series1],
+    colors: [donutColors.series1, donutColors.series2],
     dataLabels: {
       enabled: true,
       formatter: val => `${parseInt(val, 10)}%`,

@@ -31,8 +31,13 @@ const login = async () => {
 
   }
   else {
-    errorMessages.value = authStore.errorMessages
-    console.log(authStore.errorMessages)
+    if(email.value=='' || password.value==''){
+      errorMessages.value = 'Please fill in all the fields'
+    }
+    else{
+      errorMessages.value = authStore.errorMessages
+      
+    }
     hasErrorAlert.value=true;
   }
   

@@ -93,7 +93,7 @@ class AuthController extends Controller
             ]);
         }
 
-        return response()->json(['error' => 'Incorrect username or password.'], 401);
+        return response()->json(['error' => 'Incorrect email or password.'], 401);
     }
 
     public function logout(Request $request)

@@ -357,7 +357,7 @@ getUser();
     <VList v-if="posts.length>0" scrollable height="600" style=" background-color: transparent; max-inline-size: 2000px; overflow-x: hidden;">
       <VRow align="center" justify="center">
         <VCol v-for="post in posts" :key="post.post_id" cols="12">
-          <VCard variant="outlined" class="mx-auto" max-width="600" style="border-radius: 20px; background-color: #f8f9fa;">
+          <VCard variant="outlined" class="mx-auto box-style" max-width="600" style="border-radius: 20px; background-color: #f8f9fa;">
             <VCardItem>
               <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
@@ -917,4 +917,12 @@ getUser();
   inset-block-start: 5px;
   inset-inline-end: 5px;
 }
+
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+}
+
 </style>

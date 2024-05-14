@@ -28,11 +28,13 @@ const emailValidator = (v) => {
 };
 
 const sendVerificationCode = async () => {
+
   startLoading.value = true;
   // Validate the email format
   if (!emailValidator(email.value)) {
     errorMessages.value = 'Email format is invalid (12345@siswa.unimas.my)';
     hasErrorAlert.value = true;
+    startLoading.value = false;
     return;
   }
 
@@ -49,6 +51,7 @@ const sendVerificationCode = async () => {
     codeSend.value = true;
   } catch (error) {
     // Handle any errors that occur during the API request
+    startLoading.value = false;
     hasErrorAlert.value = true;
     errorMessages.value = error.response.data.message;
     console.error('Error:', error);
@@ -71,9 +74,9 @@ const verifyCode = async () => {
     codeCorrect.value = true;
   } catch (error) {
     // Handle any errors that occur during the API request
-    hasErrorAlert.value = true;
+   
     errorMessages.value = error.response.data.message;
-    console.error('Error:', error);
+    hasErrorAlert.value = true;
   }
 };
 
@@ -84,6 +87,7 @@ const sendTemporaryPassword = async () => {
   if (!emailValidator(email.value)) {
     errorMessages.value = 'Email format is invalid (12345@siswa.unimas.my)';
     hasErrorAlert.value = true;
+    startLoading.value = false;
     return;
   }
 
@@ -96,6 +100,7 @@ const sendTemporaryPassword = async () => {
     isSuccessAlert.value = true;
   } catch (error) {
     // Handle any errors that occur during the API request
+    startLoading.value = false;
     hasErrorAlert.value = true;
     errorMessages.value = error.response.data.message;
     console.error('Error:', error);

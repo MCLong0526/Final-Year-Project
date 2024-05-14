@@ -407,6 +407,7 @@ getFollowingUsers();
             :getFollowingUsers="getFollowingUsers"
             :showLoading="showLoading"
             :typePosts="typePosts"
+            
           />
         </div>
 
