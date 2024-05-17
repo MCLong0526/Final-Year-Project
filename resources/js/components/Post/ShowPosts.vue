@@ -24,6 +24,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  followingUsers: {
+    type: Object,
+    required: false,
+  },
 })
 
 const emit = defineEmits(['update:posts']);
@@ -48,6 +52,8 @@ const clickedUser = ref([])
 const user = ref([]);
 const isFollowErrorAlert = ref(false)
 const isFollowSuccessAlert = ref(false)
+const followingUsersInPost = ref([])
+const isTagging = ref(false)
 
 // get the authenticated user
 const getUser = async () => {
@@ -180,6 +186,8 @@ const selectComment = (comment) => {
     clearSelectedComment();
   } else {
     selectedComment.value = comment;
+    // add the username of the user being replied to in the comment box
+    newComment.value = `@${comment.user.username} `;
   }
 
 };
@@ -187,6 +195,7 @@ const selectComment = (comment) => {
 // Function to clear the selected comment (e.g., when the user cancels or submits the reply)
 const clearSelectedComment = () => {
   selectedComment.value = null;
+  newComment.value = '';
 };
 
 // comment function done. 
@@ -346,6 +355,35 @@ const unFollowUser = () => {
       console.log(error);
     });
 };
+
+
+// Tagging users in post
+watch(newComment, () => {
+  setTimeout(() => {
+    if (newComment.value.charAt(newComment.value.length - 1) === '@') {
+      isTagging.value = true;
+      followingUsersInPost.value = props.followingUsers;
+    } else if (newComment.value.includes('@') && isTagging.value===false && followingUsersInPost.value.length > 0) {
+      isTagging.value = true;
+      const searchTerm = newComment.value.split('@').slice(-1)[0].split(' ')[0].toLowerCase();
+      followingUsersInPost.value = props.followingUsers.filter(user => user.username.toLowerCase().includes(searchTerm));
+    } else {
+      isTagging.value = false;
+      
+    }
+  }, 500);
+});
+
+const tagUser = (user) => {
+  // Remove the word that is being typed to search for the user before tagging the user
+  const contentWithoutSearchTerm = newComment.value.split('@').slice(0, -1).join('@');
+  // Add the tagged user's username to the content with a space
+  newComment.value = `${contentWithoutSearchTerm}@${user.username} `;
+  followingUsersInPost.value = [];
+  isTagging.value = false;
+};
+
+//end tagging users in post
 
 
 getUser();
@@ -585,12 +623,34 @@ getUser();
             required
             outlined
           >
+          
             <template v-slot:append>
               <VBtn class="mr-2" :color="selectedComment ? 'primary' : 'success'" @click="$refs.refForm.validate().then(() => addNewComment(selectedPost))">
                 <VIcon :icon="selectedComment ? 'ri-chat-new-line' : 'ri-send-plane-2-line'" />
               </VBtn>
             </template>
           </VTextField>
+          <VList 
+            v-if="isTagging && followingUsers.length > 0"  
+            style="max-block-size: 80px; overflow-y: auto;"
+          >
+            <VListItem
+              v-for="(user, index) in followingUsersInPost"
+              :key="index"
+              @click="tagUser(user)"
+              
+            >
+            <VAvatar size="32"
+              :color="user.avatar ? '' : 'primary'"
+              :class="`${!user.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
+              :variant="!user.avatar ? 'tonal' : undefined"
+              style="margin-inline-end: 8px;">
+              <VImg
+              :src="user.avatar"/>
+            </VAvatar>
+            {{ user.username }}
+            </VListItem>
+          </VList>
         </VForm>
       </div>
     </VCard>

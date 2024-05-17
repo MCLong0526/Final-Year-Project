@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -55,19 +56,68 @@ class CommentController extends Controller
 
         $comment->save();
 
-        // Check if the comment is a reply and the replier is not the post owner
-        if ($comment->parent_id !== null && $comment->replier_id !== $comment->post->user_id) {
+        // if comment content has @username, create notification for mentioned user, if has pare
+        $pattern = '/@([a-zA-Z0-9_]+)/';
+        preg_match_all($pattern, $comment->content, $matches);
+
+        if (! empty($matches[1])) {
+            foreach ($matches[1] as $match) {
+                $mentionedUser = User::where('username', $match)->first();
+                if ($mentionedUser) {
+                    $notification = new Notification();
+                    $notification->receiver_id = $mentionedUser->user_id;
+                    $notification->sender_id = auth()->user()->user_id;
+                    $notification->status = 'Unread';
+                    $notification->created_at = now();
+
+                    if ($comment->parent_id === null && $comment->user_id !== $mentionedUser->user_id && $mentionedUser->user_id !== $comment->post->user_id) {
+                        $notification->information = auth()->user()->username.' mentioned you in a comment in '.$comment->post->user->username.' post';
+
+                    } elseif ($comment->parent_id !== null && $comment->user_id !== $mentionedUser->user_id && $mentionedUser->user_id !== $comment->post->user_id) {
+                        if ($comment->replier_id === $mentionedUser->user_id) {
+                            $notification->information = auth()->user()->username.' mentioned you in a comment when replying to you in '.$comment->post->user->username.' post';
+                        } else {
+                            $notification->information = auth()->user()->username.' mentioned you in a comment when replying to '.$comment->replier->username.' in '.$comment->post->user->username.' post';
+                        }
+
+                    } elseif ($comment->parent_id === null && $comment->user_id !== $mentionedUser->user_id && $mentionedUser->user_id === $comment->post->user_id) {
+                        $notification->information = auth()->user()->username.' mentioned you in a comment in your post';
+
+                    } elseif ($comment->parent_id !== null && $comment->user_id !== $mentionedUser->user_id && $mentionedUser->user_id === $comment->post->user_id) {
+                        if ($comment->replier_id === $mentionedUser->user_id) {
+                            $notification->information = auth()->user()->username.' mentioned you in a comment when replying to you in your post';
+                        } else {
+                            $notification->information = auth()->user()->username.' mentioned you in a comment when replying to '.$comment->replier->username.' in your post';
+                        }
+                    }
+
+                    $notification->save();
+                }
+            }
+
+            return response()->json(['message' => 'Comment created successfully', 'comment' => $comment]);
+
+        }
+        // Check if the comment is a reply and the replier is not the post owner, and it has no mentioned user
+        if ($comment->parent_id !== null && empty($matches[1])) {
             //create notification for reply
             $notification = new Notification();
             $notification->receiver_id = $comment->replier_id;
             $notification->sender_id = auth()->user()->user_id;
-            $notification->information = auth()->user()->username.' replied to your comment';
+
             $notification->status = 'Unread';
             $notification->created_at = now();
+            if ($comment->replier_id !== $comment->post->user_id) {
+                $notification->information = auth()->user()->username.' replied to your comment in '.$comment->post->user->username.' post';
+            } else {
+                $notification->information = auth()->user()->username.' replied to your comment in your post';
+            }
 
             $notification->save();
-        } elseif ($comment->parent_id === null && $comment->user_id !== $comment->post->user_id) {
-            //create notification for comment
+
+            return response()->json(['message' => 'Comment created successfully', 'comment' => $comment]);
+        } elseif ($comment->parent_id === null && $comment->user_id !== $comment->post->user_id && empty($matches[1])) {
+            //create notification for comment when auth user is not the post owner, and the comment is not a reply
             $notification = new Notification();
             $notification->receiver_id = $comment->post->user_id;
             $notification->sender_id = auth()->user()->user_id;
@@ -76,9 +126,10 @@ class CommentController extends Controller
             $notification->created_at = now();
 
             $notification->save();
+
+            return response()->json(['message' => 'Comment created successfully', 'comment' => $comment]);
         }
 
-        return response()->json(['message' => 'Comment created successfully', 'comment' => $comment]);
     }
 
     /**

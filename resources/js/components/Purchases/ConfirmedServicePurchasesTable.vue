@@ -1,7 +1,5 @@
 <script setup>
-// get user data from store
-import { useAuthStore } from '@/plugins/store/AuthStore'; // Adjust the path based on your project structure
-const store = useAuthStore();
+import UserProfileDialog from '../Profile/UserProfileDialog.vue';
 const props = defineProps({
   confirmedPurchasesOrders: {
     type: Object,
@@ -11,20 +9,20 @@ const props = defineProps({
 
 const clickedService = ref({})
 const openConfirmedDialog = ref(false)
+const isContactDialog = ref(false)
+const clickedContactUser = ref({})
 
+// View the order details
 const viewOrder = (service) => {
   openConfirmedDialog.value = true;
   clickedService.value = service;
 }
 
-const openWhatsApp = (clickedUser) => {
-
-const message = `Hello! I am ${store.user.username} from UNIMAS Web App. I would like to discuss the order here. Thank you.`;
-const apilink = `https://web.whatsapp.com/send?phone=+60${clickedUser.phone_number}&text=${encodeURIComponent(message)}`;
-
-// Open the WhatsApp web link
-window.open(apilink, '_blank');
-};
+// Open the contact dialog
+const openContactDialog = (user) => {
+  clickedContactUser.value = user;
+  isContactDialog.value = true;
+}
 
 </script>
 
@@ -258,7 +256,7 @@ window.open(apilink, '_blank');
           
       <VCardText class="pt-5 mt-4">
         <VRow>
-          <VCol cols="12" md="3">
+          <VCol cols="12" md="4">
             <VBtn
               color="secondary"
               @click="openConfirmedDialog = false"
@@ -267,12 +265,12 @@ window.open(apilink, '_blank');
               Close
             </VBtn>
           </VCol>
-          <VCol cols="12" md="3" />
-          <VCol cols="12" md="3" />
-          <VCol cols="12" md="3">
+          <VCol cols="12" md="4" />
+          <VCol cols="12" md="4">
             <VBtn color="success" 
-              v-if="clickedService.status == 'Approved'"
-              @click="openWhatsApp(clickedService.service.user)"
+              v-if="clickedService.status=='Approved'"
+              @click="openContactDialog(clickedService.service.user)"
+              
             >
               <VIcon icon="ri-whatsapp-line" class="mr-1"/>
               <VTooltip
@@ -280,7 +278,7 @@ window.open(apilink, '_blank');
                 activator="parent"
                 transition="scroll-x-transition"
               >
-                Contact Provider
+                Contact Buyer
               </VTooltip>
               Contact
             </VBtn>
@@ -290,6 +288,16 @@ window.open(apilink, '_blank');
         
       </VCardText>
     </VCard>
+  </VDialog>
+
+  <VDialog
+    v-model="isContactDialog"
+    scrollable
+    max-width="500"
+  >
+    <UserProfileDialog
+      :clickedUser="clickedContactUser"
+    />
   </VDialog>
 </template>
 

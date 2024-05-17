@@ -1,6 +1,8 @@
 <script setup>
-import axios from 'axios'
-import { defineProps } from 'vue'
+import Chat from '@/pages/chat.vue';
+import { useAuthStore } from '@/plugins/store/AuthStore'; // Adjust the path based on your project structure
+import axios from 'axios';
+import { defineProps } from 'vue';
 
 const props = defineProps({
   clickedUser: {
@@ -10,6 +12,7 @@ const props = defineProps({
 
 })
 
+const store = useAuthStore();
 const emit = defineEmits(['update:clickedUser'])
 const numberOfItems = ref(0)
 const numberOfServices = ref(0)
@@ -22,6 +25,8 @@ const isFollowSuccessAlert = ref(false)
 const isFollowErrorAlert = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
+const dialogChat = ref(false)
+const newChatUser = ref({})
 // Get user details
 const getUserDetails = async () => {
   try {
@@ -76,6 +81,20 @@ const unFollowUser = () => {
       isFollowErrorAlert.value = true;
       console.log(error);
     });
+};
+
+const openChatDialog = (user) => {
+  newChatUser.value = user;
+  dialogChat.value = true;
+};
+
+const openWhatsApp = (clickedUser) => {
+
+  const message = `Hello! I am ${store.user.username} from UNIMAS Web App. I would like to discuss the order here. Thank you.`;
+  const apilink = `https://web.whatsapp.com/send?phone=+60${clickedUser.phone_number}&text=${encodeURIComponent(message)}`;
+
+  // Open the WhatsApp web link
+  window.open(apilink, '_blank');
 };
 
 getUserDetails()
@@ -145,6 +164,30 @@ getUserDetails()
       <VCol cols="12" md="2" />
 
       </VRow>
+
+      <VRow>
+          <VBtn
+            color="primary"
+            class="mt-3 mb-3"
+            @click="openChatDialog (clickedUser)"
+            style=" margin-inline:120px 40px"
+
+          >
+            <VIcon icon="ri-chat-3-line" class="mr-2" />
+            Chat
+          </VBtn>
+
+          <VBtn
+            color="warning"
+            class="mt-3"
+            @click="openWhatsApp(clickedUser)"
+          >
+            <VIcon icon="ri-whatsapp-line" class="mr-2" />
+            Whatsapp
+          </VBtn>
+
+      </VRow>
+      <VDivider class="mt-3" />
       <VRow class="mb-3">
       <VCol cols="12" md="4">
   
@@ -171,6 +214,9 @@ getUserDetails()
             <VIcon icon="ri-user-fill" size="14" class="mr-2"></VIcon>Followers
           </VCardSubtitle>
       </VCol>
+
+      
+      
       
     </VRow>
   </VCard>
@@ -240,6 +286,14 @@ getUserDetails()
         </VBtn>
       </VCardActions>
     </VCard>
+  </VDialog>
+
+
+  <VDialog
+    v-model="dialogChat"
+    width="600"
+  >
+    <Chat :newChatUser="newChatUser" />
   </VDialog>
 
   <!--Alerts-->

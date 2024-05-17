@@ -143,7 +143,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::controller(CalendarController::class)->prefix('calendar')->group(function () {
-        Route::get('/upcoming-meetups', 'upComingMeetups');
+        Route::get('/upcoming-meetup-seller', 'upComingMeetupSeller');
+        Route::get('/upcoming-meetup-buyer', 'upComingMeetupBuyer');
     });
 
 });

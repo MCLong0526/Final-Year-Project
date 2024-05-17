@@ -69,7 +69,7 @@ class CalendarController extends Controller
         //
     }
 
-    public function upComingMeetups()
+    public function upComingMeetupSeller()
     {
         //get from service_user, and item_user, get all the upcoming meetups, get for the item_user first
         //then get for the service_user
@@ -100,6 +100,49 @@ class CalendarController extends Controller
             ->whereIn('service_id', $serviceIds)
             ->where('status', 'Approved')
 
+            ->get();
+
+        // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
+        foreach ($allServiceOrders as $order) {
+            $order->user = User::find($order->customer_id);
+            $order->service = Service::find($order->service_id);
+
+            // Get the pictures for the item
+            $order->service->pictures = ServicePicture::where('service_id', $order->service_id)->get();
+        }
+
+        return $this->success(data: [
+            'item_orders' => $allItemOrders,
+            'service_orders' => $allServiceOrders,
+        ]);
+    }
+
+    public function upComingMeetupBuyer()
+    {
+        //get from service_user, and item_user, get all the upcoming meetups, get for the item_user first
+        //then get for the service_user
+        // Get the authenticated user's ID
+        $userId = Auth::id();
+
+        // Get all orders for the authenticated user
+        $allItemOrders = DB::table('item_user')
+            ->where('buyer_id', $userId)
+            ->where('status', 'Approved')
+            ->get();
+
+        // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
+        foreach ($allItemOrders as $order) {
+            $order->user = User::find($order->buyer_id);
+            $order->item = Item::find($order->item_id);
+
+            // Get the pictures for the item
+            $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
+        }
+
+        // Get all orders for the authenticated user
+        $allServiceOrders = DB::table('service_user')
+            ->where('customer_id', $userId)
+            ->where('status', 'Approved')
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures

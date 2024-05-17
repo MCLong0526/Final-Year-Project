@@ -17,6 +17,7 @@ const openItemDetails = ref(false);
 const openServiceDetails = ref(false);  
 const clickedItem = ref({});
 const clickedService = ref({});
+const eventSwitch = ref(false);
 
 // calendar options
 const calendarOptions = ref({
@@ -125,8 +126,8 @@ const openEventDialog = (event) => {
 
 
 // get the upcoming meetups from the backend
-const getUpComingMeetup = () => {
-  axios.get('/api/calendar/upcoming-meetups')
+const getUpComingMeetupSeller = () => {
+  axios.get('/api/calendar/upcoming-meetup-seller')
     .then(response => {
       const twoEvents = response.data.data;
       allEvents.value = twoEvents;
@@ -164,6 +165,54 @@ const getUpComingMeetup = () => {
       });
 
       calendarEvents.value = events;
+      filterEvents();
+
+    })
+    .catch(error => {
+      console.log(error);
+    });
+};
+
+const getUpComingMeetupBuyer = () => {
+  axios.get('/api/calendar/upcoming-meetup-buyer')
+    .then(response => {
+      const twoEvents = response.data.data;
+      allEvents.value = twoEvents;
+      const events = [];
+
+      twoEvents.item_orders.forEach(item => {
+        events.push({
+          title: item.item.name,
+          start: item.meet_dateTime.replace(" ", "T"),
+          end: item.meet_dateTime.replace(" ", "T"),
+          color: '#68b5e8',
+          
+          event_id: item.id,
+          type: 'item', // Set the type to 'item' for item orders
+        });
+      });
+
+      twoEvents.service_orders.forEach(service => {
+        const dateTimeParts = service.service_dateTime.split(" ");
+        const startDate = dateTimeParts[0];
+        const startTime = dateTimeParts[1].split("-")[0];
+        const endTime = dateTimeParts[1].split("-")[1];
+
+        const start = startDate + "T" + startTime + ":00";
+        const end = startDate + "T" + endTime + ":00";
+
+        events.push({
+          title: service.service.name,
+          start: start,
+          end: end,
+          color: '#7ee879',
+          event_id: service.id,
+          type: 'service', // Set the type to 'service' for service orders
+        });
+      });
+
+      calendarEvents.value = events;
+      
 
     })
     .catch(error => {
@@ -180,6 +229,28 @@ const eventCheckbox = ref([
 
 // select all checkbox by default
 const selectedCheckbox = ref(eventCheckbox.value.map(item => item.title));
+
+function filterEvents() {
+  if (selectedCheckbox.value.includes('View All')) {
+    forFilter.value = calendarEvents.value;
+    if (selectedCheckbox.value.includes('Selling Item') && selectedCheckbox.value.includes('Provide Service')) {
+      forFilter.value = calendarEvents.value;
+    } else if (selectedCheckbox.value.includes('Selling Item')) {
+      forFilter.value = calendarEvents.value.filter(event => event.type === 'item');
+    } else if (selectedCheckbox.value.includes('Provide Service')) {
+      forFilter.value = calendarEvents.value.filter(event => event.type === 'service');
+    }
+  } else if (selectedCheckbox.value.includes('Selling Item') && selectedCheckbox.value.includes('Provide Service')) {
+    forFilter.value = [];
+  }
+
+  // Update the calendarOptions
+  calendarOptions.value = {
+    ...calendarOptions.value,
+    events: forFilter.value,
+  };
+
+}
 
 // watch for changes in selectedCheckbox and filter the events accordingly, default is select all checkbox, so all events will be displayed, 
 // if user unselect the checkbox, the events will be filtered accordingly
@@ -210,8 +281,27 @@ watch(calendarEvents, () => {
   calendarOptions.value.events = calendarEvents.value;
 });
 
+watch(eventSwitch, (newVal) => {
+  if (newVal) {
+    calendarEvents.value = [];
+    selectedCheckbox.value = ['View All', 'Selling Item', 'Provide Service'];
+
+    //don assign the value to the calendarEvents, because the calendarEvents is watched, and it will update the calendarOptions
+    getUpComingMeetupSeller();
+
+    filterEvents();
+
+  } else {
+    calendarEvents.value = [];
+    selectedCheckbox.value = ['View All', 'Selling Item', 'Provide Service'];
+    getUpComingMeetupBuyer();
+
+    filterEvents();
+  }
+});
+
 // get the upcoming meetups
-getUpComingMeetup();
+getUpComingMeetupBuyer();
 
 </script>
 
@@ -223,14 +313,36 @@ getUpComingMeetup();
         <VCol cols="12" md="3" class="border-right">
           <VRow>
             <VCardTitle class="text-overline mt-4 ml-4 mr-4 mb-2" style="font-size: 20px !important;"><b>Meetup (Upcoming)</b></VCardTitle>
-            <VCardSubtitle class="text-overline ml-4 mr-4 mb-4" style="font-size: 15px !important;"><b>Date and Time</b></VCardSubtitle>
+            <VCardSubtitle class="text-overline ml-4 mr-4 mb-4" style="font-size: 13px !important;"><b>Date and Time for {{ eventSwitch ? 'Sales' : 'Purchases' }}</b></VCardSubtitle>
+          </VRow>
+          <VDivider class="mt-4 mb-4" />
+          <VRow>
+            <VCol cols="12">
+              <VCardText>
+                <span class="text-overline" style="font-size: 15px !important;">Event Type:</span>
+                <br>
+                <VRadioGroup v-model="eventSwitch">
+                <VRadio
+                  label="Purchases"
+                  color="warning"
+                  :value="false"
+                />
+                <VRadio
+                  label="Sales"
+                  color="error"
+                  :value="true"
+                />
+              </VRadioGroup>
+                  
+            </VCardText>
+            </VCol>
           </VRow>
           <VDivider class="mt-4 mb-4" />
           <VRow>
             <VCol cols="12">
               <VCardText>
                 <span class="text-overline" style="font-size: 15px !important;">Filter by:</span>
-              </VCardText>
+             
 
               <VCheckbox
                 v-for="item in eventCheckbox"
@@ -239,9 +351,9 @@ getUpComingMeetup();
                 :label="item.title"
                 :color="item.color.toLowerCase()"
                 :value="item.title"
-                class="ml-4"
+                class="mt-2"
               />
-
+            </VCardText>
             </VCol>
           </VRow>
           
