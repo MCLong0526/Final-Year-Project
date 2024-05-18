@@ -22,6 +22,8 @@ class Item extends Model
         'type',
         'price',
         'quantity',
+        'availability',
+        'status_info',
     ];
 
     public function user()

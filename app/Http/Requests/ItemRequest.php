@@ -30,6 +30,7 @@ class ItemRequest extends FormRequest
                 'price' => 'required|numeric',
                 'quantity' => 'required|integer',
                 'images' => 'required|array',
+                'availability' => 'required|string|in:Available,Sold,Unavailable',
 
             ];
         }
@@ -43,6 +44,7 @@ class ItemRequest extends FormRequest
             'price' => 'required|numeric',
             'quantity' => 'required|integer',
             'images' => 'required|array',
+            'availability' => 'required|string|in:Available,Sold,Unavailable',
         ];
     }
 }

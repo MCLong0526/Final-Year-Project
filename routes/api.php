@@ -60,6 +60,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/get-all-items', 'index');
         Route::get('/get-auth-items', 'getAuthItems');
         Route::put('/update/{item_id}', 'update');
+        Route::put('/update-status/{item_id}', 'updateStatus');
+        Route::put('/update-statusinfo/{item_id}', 'updateStatusInfo');
         Route::post('/store', 'store');
         Route::post('/save-item-pictures/{item_id}', 'saveItemPictures');
         Route::delete('/delete/{item_id}', 'destroy');
@@ -74,6 +76,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/confirmed-order/{item_user_id}', 'confirmedOrder');
         Route::put('/cancel-pending-order/{item_user_id}', 'cancelPendingOrder');
         Route::get('/count-auth-purchases', 'countAuthPurchases');
+        Route::get('/get-order-persons/{item_id}', 'getOrderPersons');
     });
     Route::controller(OrderServiceController::class)->prefix('order-services')->group(function () {
 
@@ -96,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/store', 'store');
         Route::get('/', 'index');
         Route::get('/get-auth-posts', 'getAuthPosts');
+        Route::get('/get-post-by-id/{post_id}', 'getPostById');
         Route::put('/update/{post_id}', 'update');
         Route::post('/like/{post_id}', 'likePost');
         Route::post('/unlike/{post_id}', 'unlikePost');

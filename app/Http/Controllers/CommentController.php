@@ -67,6 +67,8 @@ class CommentController extends Controller
                     $notification = new Notification();
                     $notification->receiver_id = $mentionedUser->user_id;
                     $notification->sender_id = auth()->user()->user_id;
+                    $notification->type = 'post';
+                    $notification->related_id = $comment->post_id;
                     $notification->status = 'Unread';
                     $notification->created_at = now();
 
@@ -104,7 +106,8 @@ class CommentController extends Controller
             $notification = new Notification();
             $notification->receiver_id = $comment->replier_id;
             $notification->sender_id = auth()->user()->user_id;
-
+            $notification->type = 'post';
+            $notification->related_id = $comment->post_id;
             $notification->status = 'Unread';
             $notification->created_at = now();
             if ($comment->replier_id !== $comment->post->user_id) {
@@ -122,6 +125,8 @@ class CommentController extends Controller
             $notification->receiver_id = $comment->post->user_id;
             $notification->sender_id = auth()->user()->user_id;
             $notification->information = auth()->user()->username.' commented on your post';
+            $notification->type = 'post';
+            $notification->related_id = $comment->post_id;
             $notification->status = 'Unread';
             $notification->created_at = now();
 

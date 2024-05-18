@@ -31,6 +31,8 @@ class ItemController extends Controller
             ->when(request()->filled('sort_price'), function ($query) {
                 $query->orderBy('price', request('sort_price'));
             })
+            //get the availability item
+            ->where('availability', 'available')
             ->latest()
             ->paginate($itemPerPage);
 
@@ -160,5 +162,22 @@ class ItemController extends Controller
         });
 
         return $this->success(message: 'Pictures saved successfully');
+    }
+
+    public function updateStatus(Request $request, string $id)
+    {
+        $item = Item::findOrFail($id);
+        $item->update($request->only('availability'));
+
+        return $this->success(message: 'Item status updated successfully');
+    }
+
+    public function updateStatusInfo(Request $request, string $id)
+    {
+        $item = Item::findOrFail($id);
+        // Update the item status_info column
+        $item->update($request->only('status_info'));
+
+        return $this->success(message: 'Item status info updated successfully');
     }
 }

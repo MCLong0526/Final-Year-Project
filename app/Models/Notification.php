@@ -11,7 +11,7 @@ class Notification extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['sender_id', 'receiver_id', 'information', 'status', 'updated_at'];
+    protected $fillable = ['sender_id', 'receiver_id', 'information', 'status', 'updated_at', 'type', 'related_id'];
 
     public function sender()
     {

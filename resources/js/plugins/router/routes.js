@@ -34,9 +34,11 @@ export const routes = [
         meta: { requiresAuth: true },
       },
       {
-        path: 'life-moment-post',
+        path: 'life-moment-post/:relatedId?',
+        name: 'life-moment-post',
         component: () => import('@/pages/life-moment-post.vue'),
         meta: { requiresAuth: true },
+        props: true
       },
       {
         path: 'user-profile',

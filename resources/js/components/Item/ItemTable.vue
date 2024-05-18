@@ -26,6 +26,7 @@ const props = defineProps({
   },
 });
 
+const defineEmits = defineEmits(['update:items']);
 const deleteDialog = ref(false);
 const clickedItem = ref({});
 const editItemDialog = ref(false);
@@ -34,6 +35,14 @@ const isDeleteAlert = ref(false);
 const isEditAlert = ref(false);
 const hasErrorAlert = ref(false);
 const errorMessages = ref('');
+const soldDialog = ref(false);
+const openSoldAtWhereDialog = ref(false);
+const isSuccessAlertSold = ref(false);
+const isSuccessAlertAvailable = ref(false);
+
+const columnRadio = ref('');
+const changeSoldItem = ref({});
+
 
 const openDeleteDialog = (item) => {
   deleteDialog.value = true;
@@ -83,7 +92,6 @@ const deleteItem = () => {
 
 //edit item
 const editItem = () => {
-  console.log(clickedItem.value.pictures);
   axios.put(`/api/items/update/${clickedItem.value.item_id}`, {
     name: clickedItem.value.name,
     description: clickedItem.value.description,
@@ -92,6 +100,7 @@ const editItem = () => {
     price: clickedItem.value.price,
     quantity: clickedItem.value.quantity,
     images: clickedItem.value.pictures,
+    availability: clickedItem.value.availability,
   
   })
     .then((response) => {
@@ -164,9 +173,6 @@ const handleFiles = (files) => {
 };
 
 
-
-
-
 const fileInput = ref(null);
 
 const openFileInput = () => {
@@ -197,6 +203,72 @@ const removeImage = (index) => {
 };
 
 
+//availability change
+const availableButton = (item_id) => {
+  axios.put(`/api/items/update-status/${item_id}`, {
+    availability: 'Available',
+  })
+    .then((response) => {
+      console.log(response.data);
+      isSuccessAlertAvailable.value = true;
+      props.itemsLoad();
+    }).catch((error) => {
+      console.log(error);
+    });
+};
+
+const updateAvailability = (item_id) => {
+  axios.put(`/api/items/update-status/${item_id}`, {
+    availability: 'Sold',
+  })
+    .then((response) => {
+      console.log(response.data);
+      isSuccessAlertSold.value = true;
+
+      props.itemsLoad();
+
+    }).catch((error) => {
+      console.log(error);
+    });
+};
+
+const updateStatusInfo = (item_id) => {
+  let status_info = '';
+  if (columnRadio.value === 'radio-1') {
+    status_info = 'Sold at this platform';
+  } else if (columnRadio.value === 'radio-2') {
+    status_info = 'Sold at other platform';
+  } else if (columnRadio.value === 'radio-3') {
+    status_info = 'Not sold yet';
+  } else if (columnRadio.value === 'radio-4') {
+    status_info = 'Select not to answer';
+  }
+  axios.put(`/api/items/update-statusinfo/${item_id}`, {
+    status_info: status_info,
+  })
+    .then((response) => {
+      console.log(response.data);
+      props.itemsLoad();
+    }).catch((error) => {
+      console.log(error);
+    });
+};
+
+
+
+const openSoldDialog = (item) => {
+  changeSoldItem.value = item;
+  soldDialog.value = true;
+};
+
+const markAsSold = () => {
+  updateAvailability(changeSoldItem.value.item_id);
+  updateStatusInfo(changeSoldItem.value.item_id);
+  openSoldAtWhereDialog.value = false;
+  soldDialog.value = false;
+};
+
+
 
 //validations
 const priceValidator = (value) => {
@@ -222,16 +294,13 @@ const priceValidator = (value) => {
   <VTable
     height="250"
     fixed-header
+    v-if="items.length > 0"
   >
     <thead>
       <tr>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-shopping-bag-4-line" />
           Product
-        </th>
-        <th class="text-uppercase text-center">
-          <VIcon icon="ri-thumb-up-line" />
-          Condition
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-price-tag-3-line" />
@@ -244,6 +313,14 @@ const priceValidator = (value) => {
         <th class="text-uppercase text-center">
           <VIcon icon="ri-money-dollar-circle-line" />
           Price
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-hand-heart-line" />
+          Availability
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-settings-3-line" />
+          Mark as Sold
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-settings-3-line" />
@@ -285,9 +362,6 @@ const priceValidator = (value) => {
       </td>
 
         <td class="text-center">
-          {{ item.condition }}
-        </td>
-        <td class="text-center">
           {{ item.type }}
         </td>
         <td class="text-center">
@@ -302,9 +376,63 @@ const priceValidator = (value) => {
           RM {{ item.price }}
         </td>
         <td class="text-center">
+          <VChip v-if="item.availability=='Available'" prepend-icon="ri-checkbox-circle-line" color="success">
+            {{ item.availability }}
+          </VChip>
+          <VChip prepend-icon="ri-close-circle-line" v-else color="error">
+            {{ item.availability }}
+          </VChip>
+          
+        </td>
+        <td class="text-center">
+          <VBtn
+            v-if="item.availability=='Available'"
+            color="success"
+            style="margin-inline: 15px 3px"
+            size="small"
+            @click="openSoldDialog(item)"
+        
+          >
+
+            <VIcon
+              icon="ri-checkbox-circle-line"
+            />
+            <VTooltip
+                open-delay="500"
+                location="top"
+                activator="parent"
+                transition="scroll-y-transition"
+              >
+                <span>Make as Sold</span>
+              </VTooltip>
+          </VBtn>
+          <VBtn
+            v-else
+            color="error"
+            style="margin-inline: 15px 3px"
+            size="small"
+            @click="availableButton(item.item_id)"
+          >
+            <VIcon
+              icon="ri-close-circle-line"
+            />
+            <VTooltip
+                open-delay="500"
+                location="top"
+                activator="parent"
+                transition="scroll-y-transition"
+              >
+                <span>Make as Available</span>
+              </VTooltip>
+          </VBtn>
+          
+        </td>
+        <td class="text-center">
+
+          
           <VBtn
             color="info"
-            style="margin-inline: 15px 3px"
+            style="margin-inline: 8px 3px"
             size="small"
             @click="openEditDialog(item)"
           >
@@ -338,6 +466,53 @@ const priceValidator = (value) => {
                 <span>Delete</span>
               </VTooltip>
           </VBtn>
+        </td>
+      </tr>
+    </tbody>
+  </VTable>
+
+  <VTable
+    height="140"
+    fixed-header
+    v-else
+  >
+    <thead>
+      <tr>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-shopping-bag-4-line" />
+          Product
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-thumb-up-line" />
+          Condition
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-price-tag-3-line" />
+          Type
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-survey-line" />
+          Quantity
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-money-dollar-circle-line" />
+          Price
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-hand-heart-line" />
+          Availability
+        </th>
+        <th class="text-uppercase text-center">
+          <VIcon icon="ri-settings-3-line" />
+          Action
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td class="text-center" colspan="7">
+          No items found.
         </td>
       </tr>
     </tbody>
@@ -386,7 +561,7 @@ const priceValidator = (value) => {
     v-model="editItemDialog"
     max-width="800"
     scrollable
-    max-height="800"
+    max-height="900"
   >
     <!-- Dialog Content -->
     <VCard title="Edit Selling Item">
@@ -654,6 +829,106 @@ const priceValidator = (value) => {
     </VCard>
   </VDialog>
 
+
+  <!--Sold Dialog-->
+  <VDialog
+    v-model="soldDialog"
+    persistent
+    class="v-dialog-sm"
+  >
+  
+      <!-- Dialog Content -->
+      <VCard title="Mark as Sold">
+  
+        <VCardText>
+          <VAlert
+            color="success"
+            icon="ri-checkbox-circle-line"
+            variant="tonal"
+          >
+            Are you sure you want to mark this item as sold?
+          </VAlert>
+        </VCardText>
+  
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="secondary"
+            @click="soldDialog = false"
+          >
+            Cancel
+          </VBtn>
+          <VBtn
+            color="success"
+            @click="openSoldAtWhereDialog = true"
+          >
+            Mark as Sold
+          </VBtn>
+        </VCardActions>
+      </VCard>
+  </VDialog>
+
+  <!--Sold At Where Dialog-->
+  <VDialog
+    v-model="openSoldAtWhereDialog"
+    persistent
+    class="v-dialog-sm"
+  >
+  
+      <!-- Dialog Content -->
+      <VCard title="Have you sold this item?">
+  
+        <VCardText>
+          <VAlert
+            color="success"
+            icon="ri-checkbox-circle-line"
+            variant="tonal"
+            class="mb-3"
+          >
+            Please select where you have sold this item.
+          </VAlert>
+          <VRadioGroup v-model="columnRadio">
+            <VRadio
+              label="Yes, sold at this platform"
+              value="radio-1"
+            />
+            <VRadio
+              label="Yes, sold at other platform"
+              value="radio-2"
+            />
+            <VRadio
+              label="No, not sold yet"
+              value="radio-3"
+            />
+            <VRadio
+              label="Select not to answer"
+              value="radio-4"
+            />
+          </VRadioGroup>
+        </VCardText>
+  
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="secondary"
+            @click="openSoldAtWhereDialog = false"
+
+          >
+            Back
+          </VBtn>
+          <VBtn
+            color="success"
+            @click="markAsSold"
+          >
+            Submit
+          </VBtn>
+
+        </VCardActions>
+      </VCard>
+  </VDialog>
+
+
+
   <!--Snackbar-->
   <VSnackbar
       v-model="isDeleteAlert"
@@ -672,6 +947,23 @@ const priceValidator = (value) => {
       color="success"
     >
       Item <strong>{{ clickedItem.name }}</strong> information has been successfully edited.
+    </VSnackbar>
+
+    <VSnackbar
+      v-model="isSuccessAlertSold"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+      Item <strong>{{ clickedItem.name }}</strong> has been successfully marked as sold.
+    </VSnackbar>
+    <VSnackbar
+      v-model="isSuccessAlertAvailable"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+      Item <strong>{{ clickedItem.name }}</strong> has been successfully marked as available.
     </VSnackbar>
 
     <VSnackbar

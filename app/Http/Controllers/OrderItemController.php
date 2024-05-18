@@ -318,4 +318,30 @@ class OrderItemController extends Controller
             'noCancelledOrders' => $cancelledOrders,
         ], message: 'Orders counted successfully');
     }
+
+    public function getOrderPersons(string $id)
+    {
+        // Get the order details, and get only approved orders
+        $order = DB::table('item_user')->where('item_id', $id)->where('status', 'Approved')->get();
+
+        if ($order->isEmpty()) {
+            return $this->success(data: [], message: 'No buyers details found');
+        } else {
+            //get all the buyer_id from the order
+            $buyerIds = $order->pluck('buyer_id');
+
+            // get the buyer details
+            $buyers = User::whereIn('user_id', $buyerIds)->get();
+
+            //get only the username and user_id
+            $buyers = $buyers->map(function ($buyer) {
+                return [
+                    'username' => $buyer->username,
+                    'user_id' => $buyer->user_id,
+                ];
+            });
+
+            return $this->success(data: $buyers, message: 'Buyers details retrieved successfully');
+        }
+    }
 }

@@ -8,6 +8,15 @@ import { debounce } from 'lodash';
 import { watch } from 'vue';
 import { VForm } from 'vuetify/components/VForm';
 
+//define props relatedId from other component
+const props = defineProps({
+  relatedId: {
+    type: String,
+    default: '',
+  },
+});
+
+const emit = defineEmits(['update:relatedId']);
 const store = useAuthStore();
 const user = ref([]);
 const addPostDialog = ref(false)
@@ -18,13 +27,13 @@ const showLoading = ref(false)
 const content = ref('')
 const picture = ref([])
 const posts = ref([])
-const postsToShow = ref([])
 const searchPost = ref('')
 const typePosts = ref('all')
 const isPostSuccessAlert = ref(false)
 const followingUsers = ref([])
 const followingUsersInPost = ref([])
 const isTagging = ref(false)
+const taggedPost = ref({})
 
 // get the authenticated user
 const getUser = async () => {
@@ -107,15 +116,17 @@ const storePost = () => {
 
 // get posts
 const getPosts = debounce(() => {
-  postsToShow.value = [];
   let requestURL = '/api/posts?page='+page+'&per_page='+postPerPage.value;
   if (searchPost.value && searchPost.value.length > 2 && searchPost.value !== null) {
     requestURL += '&search=' + searchPost.value;
   }
+  if(props.relatedId){
+    posts.value = [];
+    requestURL += '&related_id=' + props.relatedId;
+  }
   axios.get(requestURL)
     .then(({data}) => {
-      const newPosts = data.data.data;
-
+      const newPosts = data.data.unrelated_posts.data;
       // Change the user's avatar of the new posts by adding the http://127.0.0.1:8000/storage/
       newPosts.forEach(post => {
         if (post.user.avatar) {
@@ -151,16 +162,59 @@ const getPosts = debounce(() => {
         post.is_liked = post.likes.some(like => like.user_id === store.user.user_id);
       });
 
-      //compare the new posts with the existing posts, if the post_id is the same, then replace the existing post with the new post
-      posts.value.forEach((post, index) => {
-        newPosts.forEach(newPost => {
-          if (post.post_id === newPost.post_id) {
-            posts.value[index] = newPost;
+      posts.value = [...posts.value, ...newPosts];
+
+      // make sure there is no duplicate post, check by post_id, if got duplicate, remove the first one, keep the last one (for update the following status)
+      posts.value = posts.value.reverse().filter((post, index, self) =>
+        index === self.findIndex((t) => t.post_id === post.post_id)
+      ).reverse();
+
+      console.log(posts.value);
+
+      // Check if the related post is not empty
+      if(props.relatedId){
+        taggedPost.value = data.data.related_posts.data;
+
+        // Change also the new posts' picture by adding the http://
+        taggedPost.value.forEach(post => {
+          if (post.picture) {
+            post.picture = 'http://127.0.0.1:8000/storage/' + post.picture;
           }
         });
-      });
 
-      posts.value = [...posts.value, ...newPosts]; // Append new posts to the existing posts
+        //make sure the post.user.avatar is in full path
+        taggedPost.value.forEach(post => {
+          if (post.user.avatar) {
+            post.user.avatar = 'http://127.0.0.1:8000/storage/' + post.user.avatar;
+          }
+        });
+
+        // Change the created_at date format to a readable format, and remove seconds
+        taggedPost.value.forEach(post => {
+          post.created_at = new Date(post.created_at).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+          });
+        });
+        // Count the number of likes of each tagged post
+        taggedPost.value.forEach(post => {
+          post.likes_count = post.likes.length;
+        });
+
+        // Check if the new post is liked by the user
+        taggedPost.value.forEach(post => {
+          post.is_liked = post.likes.some(like => like.user_id === store.user.user_id);
+        });
+
+        posts.value = [];
+        posts.value = taggedPost.value;
+
+        console.log(taggedPost.value);
+
+      }
       
     })
     .catch(error => {
@@ -169,20 +223,32 @@ const getPosts = debounce(() => {
 }, 500);
 
 
+// Check if the user has reached the bottom of the page
 const isBottomOfPage = () => {
-  return window.innerHeight + window.scrollY >= document.body.scrollHeight;
+  return window.innerHeight + window.scrollY <= document.body.offsetHeight;
 };
 
+
+let fetching = false; // Flag to track fetching process
+
 const fetchPostsIfAtBottom = () => {
-  
-  if (isBottomOfPage() && posts.value.length % postPerPage.value === 0) {
-    showLoading.value = true;
+  if (!fetching && isBottomOfPage()&& posts.value.length % postPerPage.value === 0) {
+    fetching = true; // Set fetching flag to true
+    page += 1; // Increment page number
+    
+    showLoading.value = true; // Show loading indicator
     setTimeout(() => {
-      page++;
-      getPosts();
-      showLoading.value = false;
+      getPosts(); // Fetch posts
+      fetching = false; // Reset fetching flag once posts are fetched
+      showLoading.value = false; // Hide loading indicator
     }, 1500);
   }
+};
+
+
+const getNextPosts = () => {
+  page += 1;
+  getPosts();
 };
 
 const getFollowingUsers = () => {
@@ -230,6 +296,17 @@ const tagUser = (user) => {
 };
 
 //end tagging users in post
+
+watch(() => props.relatedId, (value) => {
+  if (value) {
+    getPosts();
+  }else{
+    posts.value = [];
+    getPosts();
+  }
+});
+
+
 
 getPosts();
 getUser();
@@ -389,7 +466,28 @@ getFollowingUsers();
       
       <div class="box-style">
         <VRow class="mt-2 ml-2 mr-2">
-          <VCol cols="12" md="7" />
+          <VCol cols="12" md="7" >
+            <VBtn 
+              v-if="props.relatedId"
+              :to="{ name: 'life-moment-post', params: { relatedId: '' } }"
+              color="primary"
+              class="mb-2"
+            >
+              <VIcon icon="ri-chat-3-line" size="20" />
+              <span class="ml-2">All Posts</span>
+            </VBtn>
+            <VBtn 
+            v-else
+             @click="getNextPosts()"
+              color="primary"
+              class="mb-2"
+            >
+              <VIcon icon="ri-arrow-down-s-line" size="20" />
+              <span class="ml-2">Load More</span>
+            </VBtn>
+
+            
+          </VCol>
           <VCol cols="12" md="5" >
             <VTextField
               v-model="searchPost"
@@ -400,6 +498,7 @@ getFollowingUsers();
             />
           </VCol>
         </VRow>
+        
         <!--All Posts-->
           <ShowPosts 
             :posts="posts"
@@ -542,6 +641,8 @@ getFollowingUsers();
       </VCardText>
     </VCard>
   </VDialog>
+
+
    <!-- Approved Successfully Order -->
    <VSnackbar
       v-model="isPostSuccessAlert"

@@ -69,6 +69,7 @@ const readAll = (user_id) => {
     })
 }
 
+
 getNotification()
 
 </script>
@@ -147,7 +148,7 @@ getNotification()
               v-for="(notification, index) of notifications"
               :key="notification.id"
             >
-              <VListItem :class="{ 'unread-notification': notification.status === 'Unread' }">
+              <VListItem :to="{ name: 'life-moment-post', params: { relatedId: notification.related_id } }" :class="{ 'unread-notification': notification.status === 'Unread' }">
                 <template #prepend>
                   <VAvatar :image="notification.sender.avatar" />
                 </template>
@@ -174,6 +175,7 @@ getNotification()
                       Mark as read
                     </VTooltip>
                   </VBtn>
+                  
                 </template>
               </VListItem>
               <VDivider v-if="index !== notifications.length - 1" />

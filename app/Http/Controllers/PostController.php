@@ -19,29 +19,49 @@ class PostController extends Controller
     public function index()
     {
         $postPerPage = request()->input('per_page', 10);
-        $search = request('search');
+        $search = request()->input('search');
+        // Change the related_id to integer
+        $relatedId = (int) request()->input('related_id');
 
-        $posts = Post::with('user', 'comments', 'likes')
-            ->when($search, function ($query) use ($search) {
+        // Query for posts filtered by related_id
+        $relatedPosts = [];
+        if ($relatedId) {
+            $relatedPosts = Post::with('user', 'comments', 'likes')
+                ->where('post_id', $relatedId)
+                ->withCount('comments', 'likes')
+                ->orderBy('created_at', 'desc')
+                ->paginate($postPerPage);
+
+            // Add a column to check whether the auth user is following the user who created the post or not
+            $relatedPosts->map(function ($post) {
+                $isFollowing = auth()->user()->following->contains($post->user_id);
+                $post->is_following = $isFollowing;
+
+                return $post;
+            });
+        }
+
+        // Query for posts not filtered by related_id
+        $unrelatedPosts = Post::with('user', 'comments', 'likes')
+            ->when(! $relatedId && $search, function ($query) use ($search) {
                 $query->where('content', 'like', '%'.$search.'%');
             })
             ->withCount('comments', 'likes')
             ->orderBy('created_at', 'desc')
             ->paginate($postPerPage);
-        //add a column to check whether the auth user is following the user who created the post or not, if following, return true, else return false
-        $posts->map(function ($post) {
-            $id = $post->user_id;
-            //check whether the auth()->id, and post user_id is in user_followers table or not
-            if (auth()->user()->following->contains($id)) {
-                $post->is_following = true;
-            } else {
-                $post->is_following = false;
-            }
+
+        // Add a column to check whether the auth user is following the user who created the post or not
+        $unrelatedPosts->map(function ($post) {
+            $isFollowing = auth()->user()->following->contains($post->user_id);
+            $post->is_following = $isFollowing;
 
             return $post;
         });
 
-        return $this->success(data: $posts, message: 'Posts retrieved successfully');
+        return $this->success([
+            'related_posts' => $relatedPosts,
+            'unrelated_posts' => $unrelatedPosts,
+        ], 'Posts retrieved successfully');
     }
 
     /**
@@ -246,5 +266,15 @@ class PostController extends Controller
             ->get();
 
         return $this->success(data: $posts, message: 'Posts retrieved successfully');
+    }
+
+    public function getPostById($postId)
+    {
+        $post = Post::with('user', 'comments', 'likes')
+            ->where('post_id', $postId)
+            ->withCount('comments', 'likes')
+            ->first();
+
+        return $this->success(data: $post, message: 'Post retrieved successfully');
     }
 }

@@ -235,7 +235,7 @@ const priceValidator = (value) => {
           Price Per Hour
         </th>
         <th class="text-uppercase text-center">
-          <VIcon icon="ri-time-line" />
+          <VIcon icon="ri-hand-heart-line" />
           Availability
         </th>
         <th class="text-uppercase text-center">
@@ -284,13 +284,11 @@ const priceValidator = (value) => {
           RM {{ service.price_per_hour }}/hour
         </td>
         <td class="text-center">
-          <VChip v-if="service.availability=='Available'" color="success">
+          <VChip v-if="service.availability=='Available'" prepend-icon="ri-checkbox-circle-line" color="success">
             {{ service.availability }}
-            <VIcon icon="ri-checkbox-circle-line" style="margin-inline-start: 5px;" />
           </VChip>
-          <VChip v-else color="error">
+          <VChip prepend-icon="ri-close-circle-line" v-else color="error">
             {{ service.availability }}
-            <VIcon icon="ri-close-circle-line" style="margin-inline-start: 5px;" />
           </VChip>
           
         </td>
@@ -357,7 +355,7 @@ const priceValidator = (value) => {
           Price Per Hour
         </th>
         <th class="text-uppercase text-center">
-          <VIcon icon="ri-time-line" />
+          <VIcon icon="ri-hand-heart-line" />
           Availability
         </th>
         <th class="text-uppercase text-center">
@@ -624,11 +622,11 @@ const priceValidator = (value) => {
                 rounded="pill"
                 @click="unavailableButton(clickedService.availability)"
               >
-                Available
+                
                 <VIcon
                   icon="ri-checkbox-circle-line"
-                  style="margin-inline-start: 5px;"
-                />
+                  style="margin-inline-end: 5px;"
+                />Available
                 <VTooltip
                   activator="parent"
                   open-delay="500"
@@ -644,11 +642,11 @@ const priceValidator = (value) => {
                 rounded="pill"
                 @click="clickedService.availability = 'Available'"
               >
-                Unavailable
+                
                 <VIcon
                   icon="ri-close-circle-line"
-                  style="margin-inline-start: 5px;"
-                />
+                  style="margin-inline-end: 5px;"
+                />Unavailable
                 <VTooltip
                   activator="parent"
                   open-delay="500"

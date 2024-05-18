@@ -152,6 +152,8 @@ const itemsLoad = debounce(() => {
         picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
       });
     });
+
+    console.log(items.value);
   }).catch((error) => {
     console.log(error);
   });
@@ -168,6 +170,7 @@ const createItem = () => {
     type: type.value,
     quantity: quantity.value,
     images: images.value,
+    availability: 'Available',
   }).then((response) => {
     name.value = '';
     description.value = '';

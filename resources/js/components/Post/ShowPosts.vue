@@ -30,7 +30,9 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:posts']);
+const emit = defineEmits('update:posts');
+
+
 const addCommentDialog = ref(false)
 const selectedComment = ref(null); // Initialize as null or with a default value
 
@@ -81,6 +83,7 @@ const getUser = async () => {
 //like and unlike a post
 const toggleLike = (post) => {
   const postId = post.post_id;
+  console.log('ere');
 
   if (post.is_liked) {
     // Post is already liked, so unlike it
@@ -135,6 +138,19 @@ const addComment = async(post) =>{
       }));
 
       comments.value = combinedComments;
+
+      // make sure all the comments user avatar is displayed using the full path
+      comments.value.forEach(comment => {
+        if (comment.user.avatar) {
+          comment.user.avatar = `${window.location.origin}/storage/${comment.user.avatar}`;
+        }
+        comment.replies.forEach(reply => {
+          if (reply.user.avatar) {
+            reply.user.avatar = `${window.location.origin}/storage/${reply.user.avatar}`;
+          }
+        });
+      });
+
     })
     .catch(error => {
       console.log(error);
@@ -384,6 +400,7 @@ const tagUser = (user) => {
 };
 
 //end tagging users in post
+
 
 
 getUser();
