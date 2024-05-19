@@ -61,6 +61,13 @@ class OrderItemController extends Controller
             'remark_buyer' => $request->remark_buyer,
         ]);
 
+        // Retrieve the ID of the newly inserted row in the item_user pivot table
+        $orderId = DB::table('item_user')
+            ->where('item_id', $request->item_id)
+            ->where('buyer_id', $userId)
+            ->where('order_dateTime', $orderDateTime)
+            ->value('id');
+
         // set the notification to the seller
         $sellerId = Item::findOrFail($request->item_id)->user_id;
         $itemName = Item::findOrFail($request->item_id)->name;
@@ -69,6 +76,8 @@ class OrderItemController extends Controller
             'sender_id' => $userId,
             'receiver_id' => $sellerId,
             'information' => $information,
+            'type' => 'OrderItem',
+            'related_id' => $orderId,
             'status' => 'Unread',
             'created_at' => $orderDateTime,
         ]);
@@ -211,6 +220,8 @@ class OrderItemController extends Controller
             'sender_id' => Auth::id(),
             'receiver_id' => $buyerId,
             'information' => $information,
+            'type' => 'ConfirmedOrderItem',
+            'related_id' => $id,
             'status' => 'Unread',
             'created_at' => now(),
 
@@ -285,6 +296,8 @@ class OrderItemController extends Controller
                 'receiver_id' => $sellerId,
                 'information' => $information,
                 'status' => 'Unread',
+                'type' => 'CancelOrderItem',
+                'related_id' => $id,
                 'created_at' => now(),
             ]);
 

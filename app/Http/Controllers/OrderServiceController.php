@@ -61,6 +61,13 @@ class OrderServiceController extends Controller
             'remark_customer' => $request->remark_customer,
         ]);
 
+        // Retrieve the ID of the newly inserted row in the service_user pivot table
+        $orderId = DB::table('service_user')
+            ->where('service_id', $request->service_id)
+            ->where('customer_id', $userId)
+            ->where('order_dateTime', $orderDateTime)
+            ->value('id');
+
         // set the notification to the seller
         $providerId = Service::findOrFail($request->service_id)->user_id;
         $serviceName = Service::findOrFail($request->service_id)->name;
@@ -69,6 +76,8 @@ class OrderServiceController extends Controller
             'sender_id' => $userId,
             'receiver_id' => $providerId,
             'information' => $information,
+            'type' => 'OrderService',
+            'related_id' => $orderId,
             'status' => 'Unread',
             'created_at' => $orderDateTime,
         ]);
@@ -210,6 +219,8 @@ class OrderServiceController extends Controller
             'sender_id' => Auth::id(),
             'receiver_id' => $customerId,
             'information' => $information,
+            'type' => 'ConfirmedOrderService',
+            'related_id' => $id,
             'status' => 'Unread',
             'created_at' => now(),
 
@@ -266,6 +277,8 @@ class OrderServiceController extends Controller
                 'sender_id' => Auth::id(),
                 'receiver_id' => $sellerId,
                 'information' => $information,
+                'type' => 'CancelOrderService',
+                'related_id' => $id,
                 'status' => 'Unread',
                 'created_at' => now(),
             ]);

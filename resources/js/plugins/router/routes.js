@@ -58,26 +58,31 @@ export const routes = [
       },
       {
         path:'sales-items',
+        name:'sales-items',
         component: () => import('@/pages/sales-items.vue'),
         meta: { requiresAuth: true },
       },
       {
         path:'sales-services',
+        name:'sales-services',
         component: () => import('@/pages/sales-services.vue'),
         meta: { requiresAuth: true },
       },
       {
         path:'purchase-items',
+        name:'purchase-items',
         component: () => import('@/pages/purchase-items.vue'),
         meta: { requiresAuth: true },
       },
       {
         path:'purchase-services',
+        name:'purchase-services',
         component: () => import('@/pages/purchase-services.vue'),
         meta: { requiresAuth: true },
       },
       {
         path:'calendar',
+        name:'calendar',
         component: () => import('@/pages/calendar.vue'),
         meta: { requiresAuth: true },
       }

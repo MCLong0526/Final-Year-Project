@@ -236,6 +236,8 @@ class PostController extends Controller
             $notification->sender_id = $userId;
             $notification->information = Auth::user()->username.' liked your post';
             $notification->status = 'Unread';
+            $notification->type = 'post';
+            $notification->related_id = $postId;
             $notification->created_at = now();
 
             $notification->save();

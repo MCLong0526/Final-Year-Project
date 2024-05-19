@@ -69,6 +69,25 @@ const readAll = (user_id) => {
     })
 }
 
+const getRoute = (notification) => {
+  if (notification.type === 'post') {
+    return { name: 'life-moment-post', params: { relatedId: notification.related_id } };
+  }
+  if (notification.type === 'OrderItem') {
+    return { name: 'sales-items' };
+  }
+  if (notification.type === 'ConfirmedOrderItem' || notification.type === 'CancelOrderItem') {
+    return { name: 'purchase-items' };
+  }
+  if(notification.type === 'OrderService'){
+    return { name: 'sales-services' };
+  }
+  if(notification.type === 'ConfirmedOrderService' || notification.type === 'CancelOrderService'){
+    return { name: 'purchase-services' };
+  }
+  // Default route or null if no conditions are met
+  return null;
+}
 
 getNotification()
 
@@ -148,7 +167,7 @@ getNotification()
               v-for="(notification, index) of notifications"
               :key="notification.id"
             >
-              <VListItem :to="{ name: 'life-moment-post', params: { relatedId: notification.related_id } }" :class="{ 'unread-notification': notification.status === 'Unread' }">
+              <VListItem :to="getRoute(notification)" :class="{ 'unread-notification': notification.status === 'Unread' }">
                 <template #prepend>
                   <VAvatar :image="notification.sender.avatar" />
                 </template>

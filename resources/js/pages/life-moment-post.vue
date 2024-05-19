@@ -34,6 +34,7 @@ const followingUsers = ref([])
 const followingUsersInPost = ref([])
 const isTagging = ref(false)
 const taggedPost = ref({})
+const isTaggedPostDialog = ref(false)
 
 // get the authenticated user
 const getUser = async () => {
@@ -209,9 +210,8 @@ const getPosts = debounce(() => {
           post.is_liked = post.likes.some(like => like.user_id === store.user.user_id);
         });
 
-        posts.value = [];
-        posts.value = taggedPost.value;
-
+        isTaggedPostDialog.value = true;
+      
         console.log(taggedPost.value);
 
       }
@@ -297,15 +297,19 @@ const tagUser = (user) => {
 
 //end tagging users in post
 
+// watch when props.relatedId is change, then get the posts
 watch(() => props.relatedId, (value) => {
   if (value) {
-    getPosts();
-  }else{
-    posts.value = [];
     getPosts();
   }
 });
 
+// watch when props.relatedId is change to '', then refresh the page
+watch(() => props.relatedId, (value) => {
+  if (value === '') {
+    window.location.reload();
+  }
+});
 
 
 getPosts();
@@ -467,17 +471,8 @@ getFollowingUsers();
       <div class="box-style">
         <VRow class="mt-2 ml-2 mr-2">
           <VCol cols="12" md="7" >
+            
             <VBtn 
-              v-if="props.relatedId"
-              :to="{ name: 'life-moment-post', params: { relatedId: '' } }"
-              color="primary"
-              class="mb-2"
-            >
-              <VIcon icon="ri-chat-3-line" size="20" />
-              <span class="ml-2">All Posts</span>
-            </VBtn>
-            <VBtn 
-            v-else
              @click="getNextPosts()"
               color="primary"
               class="mb-2"
@@ -641,6 +636,50 @@ getFollowingUsers();
       </VCardText>
     </VCard>
   </VDialog>
+
+  <!-- Tagged Posts Popup -->
+  <VDialog
+  v-model="isTaggedPostDialog"
+  max-width="600"
+  persistent
+>
+  <VCard>
+    <VCardTitle class="text-overline text-center mt-2" style="font-size: 20px !important;">
+      Related Post
+    </VCardTitle>
+    <VCardText style=" block-size: 260px; overflow-y: auto;">
+      <ShowPosts 
+        :posts="taggedPost"
+        :getPosts="getPosts"
+        :getFollowingUsers="getFollowingUsers"
+        :showLoading="showLoading"
+        :typePosts="typePosts"
+        :followingUsers="followingUsers"
+      />
+    </VCardText>
+    <VCardActions>
+      <VSpacer />
+      <VBtn 
+        :to="{ name: 'life-moment-post', params: { relatedId: '' } }"
+        color="primary"
+        @click="isTaggedPostDialog = false"
+        class="ma-2"
+      >
+      <VTooltip
+          open-delay="500"
+          location="top"
+          activator="parent"
+          transition="scroll-y-transition"
+        >
+          <span>Click here to view all posts!</span>
+        </VTooltip>
+        <VIcon icon="ri-chat-3-line" size="20" />
+        <span class="ml-2">All Posts</span>
+      </VBtn>
+    </VCardActions>
+  </VCard>
+</VDialog>
+
 
 
    <!-- Approved Successfully Order -->

@@ -80,6 +80,9 @@ const confirmedOrder = () => {
 
   if(decision.value === 'reject') {
     meet_dateTime.value = null;
+    if(remark_seller.value === ''){
+      return
+    }
   }else{
     if(new Date(meet_dateTime.value) < new Date()) {
     meet_dateTime.value = null;
