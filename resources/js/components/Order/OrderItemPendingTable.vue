@@ -76,19 +76,18 @@ const convertDateTime = (dateTime) => {
 //confirm order
 const confirmedOrder = () => {
 
-  meet_dateTime.value = convertDateTime(meet_dateTime.value);
-
-  if(decision.value === 'reject') {
-    meet_dateTime.value = null;
-    if(remark_seller.value === ''){
-      return
+  if(decision.value === 'approve')
+  { 
+    if(meet_dateTime.value === null) {
+      return;
     }
+    meet_dateTime.value = convertDateTime(meet_dateTime.value);
   }else{
-    if(new Date(meet_dateTime.value) < new Date()) {
-    meet_dateTime.value = null;
-    return;
+    if(!remark_seller.value) {
+      return;
+    }
   }
-  }
+
   const data = {
     meet_dateTime: meet_dateTime.value,
     remark_seller: remark_seller.value
@@ -387,7 +386,6 @@ const confirmedOrder = () => {
                 label="Select Date"
                 prepend-inner-icon="ri-calendar-2-line"
                 scrollable  
-                :rules="[requiredValidator]"
                 chips
 
               />

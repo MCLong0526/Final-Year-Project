@@ -150,4 +150,12 @@ class ServiceController extends Controller
 
         return $this->success(message: 'Pictures saved successfully');
     }
+
+    public function updateStatus(Request $request, string $id)
+    {
+        $service = Service::findOrFail($id);
+        $service->update(['availability' => $request->availability]);
+
+        return $this->success(message: 'Service status updated successfully');
+    }
 }

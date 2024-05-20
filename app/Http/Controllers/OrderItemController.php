@@ -8,6 +8,7 @@ use App\Models\ItemPicture;
 use App\Models\User;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -159,6 +160,8 @@ class OrderItemController extends Controller
             ->orWhere('status', 'Rejected')
             //  order by meet_dateTime in ascending order but ignore the null values
             ->orderByRaw('meet_dateTime IS NULL, meet_dateTime ASC')
+
+            // make sure the first one is upcoming order according to the meet_dateTime according to the current date
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
@@ -184,6 +187,22 @@ class OrderItemController extends Controller
                 return $order->status === request('status');
             });
         }
+        // Sort the filtered results to ensure upcoming orders are first
+        $allOrders = $allOrders->sortBy(function ($order) {
+            $now = now();
+            if (is_null($order->meet_dateTime)) {
+                return PHP_INT_MAX; // Ensure null values are at the end
+            }
+
+            $meetDateTime = Carbon::parse($order->meet_dateTime);
+            if ($meetDateTime->isFuture()) {
+                return $meetDateTime->timestamp; // Future dates come first
+            } elseif ($meetDateTime->isToday()) {
+                return 0; // Today's dates should be prioritized
+            } else {
+                return PHP_INT_MAX + $meetDateTime->timestamp; // Past dates should come after future and today's dates
+            }
+        })->values();
 
         return $this->success(data: $allOrders, message: 'All selling orders retrieved successfully');
     }

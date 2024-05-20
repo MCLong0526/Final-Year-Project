@@ -121,7 +121,7 @@ getConfirmedOrders()
         <span >Order of Selling Items</span>
       </template>
       <p>
-        This page shows the list of orders that are pending and confirmed. You can view the details of each order by clicking the "View" button.
+        This page displays pending and confirmed orders. Click ‘View’ to see order details. <strong>Grey color Order ID indicates orders past their meet_dateTime.</strong>
       </p>
     </VAlert>
   <VTabs

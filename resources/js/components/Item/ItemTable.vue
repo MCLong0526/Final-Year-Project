@@ -307,6 +307,10 @@ const priceValidator = (value) => {
           Type
         </th>
         <th class="text-uppercase text-center">
+          <VIcon icon="ri-thumb-up-line" />
+          Condition
+        </th>
+        <th class="text-uppercase text-center">
           <VIcon icon="ri-survey-line" />
           Quantity
         </th>
@@ -317,10 +321,6 @@ const priceValidator = (value) => {
         <th class="text-uppercase text-center">
           <VIcon icon="ri-hand-heart-line" />
           Availability
-        </th>
-        <th class="text-uppercase text-center">
-          <VIcon icon="ri-settings-3-line" />
-          Mark as Sold
         </th>
         <th class="text-uppercase text-center">
           <VIcon icon="ri-settings-3-line" />
@@ -365,6 +365,9 @@ const priceValidator = (value) => {
           {{ item.type }}
         </td>
         <td class="text-center">
+          {{ item.condition }}
+        </td>
+        <td class="text-center">
           <VChip v-if="item.quantity > 0" color="primary" size="small">
             {{ item.quantity }}
           </VChip>
@@ -376,57 +379,51 @@ const priceValidator = (value) => {
           RM {{ item.price }}
         </td>
         <td class="text-center">
-          <VChip v-if="item.availability=='Available'" prepend-icon="ri-checkbox-circle-line" color="success">
-            {{ item.availability }}
-          </VChip>
-          <VChip prepend-icon="ri-close-circle-line" v-else color="error">
-            {{ item.availability }}
-          </VChip>
-          
-        </td>
-        <td class="text-center">
-          <VBtn
-            v-if="item.availability=='Available'"
-            color="success"
-            style="margin-inline: 15px 3px"
-            size="small"
+          <VBtn 
+            v-if="item.availability=='Available'" 
+            variant="text" 
+            color="success" 
+            rounded="pill"
             @click="openSoldDialog(item)"
-        
           >
-
+            <VTooltip
+              open-delay="500"
+              location="top"
+              activator="parent"
+              transition="scroll-y-transition"
+            >
+              <span>Click to mark as Sold</span>
+            </VTooltip>
             <VIcon
+              start
               icon="ri-checkbox-circle-line"
             />
-            <VTooltip
-                open-delay="500"
-                location="top"
-                activator="parent"
-                transition="scroll-y-transition"
-              >
-                <span>Make as Sold</span>
-              </VTooltip>
+            {{ item.availability }}
           </VBtn>
-          <VBtn
-            v-else
-            color="error"
-            style="margin-inline: 15px 3px"
-            size="small"
+          <VBtn 
+            v-else 
+            color="error" 
+            variant="text" 
+            rounded="pill"
             @click="availableButton(item.item_id)"
           >
+            <VTooltip
+              open-delay="500"
+              location="top"
+              activator="parent"
+              transition="scroll-y-transition"
+            >
+              <span>Click to mark as Available</span>
+            </VTooltip>
             <VIcon
+              start
               icon="ri-close-circle-line"
             />
-            <VTooltip
-                open-delay="500"
-                location="top"
-                activator="parent"
-                transition="scroll-y-transition"
-              >
-                <span>Make as Available</span>
-              </VTooltip>
+            {{ item.availability }}
           </VBtn>
           
         </td>
+       
         <td class="text-center">
 
           

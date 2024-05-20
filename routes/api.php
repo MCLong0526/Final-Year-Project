@@ -137,6 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/store', 'store');
         Route::delete('/delete/{service_id}', 'destroy');
         Route::put('/update/{service_id}', 'update');
+        Route::put('/update-status/{service_id}', 'updateStatus');
 
     });
 

@@ -30,14 +30,29 @@ const isEditAlert = ref(false);
 const errorMessages = ref('');
 const hasErrorAlert = ref(false);
 const unavailableDialog = ref(false);
-
+ 
 //availability change
-const unavailableButton = (availability) => {
-  if (availability === 'Available') {
-    unavailableDialog.value = true;
-    clickedService.value.availability = 'Unavailable';
-  } 
+const availabilityButton = (service) => {
+  const serviceId = service.service_id;
   
+  if (service.availability === 'Available') {
+    unavailableDialog.value = true;
+    axios.put(`/api/services/update-status/${serviceId}`, {
+      availability: 'Unavailable',
+    }).then(() => {
+      props.serviceLoad();
+    }).catch((error) => {
+      console.log(error);
+    });
+  } else if (service.availability === 'Unavailable') {
+    axios.put(`/api/services/update-status/${serviceId}`, {
+      availability: 'Available',
+    }).then(() => {
+      props.serviceLoad();
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
 };
 
 //edit item
@@ -284,12 +299,46 @@ const priceValidator = (value) => {
           RM {{ service.price_per_hour }}/hour
         </td>
         <td class="text-center">
-          <VChip v-if="service.availability=='Available'" prepend-icon="ri-checkbox-circle-line" color="success">
-            {{ service.availability }}
-          </VChip>
-          <VChip prepend-icon="ri-close-circle-line" v-else color="error">
-            {{ service.availability }}
-          </VChip>
+          <VBtn
+              v-if="service.availability === 'Available'"
+              color="success"
+              variant="text"
+              rounded="pill"
+              @click="availabilityButton(service)"
+            >
+              
+              <VIcon
+                icon="ri-checkbox-circle-line"
+                style="margin-inline-end: 5px;"
+              />Available
+              <VTooltip
+                activator="parent"
+                open-delay="500"
+                location="end"
+              >
+                Click to make the service unavailable
+              </VTooltip>
+            </VBtn>
+            <VBtn
+              v-else
+              color="error"
+              variant="text"
+              rounded="pill"
+              @click="availabilityButton(service)"
+            >
+              
+              <VIcon
+                icon="ri-close-circle-line"
+                style="margin-inline-end: 5px;"
+              />Unavailable
+              <VTooltip
+                activator="parent"
+                open-delay="500"
+                location="end"
+              >
+                Click to make the service available
+              </VTooltip>
+            </VBtn>
           
         </td>
         <td class="text-center">
@@ -605,58 +654,6 @@ const priceValidator = (value) => {
                   </VCol>
                 </VRow>
               </VCol>
-
-              <!-- 👉 Availability -->
-           <VCol cols="12">
-            <VRow no-gutters>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <label for="status">Availability</label>
-              </VCol>
-              <VBtn
-                v-if="clickedService.availability === 'Available'"
-                color="success"
-                variant="tonal"
-                rounded="pill"
-                @click="unavailableButton(clickedService.availability)"
-              >
-                
-                <VIcon
-                  icon="ri-checkbox-circle-line"
-                  style="margin-inline-end: 5px;"
-                />Available
-                <VTooltip
-                  activator="parent"
-                  open-delay="500"
-                  location="end"
-                >
-                  Click to make the service unavailable
-                </VTooltip>
-              </VBtn>
-              <VBtn
-                v-else
-                color="error"
-                variant="tonal"
-                rounded="pill"
-                @click="clickedService.availability = 'Available'"
-              >
-                
-                <VIcon
-                  icon="ri-close-circle-line"
-                  style="margin-inline-end: 5px;"
-                />Unavailable
-                <VTooltip
-                  activator="parent"
-                  open-delay="500"
-                  location="end"
-                >
-                  Click to make the service available
-                </VTooltip>
-              </VBtn>
-            </VRow>
-          </VCol>
 
               <!-- 👉 submit and reset button -->
               <VCol

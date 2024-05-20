@@ -8,6 +8,7 @@ use App\Models\ServicePicture;
 use App\Models\User;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -183,6 +184,27 @@ class OrderServiceController extends Controller
                 return $order->status === request('status');
             });
         }
+
+        // Sort the filtered results to ensure upcoming orders are first, now the service_dateTime is in string format of '2024-05-21 07:00-09:00', so just sort the date only
+        $allOrders = $allOrders->sortBy(function ($order) {
+            $now = now();
+
+            if (is_null($order->service_dateTime)) {
+                return PHP_INT_MAX; // Ensure null values are at the end
+            }
+
+            // Extract the date part from the string
+            $datePart = explode(' ', $order->service_dateTime)[0];
+            $serviceDateTime = Carbon::parse($datePart);
+
+            if ($serviceDateTime->isFuture()) {
+                return $serviceDateTime->timestamp; // Future dates come first
+            } elseif ($serviceDateTime->isToday()) {
+                return 0; // Today's dates should be prioritized
+            } else {
+                return PHP_INT_MAX + $serviceDateTime->timestamp; // Past dates should come after future and today's dates
+            }
+        })->values();
 
         return $this->success(data: $allOrders, message: 'All services orders retrieved successfully');
     }

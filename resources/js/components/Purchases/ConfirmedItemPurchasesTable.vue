@@ -25,6 +25,19 @@ const openContactDialog = (user) => {
   isContactDialog.value = true;
 }
 
+// Check if the meet date time is over today
+const isMeetDateTimeOverToday = (meetDateTime) => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Clear time part
+
+  const parseDate = (dateTime) => {
+    return new Date(dateTime.split(' ')[0]); // Only parse the date part
+  };
+
+  const date = parseDate(meetDateTime);
+
+  return date < today;
+}
 
 
 </script>
@@ -68,7 +81,22 @@ const openContactDialog = (user) => {
 
     <tbody>
       <tr v-for="item in confirmedPurchasesOrders" :key="item.id">
-        <td class="text-center">#{{ item.id }}</td>
+        <td class="text-center">
+          <VChip 
+            v-if="isMeetDateTimeOverToday(item.meet_dateTime)"
+            color="secondary"
+
+          >
+            {{ item.id }}
+          </VChip>
+          <VChip 
+            v-else
+            color="primary"
+
+          >
+            {{ item.id }}
+          </VChip>
+          </td>
         <td>
           <div class="d-flex align-items-center">
             <VAvatar
@@ -330,4 +358,5 @@ const openContactDialog = (user) => {
 .detail-row span {
   flex-grow: 1; /* Allow growing to fill the remaining space */
 }
+
 </style>

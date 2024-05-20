@@ -24,10 +24,23 @@ const openContactDialog = (user) => {
   isContactDialog.value = true;
 }
 
+// Check if service_dateTime is over today
+const isServiceDateTimeOverToday = (serviceDateTime) => {
+  const now = new Date();
+  const serviceDate = new Date(serviceDateTime.split(' ')[0]);
+
+  // Not including today date
+  if (serviceDate.getFullYear() === now.getFullYear() &&
+      serviceDate.getMonth() === now.getMonth() &&
+      serviceDate.getDate() === now.getDate()) return false;
+
+  return serviceDate < now;
+}
+
 </script>
 
 <template>
-  <VTable v-if="confirmedPurchasesOrders.length>0" height="250" fixed-header>
+  <VTable v-if="confirmedPurchasesOrders.length>0" height="270" fixed-header>
     
     <thead>
 
@@ -64,8 +77,23 @@ const openContactDialog = (user) => {
     </thead>
 
     <tbody>
-      <tr v-for="service in confirmedPurchasesOrders" :key="service.id">
-        <td class="text-center">#{{ service.id }}</td>
+      <tr v-for="service in confirmedPurchasesOrders" :key="service.id" >
+        <td class="text-center">
+          <VChip 
+            v-if="isServiceDateTimeOverToday(service.service_dateTime) == true" 
+            color="secondary"
+
+          >
+            {{ service.id }}
+          </VChip>
+          <VChip 
+            v-else
+            color="primary"
+
+          >
+            {{ service.id }}
+          </VChip>
+        </td>
         <td>
           <div class="d-flex align-items-center">
             <VAvatar
@@ -336,4 +364,6 @@ const openContactDialog = (user) => {
 .detail-row span {
   flex-grow: 1; /* Allow growing to fill the remaining space */
 }
+
+
 </style>

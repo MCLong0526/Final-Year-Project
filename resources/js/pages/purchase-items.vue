@@ -56,6 +56,35 @@ const getPurchasesOrder = () => {
 
       })
 
+      // sort for the approvedPurchasesOrders, make sure the  Sort the filtered results to ensure upcoming orders are first, make sure the meet_dateTime that over today will be on bottom
+      approvedPurchasesOrders.value.sort((a, b) => {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Clear time part
+
+        const parseDate = (dateTime) => {
+          return new Date(dateTime.split(' ')[0]); // Only parse the date part
+        };
+
+        const dateA = parseDate(a.meet_dateTime);
+        const dateB = parseDate(b.meet_dateTime);
+
+        const isToday = (date) => {
+          return date.getFullYear() === today.getFullYear() &&
+                date.getMonth() === today.getMonth() &&
+                date.getDate() === today.getDate();
+        };
+
+        if (isToday(dateA) && !isToday(dateB)) return -1;
+        if (!isToday(dateA) && isToday(dateB)) return 1;
+        if (isToday(dateA) && isToday(dateB)) return 0;
+
+        if (dateA > now && dateB > now) return dateA - dateB;
+        if (dateA > now) return -1;
+        if (dateB > now) return 1;
+
+        return dateB - dateA;
+      });
+
 
     })
     .catch(error => {
@@ -144,7 +173,8 @@ getPurchasesOrder()
           <span >Order of Purchasing Items</span>
         </template>
         <p>
-          This page shows the list of orders that are pending and confirmed. You can view the details of each order by clicking the "View" button.
+          This page displays pending and confirmed orders. Click ‘View’ to see order details. <strong>Grey color Order ID indicates orders past their meet_dateTime.</strong>
+        
         </p>
       </VAlert>
     <VTabs

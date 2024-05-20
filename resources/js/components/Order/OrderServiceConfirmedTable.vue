@@ -33,7 +33,19 @@ const openContactDialog = (user) => {
   isContactDialog.value = true;
 }
 
+// Check if service_dateTime is over today
+const isServiceDateTimeOverToday = (serviceDateTime) => {
+  const now = new Date();
+  if (!serviceDateTime) return true;
+  const serviceDate = new Date(serviceDateTime.split(' ')[0]);
 
+  // Not including today date
+  if (serviceDate.getFullYear() === now.getFullYear() &&
+      serviceDate.getMonth() === now.getMonth() &&
+      serviceDate.getDate() === now.getDate()) return false;
+
+  return serviceDate < now;
+}
 
 
 </script>
@@ -76,7 +88,22 @@ const openContactDialog = (user) => {
 
     <tbody>
       <tr v-for="service in confirmedOrders" :key="service.id">
-        <td class="text-center">#{{ service.id }}</td>
+        <td class="text-center">
+          <VChip 
+            v-if="isServiceDateTimeOverToday(service.service_dateTime) == true" 
+            color="secondary"
+
+          >
+            {{ service.id }}
+          </VChip>
+          <VChip 
+            v-else
+            color="primary"
+
+          >
+            {{ service.id }}
+          </VChip>
+        </td>
         <td>
           <div class="d-flex align-items-center">
             <VAvatar
