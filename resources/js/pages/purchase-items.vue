@@ -173,7 +173,7 @@ getPurchasesOrder()
           <span >Order of Purchasing Items</span>
         </template>
         <p>
-          This page displays pending and confirmed orders. Click ‘View’ to see order details. <strong>Grey color Order ID indicates orders past their meet_dateTime.</strong>
+          This page displays pending and confirmed orders. Click ‘View’ to see order details. <strong>Grey color Order ID indicates orders past their meet_dateTime for Confirmed Orders.</strong>
         
         </p>
       </VAlert>

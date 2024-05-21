@@ -282,4 +282,39 @@ class UserController extends Controller
 
         return $this->success(data: $user, message: 'User details retrieved successfully');
     }
+
+    public function checkEmailExists(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $emailExists = User::where('email', $request->email)->exists();
+
+        return response()->json([
+            'exists' => $emailExists,
+        ]);
+    }
+
+    public function register(UserRequest $request)
+    {
+        // Set default avatar path
+        $defaultAvatarPath = 'images/avatars/avatar-1.png';
+
+        $data = $request->validated();
+
+        // Set default avatar path
+        $data['avatar'] = $defaultAvatarPath;
+
+        $user = User::create($data);
+
+        // attach role_id = 2 and 3 if the request isSeller is true
+        if ($request->isSeller) {
+            $user->roles()->attach(Role::whereIn('role_id', [2, 3])->get());
+        } else {
+            $user->roles()->attach(Role::where('role_id', 2)->first());
+        }
+
+        return $this->success(data: $user, message: 'User registered successfully');
+    }
 }

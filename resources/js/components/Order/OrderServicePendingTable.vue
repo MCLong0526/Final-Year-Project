@@ -151,7 +151,13 @@ const confirmedOrder = () => {
 
     <tbody>
       <tr v-for="service in pendingOrders" :key="service.id">
-        <td class="text-center">#{{ service.id }}</td>
+        <td class="text-center">
+          <VChip 
+            color="primary"
+          >
+            {{ service.id }}
+          </VChip>
+        </td>
         <td>
           <div class="d-flex align-items-center">
             <VAvatar

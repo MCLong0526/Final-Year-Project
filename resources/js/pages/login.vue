@@ -50,7 +50,7 @@ const navigateToForgotPassword = () => {
 // customize validator
 const emailValidator = (v) => {
   const regex = /^[0-9]{5}@siswa\.unimas\.my$/;
-  return regex.test(v) || 'Email format is invalid';
+  return regex.test(v) || 'Email format is invalid, please use your unimas email';
 };
 
 const isPasswordVisible = ref(false)
@@ -149,6 +149,17 @@ const isPasswordVisible = ref(false)
               >
                 Login
               </VBtn>
+  
+              <div class="text-center d-flex flex-wrap mt-3 mb-4" style="margin-inline-start: 50px">
+                New on our platform?
+                <a
+                  style="cursor: pointer;"
+                  class="ms-2 mb-1 text-primary"
+                  @click="router.push('/register')"
+                >
+                   Create an account
+                </a>
+              </div>
             </VCol>
           </VRow>
         </VForm>

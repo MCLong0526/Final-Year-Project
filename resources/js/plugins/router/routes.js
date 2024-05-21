@@ -26,8 +26,6 @@ export const routes = [
         component: () => import('@/pages/chat.vue'),
         props: true
       },
-      
-      
       {
         path: 'user-management',
         component: () => import('@/pages/user-management.vue'),
@@ -98,6 +96,7 @@ export const routes = [
       },
       {
         path: 'register',
+        name: 'register',
         component: () => import('@/pages/register.vue'),
       },
       {

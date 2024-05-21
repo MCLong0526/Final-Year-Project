@@ -409,7 +409,7 @@ getUser();
 <template>
   <!--All Posts-->
   <div class="mt-2">
-    <VList v-if="posts.length>0" scrollable height="342" style=" background-color: transparent; max-inline-size: 2000px; overflow-x: hidden;">
+    <VList v-if="posts.length>0" scrollable height="550" style=" background-color: transparent; max-inline-size: 2000px; overflow-x: hidden;">
       <VRow align="center" justify="center">
         <VCol v-for="post in posts" :key="post.post_id" cols="12">
           <VCard variant="outlined" class="mx-auto box-style" max-width="600" style="border-radius: 20px; background-color: #f8f9fa;">

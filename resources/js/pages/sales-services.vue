@@ -211,7 +211,7 @@ getPendingOrders()
           <span >Order of Services</span>
         </template>
         <p>
-          This page displays pending and confirmed orders. Click ‘View’ to see order details. <strong>Grey color Order ID indicates orders past their service_dateTime.</strong>
+          This page displays pending and confirmed orders. Click ‘View’ to see order details. <strong>Grey color Order ID indicates orders past their service_dateTime for Confirmed Orders.</strong>
         </p>
       </VAlert>
     <VTabs
