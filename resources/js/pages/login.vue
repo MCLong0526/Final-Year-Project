@@ -27,7 +27,14 @@ const login = async () => {
 
  if (authStore.isLoggedIn==true) {
     await authStore.getCurrentLoggedUser()
-    router.replace(route.query.to ? String(route.query.to) : '/dashboard')
+    //check the user role
+    if(authStore.user.roles.some(role => role.name === 'Admin')){
+      router.replace('/admin-dashboard')
+    }
+    else {
+      router.replace('/dashboard')
+    }
+    // router.replace(route.query.to ? String(route.query.to) : '/dashboard')
 
   }
   else {

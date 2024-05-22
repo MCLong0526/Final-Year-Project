@@ -13,7 +13,7 @@ export const routes = [
       {
         path:'admin-dashboard',
         component: () => import('@/pages/admin-dashboard.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true},
       },
       {
         path: 'chat',

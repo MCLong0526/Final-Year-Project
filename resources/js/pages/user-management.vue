@@ -1,5 +1,5 @@
 <script setup>
-import { confirmedValidator, passwordValidator, requiredValidator } from '@/@core/utils/validators';
+import { requiredValidator } from '@/@core/utils/validators';
 import TableUser from '@/components/User/UserTable.vue';
 import axios from 'axios';
 import { debounce } from 'lodash';
@@ -16,10 +16,8 @@ const username = ref('')
 const phone_number = ref('')
 const email = ref('')
 const password = ref('')
-const isPasswordVisible = ref(false)
-const confirmPassword = ref('')
-const isConfirmPasswordVisible = ref(false)
 const isAddAlert = ref(false)
+const loading = ref(false)
 const usernameForAlert = ref('')
 const rowPerPage = ref(5)
 const currentPage = ref(1)
@@ -72,8 +70,38 @@ const rolesLoad = () =>{
   })
 }
 
-const createUser = () =>{
-  usernameForAlert.value = username.value
+// generate random password for user
+const generatePassword = () => {
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const specialChars = '!@#$%^&*()-_=+[{]}|;:,<.>/?';
+  const numbers = '0123456789';
+
+  // Initialize the password with one character from each character type
+  let password = '';
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += specialChars[Math.floor(Math.random() * specialChars.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+
+  // Fill the remaining characters randomly
+  const allChars = uppercase + lowercase + specialChars + numbers;
+  for (let i = 0; i < 4; i++) {
+    const char = allChars[Math.floor(Math.random() * allChars.length)];
+    password += char;
+  }
+
+  // Shuffle the password to randomize the order of characters
+  password = password.split('').sort(() => Math.random() - 0.5).join('');
+
+  return password;
+};
+
+// createUser function
+const createUser = () => {
+  loading.value = true;
+  usernameForAlert.value = username.value;
+  password.value = generatePassword();
   
   axios.post('/api/users/store', {
     username: username.value,
@@ -81,23 +109,22 @@ const createUser = () =>{
     email: email.value,
     password: password.value,
     status: 'active',
-    
-  }).then(()=>{
+  }).then(() => {
     registerDialog.value = false;
     isAddAlert.value = true;
     username.value = '';
     phone_number.value = '';
     email.value = '';
-    password.value = '';
-    confirmPassword.value = '';
     usernameForAlert.value = '';
+    loading.value = false;
     usersLoad();
-  }).catch((error)=>{
+  }).catch((error) => {
+    loading.value = false;
     hasErrorAlert.value = true;
     errorMessages.value = error.response.data.message;
     console.log(error);
-  })
-}
+  });
+};
 
 // watch the changes of the rowPerPage and currentPage
 watch([rowPerPage, currentPage], ([newRowPerPage, newCurrentPage]) => {
@@ -189,7 +216,7 @@ rolesLoad()
       class="mt-5 mr-5 mb-4"
         v-model="searchValue"
         placeholder="Search"
-        label="Search username or email"
+        label="Search username/email/phone"
         clearable
         dense
       />
@@ -216,9 +243,9 @@ rolesLoad()
           dense
         />
       </VCol>
-      <VCol cols="12" md="7"/>
+      <VCol cols="12" md="6"/>
         
-      <VCol cols="12" md="3">
+      <VCol cols="12" md="4">
         <VPagination
           v-model="currentPage"
           variant="outlined"
@@ -236,9 +263,13 @@ rolesLoad()
     v-model="registerDialog"
     max-width="600"
   >
+  
     <!-- Dialog Content -->
-    <VCard title="Register New User">
-
+    <VCard :disabled="loading" title="Register New User">
+      <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50" style=" margin-block-start: 180px;margin-inline-start: 280px">
+      <VProgressCircular  :size="50" color="success" indeterminate  />
+    </div>
+      
       <VCardText>
         <VForm 
         ref="refForm" 
@@ -340,69 +371,6 @@ rolesLoad()
             </VRow>
           </VCol>
 
-         
-
-          <!-- 👉 Password -->
-          <VCol cols="12">
-            <VRow no-gutters>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <label for="passwordHorizontalIcons">Password</label>
-              </VCol>
-
-              <VCol
-                cols="12"
-                md="9"
-              >
-                  <VTextField
-                    v-model="password"
-                    prepend-inner-icon="ri-lock-line"
-
-                    autocomplete="on"
-                    :type="isPasswordVisible ? 'text' : 'password'"
-                    :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
-                    placeholder="············"
-                    :rules="[requiredValidator, passwordValidator]"
-                    hint="Your password must be 8-20 characters long."
-                    @click:append-inner="isPasswordVisible = !isPasswordVisible"
-                  />
-              </VCol>
-            </VRow>
-          </VCol>
-
-          <!-- 👉 Password -->
-          <VCol cols="12">
-            <VRow no-gutters>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <label for="passwordHorizontalIcons">Confirm Password</label>
-              </VCol>
-
-              <VCol
-                cols="12"
-                md="9"
-              >
-                <VTextField
-                  v-model="confirmPassword"
-                  prepend-inner-icon="ri-lock-fill"
-         
-                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
-                  placeholder="············"
-                  :append-inner-icon="confirmPassword ? 'ri-eye-off-line' : 'ri-eye-line'"
-                  :rules="[requiredValidator, passwordValidator, confirmedValidator(confirmPassword, password)]"
-                  autocomplete="on"
-                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
-                />
-              </VCol>
-            </VRow>
-          </VCol>
-
-          
-
           <!-- 👉 submit and reset button -->
           <VCol
             offset-md="3"
@@ -468,7 +436,12 @@ rolesLoad()
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
   margin-block-end: 15px
 }
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
 </style>
-
-
-

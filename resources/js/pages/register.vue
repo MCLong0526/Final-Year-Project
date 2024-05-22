@@ -80,7 +80,7 @@ const checkValidations = () => {
 
 
 const checkEmail = () => {
-  axios.get('/api/users/check-email-exists/', {
+  axios.get('/api/auth/check-email-exists/', {
     params: {
       email: email.value,
     },
@@ -123,7 +123,7 @@ const register = async () => {
     hasErrorAlert.value = true;
     return;
   }
-  await axios.post('/api/users/register/', {
+  await axios.post('/api/auth/register/', {
     username: username.value,
     email: email.value,
     phone_number: phoneNumber.value,

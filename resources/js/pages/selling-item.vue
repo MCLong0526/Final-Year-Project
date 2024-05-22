@@ -153,7 +153,6 @@ const itemsLoad = debounce(() => {
       });
     });
 
-    console.log(items.value);
   }).catch((error) => {
     console.log(error);
   });
@@ -184,7 +183,6 @@ const createItem = () => {
     itemsLoad();
     allItemLoad();
 
-    console.log(response);
   }).catch((error) => {
     errorMessages.value = error.response.data.message;
     hasErrorAlert.value = true;

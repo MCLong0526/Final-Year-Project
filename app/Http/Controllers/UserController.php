@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserProfileRequest;
 use App\Http\Requests\UserRequest;
+use App\Mail\NewAccountPasswordMail;
 use App\Models\Item;
 use App\Models\Role;
 use App\Models\Service;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
@@ -25,7 +27,8 @@ class UserController extends Controller
         $users = User::with('roles')
             ->when(request()->filled('search'), function ($query) {
                 $query->where('username', 'like', '%'.request('search').'%')
-                    ->orWhere('email', 'like', '%'.request('search').'%');
+                    ->orWhere('email', 'like', '%'.request('search').'%')
+                    ->orWhere('phone_number', 'like', '%'.request('search').'%');
             })
             //filter the users by role id
             ->when(request()->filled('role'), function ($query) {
@@ -60,14 +63,27 @@ class UserController extends Controller
         // Set default avatar path
         $defaultAvatarPath = 'images/avatars/avatar-1.png';
 
-        $data = $request->validated();
+        // Validate request data
+        $validatedData = $request->validated();
 
-        // Set default avatar path
-        $data['avatar'] = $defaultAvatarPath;
+        // Hash the password
+        $validatedData['password'] = bcrypt($validatedData['password']);
 
-        $user = User::create($data);
+        // Set default avatar path if not provided
+        $validatedData['avatar'] = $request->filled('avatar') ? $validatedData['avatar'] : $defaultAvatarPath;
 
-        // attach role_id = 2 to the user
+        // Create user
+        $user = User::create($validatedData);
+
+        // Send the new password to the user email
+        try {
+            Mail::to($user->email)->send(new NewAccountPasswordMail($request->password));
+        } catch (\Exception $e) {
+            // Log the error or handle it as needed
+            return response()->json(['error' => 'Failed to send email'], 500);
+        }
+
+        // Attach role_id = 2 to the user
         $user->roles()->attach(Role::where('role_id', 2)->first());
 
         return $this->success(data: $user, message: 'User created successfully');
@@ -281,40 +297,5 @@ class UserController extends Controller
         }
 
         return $this->success(data: $user, message: 'User details retrieved successfully');
-    }
-
-    public function checkEmailExists(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
-
-        $emailExists = User::where('email', $request->email)->exists();
-
-        return response()->json([
-            'exists' => $emailExists,
-        ]);
-    }
-
-    public function register(UserRequest $request)
-    {
-        // Set default avatar path
-        $defaultAvatarPath = 'images/avatars/avatar-1.png';
-
-        $data = $request->validated();
-
-        // Set default avatar path
-        $data['avatar'] = $defaultAvatarPath;
-
-        $user = User::create($data);
-
-        // attach role_id = 2 and 3 if the request isSeller is true
-        if ($request->isSeller) {
-            $user->roles()->attach(Role::whereIn('role_id', [2, 3])->get());
-        } else {
-            $user->roles()->attach(Role::where('role_id', 2)->first());
-        }
-
-        return $this->success(data: $user, message: 'User registered successfully');
     }
 }

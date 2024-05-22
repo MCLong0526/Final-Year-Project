@@ -39,6 +39,10 @@ const isSeller = computed(() => {
   return store.user.roles.some(role => role.name === 'Seller');
 });
 
+const isBuyer = computed(() => {
+  return store.user.roles.some(role => role.name === 'Buyer');
+});
+
 
 getPendingItemNotification()
 getPendingServiceNotification()
@@ -53,6 +57,7 @@ getPendingServiceNotification()
     }"
   />
   <VerticalNavLink
+    v-if="isAdmin === false"
     :item="{
       title: 'Dashboard',
       icon: 'ri-dashboard-line',

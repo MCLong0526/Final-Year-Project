@@ -170,8 +170,6 @@ const getPosts = debounce(() => {
         index === self.findIndex((t) => t.post_id === post.post_id)
       ).reverse();
 
-      console.log(posts.value);
-
       // Check if the related post is not empty
       if(props.relatedId){
         taggedPost.value = data.data.related_posts.data;
@@ -211,8 +209,6 @@ const getPosts = debounce(() => {
         });
 
         isTaggedPostDialog.value = true;
-      
-        console.log(taggedPost.value);
 
       }
       

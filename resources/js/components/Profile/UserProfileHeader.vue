@@ -13,11 +13,18 @@ import avatar11 from '/resources/images/avatars/avatar-26.jpg';
 import avatar12 from '/resources/images/avatars/avatar-27.jpg';
 import avatar13 from '/resources/images/avatars/avatar-28.jpg';
 
-
-
 import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
+import { watch } from 'vue';
 
+const props = defineProps({
+  updateToSeller:{
+    type: Boolean,
+    default: false,
+  }
+});
+
+const defineEmits = defineEmits(['updateToSeller']);
 const user = ref({});
 const items = ref([]); 
 const authUser = ref({});
@@ -252,6 +259,14 @@ const emailValidator = (v) => {
 
 const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be valid';
 
+
+watch(() => props.updateToSeller, (value) => {
+  if (value) {
+    getUser();
+  }
+});
+
+
 getUser();
 
 
@@ -296,7 +311,7 @@ getUser();
             :key="role.role_id"
             class="mx-1 mt-3"
             :color="getRoleColor(role.name)"
-            variant="outlined"
+          
 
           >
             {{ role.name }}
@@ -314,7 +329,11 @@ getUser();
      
         <VListItem v-for="item in items" :key="item.title">
           <VListItemTitle class="text-h6" style="display: inline-block; inline-size: 120px;"><strong>{{ item.title }}</strong></VListItemTitle>
-          <VListItemSubtitle class="text-h6" style="display: inline-block;">: {{ item.value }}</VListItemSubtitle>
+          <VListItemSubtitle v-if="item.title==='Status'" class="text-h6" style="display: inline-block;">: 
+              <VChip v-if="item.value==='Active'" size="small" color="success"><VIcon class="mr-1">ri-checkbox-circle-line</VIcon> {{ item.value }}</VChip>
+              <VChip v-else size="small" color="error"><VIcon class="mr-1">ri-close-circle-line</VIcon> {{ item.value }}</VChip>
+          </VListItemSubtitle>
+          <VListItemSubtitle v-else class="text-h6" style="display: inline-block;">: {{ item.value }}</VListItemSubtitle>
         </VListItem>
 
         
