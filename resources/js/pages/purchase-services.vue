@@ -14,6 +14,9 @@ const noCancelledOrders = ref(0);
 const allOrders = ref([]);
 
 const getPurchasesOrder = () => {
+  pendingPurchasesOrders.value = []
+  approvedPurchasesOrders.value = []
+  rejectedPurchasesOrders.value = []
   axios.get('/api/order-services/get-purchases-orders')
     .then(response => {
       allOrders.value = response.data.data
@@ -281,6 +284,7 @@ getPurchasesOrder()
         <div class="table-style">
           <ConfirmedPurchasesTable
             :confirmedPurchasesOrders="approvedPurchasesOrders"
+            :getPurchasesOrder="getPurchasesOrder"
           />
           
         </div>
@@ -292,6 +296,7 @@ getPurchasesOrder()
         <div class="table-style">
           <ConfirmedPurchasesTable
             :confirmedPurchasesOrders="rejectedPurchasesOrders"
+            :getPurchasesOrder="getPurchasesOrder"
           />
         </div>
       </VWindowItem>

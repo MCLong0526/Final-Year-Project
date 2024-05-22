@@ -1,6 +1,8 @@
 <script setup>
 import TableConfirmedOrders from "@/components/Order/OrderServiceConfirmedTable.vue";
 import TablePendingOrders from "@/components/Order/OrderServicePendingTable.vue";
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 import axios from "axios";
 import { debounce } from 'lodash';
 
@@ -9,6 +11,9 @@ const pendingOrders = ref([]);
 const confirmedOrders = ref([]);
 const search = ref('');
 const orderStatus = ref([]);
+const orderDateRange = ref(null);
+const serviceDateRange = ref(null);
+
 const orderStatusSelect = [
   { name: 'Approved', value: 'Approved' },
   { name: 'Rejected', value: 'Rejected' },
@@ -82,14 +87,34 @@ const getPendingOrders = () => {
     })
 }
 
+// Function to format the date in the format "dd-mm-yyyy"
+const formatDate = (date)=> {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`; // Using "-" instead of "/"
+}
+
 const getConfirmedOrders = debounce(() => {
   let requestURL = '/api/order-services/get-confirmed-sell-orders';
-  if (search.value && search.value.length > 2) {
-    requestURL += `?search=${search.value}`;
-  }
-  if (orderStatus.value.value) {
-    requestURL += `?&status=${orderStatus.value.value}`;
-  }
+
+  const appendQueryParam = (param, value) => {
+    if (!value) return;
+    requestURL += requestURL.includes('?') ? `&${param}=${value}` : `?${param}=${value}`;
+  };
+
+  appendQueryParam('search', search.value && search.value.length > 2 ? search.value : null);
+  appendQueryParam('status', orderStatus.value.value || null);
+
+  const appendDateRangeQueryParam = (param, dateRange) => {
+    if (!dateRange) return;
+    const formattedStartDate = formatDate(dateRange[0]);
+    const formattedEndDate = formatDate(dateRange[1]);
+    appendQueryParam(param, `${formattedStartDate} - ${formattedEndDate}`);
+  };
+
+  appendDateRangeQueryParam('order_date', orderDateRange.value);
+  appendDateRangeQueryParam('service_date', serviceDateRange.value);
 
   axios.get(requestURL)
     .then(({data}) => {
@@ -189,7 +214,7 @@ const getConfirmedOrders = debounce(() => {
     })
 }, 800);
 
-watch([search, orderStatus, currentTab], () => {
+watch([search, orderStatus, orderDateRange, serviceDateRange, currentTab], () => {
   getConfirmedOrders();
 });
 getConfirmedOrders()
@@ -255,7 +280,10 @@ getPendingOrders()
       <VWindowItem
         value="tab-2"
       >
-      <VRow class="ml-2 mr-2">
+      <VCardTitle class="ml-2 mr-2 mt-1"> Filter Confirmed Orders</VCardTitle>
+    <VCardSubtitle class="ml-2 mr-2 mb-2" > Filter confirmed orders by order status, order date, service date and search for customer and service.</VCardSubtitle>
+
+      <VRow class="ml-2 mr-2 mb-1">
         <VCol cols="12" md="3">
           <VCombobox
             v-model="orderStatus"
@@ -267,18 +295,42 @@ getPendingOrders()
             prepend-inner-icon="ri-filter-3-line"
             placeholder="Select Order Status"
             clearable
+            density="compact"
             @click:clear="orderStatus = []"
           />
           </VCol>
-          <VCol cols="12" md="3" />
+          <VCol cols="12" md="3">
+          <VueDatePicker
+            teleport-center
+            :clearable="true"
+            v-model="orderDateRange"
+            placeholder="Select Date Range (Order Date)"
+            :enable-time-picker="false"
+            format="dd/MM/yyyy"
+            range
+            class="mt-2"
+        />
+        </VCol>
 
-          <VCol cols="12" md="3" />
+        <VCol cols="12" md="3">
+          <VueDatePicker
+            teleport-center
+            :clearable="true"
+            v-model="serviceDateRange"
+            placeholder="Select Date Range (Meet Date)"
+            :enable-time-picker="false"
+            format="dd/MM/yyyy"
+            range
+            class="mt-2"
+        />
+        </VCol>
           
         <VCol cols="12" md="3">
           <VTextField
             class="mb-4 mt-2"
             v-model="search"
             label="Search"
+            density="compact"
             placeholder="Search for customer and service"
             dense
             clearable

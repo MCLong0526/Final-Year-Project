@@ -1,17 +1,26 @@
 <script setup>
+import axios from 'axios';
 import UserProfileDialog from '../Profile/UserProfileDialog.vue';
 const props = defineProps({
   confirmedPurchasesOrders: {
     type: Object,
     required: true
   },
+  getPurchasesOrder: {
+    type: Function,
+    required: true
+  }
 
 })
 
+const emits = defineEmits(['update:confirmedPurchasesOrders'])
 const clickedItem = ref({})
 const openConfirmedDialog = ref(false)
 const isContactDialog = ref(false)
 const clickedContactUser = ref({})
+const successRating = ref(false)
+const rating = ref(0)
+
 
 // View the order details
 const viewOrder = (item) => {
@@ -27,6 +36,9 @@ const openContactDialog = (user) => {
 
 // Check if the meet date time is over today
 const isMeetDateTimeOverToday = (meetDateTime) => {
+  if(meetDateTime === null){
+    return true
+  }
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Clear time part
 
@@ -37,6 +49,27 @@ const isMeetDateTimeOverToday = (meetDateTime) => {
   const date = parseDate(meetDateTime);
 
   return date < today;
+}
+
+const giveRating = (item) => {
+  axios.post('/api/order-items/rate-seller', {
+    order_id: item.id,
+    rating: rating.value
+  })
+    .then(response => {
+      console.log('Rating submitted')
+      rating.value = 0
+      successRating.value = true
+
+      openConfirmedDialog.value = false
+
+      props.getPurchasesOrder()
+
+
+    })
+    .catch(error => {
+      console.log(error)
+    })
 }
 
 
@@ -83,16 +116,14 @@ const isMeetDateTimeOverToday = (meetDateTime) => {
       <tr v-for="item in confirmedPurchasesOrders" :key="item.id">
         <td class="text-center">
           <VChip 
-            v-if="isMeetDateTimeOverToday(item.meet_dateTime)"
+            v-if="isMeetDateTimeOverToday(item.meet_dateTime) === true"
             color="secondary"
-
           >
             {{ item.id }}
           </VChip>
           <VChip 
             v-else
             color="primary"
-
           >
             {{ item.id }}
           </VChip>
@@ -250,6 +281,64 @@ const isMeetDateTimeOverToday = (meetDateTime) => {
             <span v-if="clickedItem.status=='Rejected'">: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
             <span v-if="clickedItem.status=='Cancelled'">: <VChip color="secondary" size="small"><VIcon icon="ri-close-circle-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
           </div>
+          <VDivider class="mt-2 mb-4"/>
+          <div v-if="clickedItem.status=='Approved'">
+          <div class="box-style" v-if="clickedItem.meet_dateTime < new Date().toISOString() && clickedItem.rating===null">
+          <VCard elevation="2" >
+
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-linee" />
+                  Rate The Seller 
+                  
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="rating" half-increments hover color="secondary" size="48" />
+              </div>
+    
+            <VCardActions class="justify-center">
+              
+              <VBtn color="success" @click="giveRating(clickedItem)">Submit</VBtn>
+            </VCardActions>
+          </VCard>
+          </div>
+          <div class="box-style" v-else-if="clickedItem.meet_dateTime < new Date().toISOString() && clickedItem.rating!==null">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line"/>
+                  Rating Given For Seller
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedItem.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+          <div class="box-style" v-else style="cursor:not-allowed">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line" />
+                  Rating Not Available Yet
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedItem.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+          </div>
+          <div class="box-style" v-else style="cursor:not-allowed">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line" />
+                  Rejected/Cancelled Order Cannot Be Rated
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedItem.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
           <VDivider class="mt-2 mb-2"/>
           <div class="detail-row">
             <strong>Item</strong>
@@ -273,7 +362,8 @@ const isMeetDateTimeOverToday = (meetDateTime) => {
             <strong>Seller Remark</strong>
             <span style="white-space: pre-line;">: {{ clickedItem.remark_seller }}</span>
           </div>
-
+          <VDivider class="mt-2 mb-4"/>
+          
         </VCardText>
           
       <VCardText class="pt-5 mt-4">
@@ -321,6 +411,18 @@ const isMeetDateTimeOverToday = (meetDateTime) => {
       :clickedUser="clickedContactUser"
     />
   </VDialog>
+
+  <!--Snackbar-->
+   <VSnackbar
+      v-model="successRating"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+      <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+      <span>Rating submitted successfully</span>
+    </VSnackbar>
+
 </template>
 
 <style scoped>
@@ -357,6 +459,15 @@ const isMeetDateTimeOverToday = (meetDateTime) => {
 
 .detail-row span {
   flex-grow: 1; /* Allow growing to fill the remaining space */
+}
+
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px
 }
 
 </style>

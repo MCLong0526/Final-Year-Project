@@ -209,7 +209,7 @@ const availableButton = (item_id) => {
     availability: 'Available',
   })
     .then((response) => {
-      console.log(response.data);
+    
       isSuccessAlertAvailable.value = true;
       props.itemsLoad();
     }).catch((error) => {
@@ -222,7 +222,7 @@ const updateAvailability = (item_id) => {
     availability: 'Sold',
   })
     .then((response) => {
-      console.log(response.data);
+    
       isSuccessAlertSold.value = true;
 
       props.itemsLoad();
@@ -247,7 +247,7 @@ const updateStatusInfo = (item_id) => {
     status_info: status_info,
   })
     .then((response) => {
-      console.log(response.data);
+     
       props.itemsLoad();
     }).catch((error) => {
       console.log(error);

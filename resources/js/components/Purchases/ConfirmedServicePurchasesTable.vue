@@ -1,16 +1,26 @@
 <script setup>
+import axios from 'axios';
 import UserProfileDialog from '../Profile/UserProfileDialog.vue';
 const props = defineProps({
   confirmedPurchasesOrders: {
     type: Object,
     required: true
   },
+  getPurchasesOrder: {
+    type: Function,
+    required: true
+  }
 })
+
+const emits = defineEmits(['update:confirmedPurchasesOrders'])
 
 const clickedService = ref({})
 const openConfirmedDialog = ref(false)
 const isContactDialog = ref(false)
 const clickedContactUser = ref({})
+const successRating = ref(false)
+const rating = ref(0)
+
 
 // View the order details
 const viewOrder = (service) => {
@@ -24,17 +34,46 @@ const openContactDialog = (user) => {
   isContactDialog.value = true;
 }
 
-// Check if service_dateTime is over today
+// Check if service_dateTime is over today, format is "2024-11-04 07:00AM-08:00AM"
 const isServiceDateTimeOverToday = (serviceDateTime) => {
+  if (serviceDateTime === null){
+    return true;
+  }
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Clear time part
+  const serviceDate = new Date(serviceDateTime.split(' ')[0]); // Only parse the date part
+
+  return serviceDate < today;
+}
+
+// Check if the service_dateTime is past
+const isPastService = (serviceDateTime) => {
+  if (serviceDateTime === null) return false;
   const now = new Date();
   const serviceDate = new Date(serviceDateTime.split(' ')[0]);
 
-  // Not including today date
-  if (serviceDate.getFullYear() === now.getFullYear() &&
-      serviceDate.getMonth() === now.getMonth() &&
-      serviceDate.getDate() === now.getDate()) return false;
-
   return serviceDate < now;
+}
+
+const giveRating = (service) => {
+  axios.post('/api/order-services/rate-provider', {
+    order_id: service.id,
+    rating: rating.value
+  })
+    .then(response => {
+      console.log('Rating submitted')
+      rating.value = 0
+
+      successRating.value = true
+      openConfirmedDialog.value = false
+      
+      props.getPurchasesOrder()
+
+
+    })
+    .catch(error => {
+      console.log(error)
+    })
 }
 
 </script>
@@ -80,16 +119,14 @@ const isServiceDateTimeOverToday = (serviceDateTime) => {
       <tr v-for="service in confirmedPurchasesOrders" :key="service.id" >
         <td class="text-center">
           <VChip 
-            v-if="isServiceDateTimeOverToday(service.service_dateTime) == true" 
+            v-if="isServiceDateTimeOverToday(service.service_dateTime) === true" 
             color="secondary"
-
           >
             {{ service.id }}
           </VChip>
           <VChip 
             v-else
             color="primary"
-
           >
             {{ service.id }}
           </VChip>
@@ -246,6 +283,68 @@ const isServiceDateTimeOverToday = (serviceDateTime) => {
             <span v-if="clickedService.status=='Approved'">: <VChip color="success" size="small"><VIcon icon="ri-check-fill" class="mr-1"/>{{ clickedService.status }}</VChip></span>
             <span v-else>: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedService.status }}</VChip></span>
           </div>
+          <VDivider class="mt-2 mb-4"/>
+
+          <!-- Rating Part -->
+          <div v-if="clickedService.status=='Approved' ">
+          <div class="box-style" v-if="isPastService(clickedService.service_dateTime) && clickedService.rating===null">
+          <VCard elevation="2" >
+
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-linee" />
+                  Rate The Provider
+                  
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="rating" half-increments hover color="secondary" size="48" />
+              </div>
+    
+            <VCardActions class="justify-center">
+              
+              <VBtn color="success" @click="giveRating(clickedService)">Submit</VBtn>
+            </VCardActions>
+          </VCard>
+          </div>
+          <div class="box-style" v-else-if="isPastService(clickedService.service_dateTime) && clickedService.rating!==null">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line"/>
+                  Rating Given For Provider
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedService.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+          <div class="box-style" v-else style="cursor:not-allowed">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line" />
+                  Rating Not Available Yet
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedService.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+        </div>
+        <!--Rejected Cannot Rating-->
+          <div class="box-style" v-else style="cursor:not-allowed">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line" />
+                  Rejected/Cancelled Order Cannot Be Rated
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedService.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+
           <VDivider class="mt-2 mb-2"/>
           <div class="detail-row">
             <strong>Service Name</strong>
@@ -279,6 +378,7 @@ const isServiceDateTimeOverToday = (serviceDateTime) => {
             <strong>Provider Remark</strong>
             <span style="white-space: pre-line;">: {{ clickedService.remark_provider }}</span>
           </div>
+          <VDivider class="mt-2 mb-4"/>
 
         </VCardText>
           
@@ -327,6 +427,17 @@ const isServiceDateTimeOverToday = (serviceDateTime) => {
       :clickedUser="clickedContactUser"
     />
   </VDialog>
+
+  <!--Snackbar-->
+   <VSnackbar
+      v-model="successRating"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+      <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+      <span>Rating submitted successfully</span>
+    </VSnackbar>
 </template>
 
 <style scoped>
@@ -365,5 +476,13 @@ const isServiceDateTimeOverToday = (serviceDateTime) => {
   flex-grow: 1; /* Allow growing to fill the remaining space */
 }
 
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px
+}
 
 </style>

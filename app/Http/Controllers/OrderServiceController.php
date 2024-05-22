@@ -184,6 +184,28 @@ class OrderServiceController extends Controller
                 return $order->status === request('status');
             });
         }
+        if (request()->filled('order_date')) {
+            // direct compare the order_date with the request order_date, format of order_date is 22/09/2021 - 23/09/2021, format of order_dateTime is '2024-05-12 12:54:00'
+            $orderDates = explode(' - ', request('order_date'));
+            $startDate = Carbon::parse($orderDates[0])->startOfDay();
+            $endDate = Carbon::parse($orderDates[1])->endOfDay();
+            $allOrders = $allOrders->filter(function ($order) use ($startDate, $endDate) {
+                return Carbon::parse($order->order_dateTime)->between($startDate, $endDate);
+            });
+        }
+        if (request()->filled('service_date')) {
+            //remove the orders that service_dateTime is null
+            $allOrders = $allOrders->filter(function ($order) {
+                return ! is_null($order->service_dateTime);
+            });
+            // direct compare the service_date with the request service_date, format of service_date is 22/09/2021 - 23/09/2021, the service_dateTime is the date and time
+            $serviceDates = explode(' - ', request('service_date'));
+            $startDate = Carbon::parse($serviceDates[0])->startOfDay();
+            $endDate = Carbon::parse($serviceDates[1])->endOfDay();
+            $allOrders = $allOrders->filter(function ($order) use ($startDate, $endDate) {
+                return Carbon::parse($order->service_dateTime)->between($startDate, $endDate);
+            });
+        }
 
         // Sort the filtered results to ensure upcoming orders are first, now the service_dateTime is in string format of '2024-05-21 07:00-09:00', so just sort the date only
         $allOrders = $allOrders->sortBy(function ($order) {
@@ -351,5 +373,30 @@ class OrderServiceController extends Controller
             ->count();
 
         return $this->success(data: $pendingOrders, message: 'Pending orders counted successfully');
+    }
+
+    public function rateProvider(Request $request)
+    {
+
+        // Find the order service
+        $order = DB::table('service_user')->where('id', $request->order_id)->first();
+
+        // Check if the order exists
+        if (! $order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        // Check if the order status is Approved
+        if ($order->status !== 'Approved') {
+            return response()->json(['message' => 'Order not approved'], 409);
+        }
+
+        // update the rating for the seller
+        DB::table('service_user')->where('id', $request->order_id)->update([
+            'rating' => $request->rating,
+        ]);
+
+        // Optionally, you can return a response
+        return response()->json(['message' => 'Rating submitted'], 200);
     }
 }

@@ -187,6 +187,28 @@ class OrderItemController extends Controller
                 return $order->status === request('status');
             });
         }
+        if (request()->filled('order_date')) {
+            // direct compare the order_date with the request order_date, format of order_date is 22/09/2021 - 23/09/2021, format of order_dateTime is '2024-05-12 12:54:00'
+            $orderDates = explode(' - ', request('order_date'));
+            $startDate = Carbon::parse($orderDates[0])->startOfDay();
+            $endDate = Carbon::parse($orderDates[1])->endOfDay();
+            $allOrders = $allOrders->filter(function ($order) use ($startDate, $endDate) {
+                return Carbon::parse($order->order_dateTime)->between($startDate, $endDate);
+            });
+        }
+        if (request()->filled('meet_date')) {
+            //remove the orders that meet_dateTime is null
+            $allOrders = $allOrders->filter(function ($order) {
+                return ! is_null($order->meet_dateTime);
+            });
+            // direct compare the meet_date with the request meet_date, format of meet_date is 22/09/2021 - 23/09/2021, the meet_dateTime is the date and time
+            $meetDates = explode(' - ', request('meet_date'));
+            $startDate = Carbon::parse($meetDates[0])->startOfDay();
+            $endDate = Carbon::parse($meetDates[1])->endOfDay();
+            $allOrders = $allOrders->filter(function ($order) use ($startDate, $endDate) {
+                return Carbon::parse($order->meet_dateTime)->between($startDate, $endDate);
+            });
+        }
         // Sort the filtered results to ensure upcoming orders are first
         $allOrders = $allOrders->sortBy(function ($order) {
             $now = now();
@@ -375,5 +397,30 @@ class OrderItemController extends Controller
 
             return $this->success(data: $buyers, message: 'Buyers details retrieved successfully');
         }
+    }
+
+    public function rateSeller(Request $request)
+    {
+
+        // Find the order item
+        $order = DB::table('item_user')->where('id', $request->order_id)->first();
+
+        // Check if the order exists
+        if (! $order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        // Check if the order status is Approved
+        if ($order->status !== 'Approved') {
+            return response()->json(['message' => 'Order not approved'], 409);
+        }
+
+        // update the rating for the seller
+        DB::table('item_user')->where('id', $request->order_id)->update([
+            'rating' => $request->rating,
+        ]);
+
+        // Optionally, you can return a response
+        return response()->json(['message' => 'Rating submitted'], 200);
     }
 }

@@ -40,6 +40,6 @@ class Item extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'item_user', 'item_id', 'buyer_id')
-            ->withPivot('status', 'meet_dateTime', 'order_dateTime', 'remark_buyer', 'remark_seller', 'quantity', 'place_to_meet');
+            ->withPivot('status', 'meet_dateTime', 'order_dateTime', 'remark_buyer', 'remark_seller', 'quantity', 'place_to_meet', 'rating');
     }
 }
