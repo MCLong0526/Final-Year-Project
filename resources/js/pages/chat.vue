@@ -1,11 +1,12 @@
 
 <script setup>
 import { useAuthStore } from '@/plugins/store/AuthStore';
-import chatBackground from '/resources/images/avatars/chatbackground.png';
-
 import axios from 'axios';
+import 'emoji-picker-element';
+
 import { debounce } from 'lodash';
 import { ref } from 'vue';
+import chatBackground from '/resources/images/avatars/chatbackground.png';
 
 const props = defineProps({
   newChatUser: {
@@ -26,6 +27,15 @@ const messagePerPage = ref(10);
 let page = 1;
 const user = ref({});
 const showLoading = ref(false);
+const showEmoji = ref(false);
+
+const addEmoji = (event) => {
+  // Access the emoji data from the event object
+  const emoji = event.detail.unicode;
+  newMessage.value += emoji;
+
+};
+
 
 // get the authenticated user
 const getUser = async () => {
@@ -147,6 +157,7 @@ const getMessages = (userMessage) => {
 
 //send message
 const sendMessage = async () => {
+  showEmoji.value = false;
   await axios.post('/api/chat/messages', { message: newMessage.value, receiver_id: receiver.value.user_id});
   newMessage.value = '';
   
@@ -358,14 +369,36 @@ getUser();
             
             <!-- Message input -->
             <VRow class="mt-4 mb-0 ml-2 mr-2" style="position: absolute; inset-block-end: 0; inset-inline: 0 0;">
+              <emoji-picker
+                  v-if="showEmoji===true" 
+                  @emoji-click="addEmoji" 
+                  theme="light"
+                  :native="true"
+                  class="light ml-3"
+   
+        
+                ></emoji-picker>
               <VCol cols="12">
-                <VTextField v-model="newMessage" label="Type your message here" @keyup.enter="sendMessageOnEnter">
+         
+                <VTextField 
+                  v-model="newMessage" 
+                  label="Type your message here" 
+                  @keyup.enter="sendMessageOnEnter" 
+                  :append-inner-icon="showEmoji ? 'ri-emotion-happy-line' : 'ri-emotion-happy-line'"
+                  @click:append-inner="showEmoji = !showEmoji"
+                >
                   <template #append>
+            
                     <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
+                    
                   </template>
+                  
                 </VTextField>
+                
               </VCol>
+              
             </VRow>
+            
           </VCardText>
           
         </VCard>
