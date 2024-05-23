@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ServiceRequest;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ServiceController extends Controller
@@ -14,7 +15,7 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        $servicePerPage = request()->input('per_page', 10);
+        $servicePerPage = request()->input('per_page', 8);
         $services = Service::with('pictures', 'user')
             ->when(request()->filled('type'), function ($query) {
                 $query->whereIn('type', explode(',', request('type')));
@@ -30,6 +31,21 @@ class ServiceController extends Controller
             ->where('availability', 'available')
             ->latest()
             ->paginate($servicePerPage);
+
+        // get rating according to the service's id also get the average rating, by using the db('service_user') table, get the average rating of each service in db('service_user') table, get only 2 decimal places
+        //if the service has no rating, it will return null
+        foreach ($services as $service) {
+            $query = DB::table('service_user')
+                ->where('service_id', $service->service_id)
+                ->whereNotNull('rating');
+
+            $service->rating = $query->avg('rating');
+            $service->rate_by = $query->count();
+
+            if ($service->rating !== null) {
+                $service->rating = number_format($service->rating, 2);
+            }
+        }
 
         return $this->success(data: $services, message: 'Services retrieved successfully');
     }

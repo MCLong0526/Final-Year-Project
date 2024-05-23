@@ -86,13 +86,14 @@ const allServicesLoad = debounce(() => {
   axios.get(requestURL).then(({data}) => {
     totalPagesAllServices.value = Math.ceil(data.data.total / rowPerPageAllServices.value);
     allServices.value = data.data.data;
+    
 
     allServices.value.forEach((service) => {
       service.pictures.forEach((picture) => {
         picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
       });
     });
-
+    
     // if the user_id is the same as the user logged in, then the save the service_id
     allServices.value.forEach((service) => {
       if(service.user_id === store.user.user_id){
@@ -102,7 +103,7 @@ const allServicesLoad = debounce(() => {
         service.isOwn = false;
       }
     });
-
+    
      // make the created_at date more readable, remove seconds, make it am/pm
      allServices.value.forEach((service) => {
       service.created_at = new Date(service.created_at).toLocaleString('en-US', {
@@ -113,10 +114,8 @@ const allServicesLoad = debounce(() => {
         minute: 'numeric',
         hour12: true,
       });
+      
     });
-
-
-
   }).catch((error) => {
     console.log(error);
   });

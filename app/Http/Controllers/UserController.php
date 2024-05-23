@@ -11,6 +11,7 @@ use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -293,6 +294,32 @@ class UserController extends Controller
             })->get();
             $count = $followers->count();
             $user->followers_count = $count;
+
+            // Calculate the rating of the user for items
+            $rating1 = DB::table('item_user')
+                ->whereIn('item_id', $items->pluck('item_id')->toArray()) // Use whereIn instead of where
+                ->whereNotNull('rating')
+                ->avg('rating');
+
+            // Combine the rating to the service_user table, make sure the service_user's service_id is the same as the service's service_id, get only the service_user that has been rated
+            $rating2 = DB::table('service_user')
+                ->whereIn('service_id', $services->pluck('service_id')->toArray()) // Use whereIn instead of where
+                ->whereNotNull('rating')
+                ->avg('rating');
+
+            // Calculate the average rating of the user
+            $rating = null;
+
+            if ($rating1 !== null && $rating2 !== null) {
+                $rating = ($rating1 + $rating2) / 2;
+            } elseif ($rating1 !== null) {
+                $rating = $rating1;
+            } elseif ($rating2 !== null) {
+                $rating = $rating2;
+            }
+
+            // Format the rating with 2 decimal places
+            $user->ratings = ($rating !== null) ? number_format($rating, 2) : null;
 
         }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ItemRequest;
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
@@ -35,6 +36,20 @@ class ItemController extends Controller
             ->where('availability', 'available')
             ->latest()
             ->paginate($itemPerPage);
+
+        foreach ($items as $item) {
+            $query = DB::table('item_user')
+                ->where('item_id', $item->item_id)
+                ->whereNotNull('rating');
+
+            $item->rating = $query->avg('rating');
+            $item->rate_by = $query->count();
+
+            if ($item->rating !== null) {
+                $item->rating = number_format($item->rating, 2);
+            }
+
+        }
 
         return $this->success(data: $items, message: 'Items retrieved successfully');
 

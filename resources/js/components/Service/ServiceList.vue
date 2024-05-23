@@ -1,6 +1,6 @@
 <script setup>
-import VueDatePicker from '@vuepic/vue-datepicker';
 import UserProfileDialog from '@/components/Profile/UserProfileDialog.vue';
+import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import axios from 'axios';
 import { watch } from 'vue';
@@ -210,9 +210,9 @@ const openProfileDialog = (user) => {
       :key="service.service_id"
       cols="12"
       md="3"
-      sm="6"
+      sm="3"
     >
-      <VCard class="mb-4" style="block-size:360px" @click="seeService(service)">
+      <VCard class="mb-2 box-style" style="block-size:390px" @click="seeService(service)">
         <VCarousel delimiter-icon="ri-circle-fill" height="250px" hide-delimiter-background show-arrows="hover">
           <VCarouselItem v-for="(picture, index) in service.pictures" :key="index" >
             <VImg :src="picture.picture_path" height="250px" object-fit="cover" class="mt-2 ml-2 mr-2" />
@@ -227,14 +227,36 @@ const openProfileDialog = (user) => {
           <VIcon icon="ri-price-tag-3-line" class="mr-2"/>
           {{ service.type }}</VChip>
         </VCardTitle>
-        <VRow class="ml-3 mt-2">
+        <VRow class="ml-3 mt-1">
+          <VIcon icon="ri-shopping-bag-4-line" class="mr-2"/>
+            <span style="font-size:1.em">{{ service.name }}</span>
+          </VRow> 
+  
+        <VRow class="ml-3 mt-4">
           <VIcon icon="ri-money-dollar-circle-line" class="mr-2"/>
-
           RM {{service.price_per_hour}}
         </VRow>
         <VRow class="ml-3 mt-4">
-          <VIcon icon="ri-shopping-bag-4-line" class="mr-2"/>
-            {{ service.name }}
+          <VChip
+              v-if="service.rating !== null"
+              color="secondary"
+              size="small"
+              variant="outlined"
+            ><VIcon icon="ri-star-fill" class="mr-1" style="color: #fbb400;"/> 
+              {{ service.rating }} / 5
+            </VChip>
+            
+            <VChip
+              v-else
+              color="secondary"
+              variant="outlined"
+           
+              size="small"
+            >
+              No ratings yet
+            </VChip>  
+            <span class="small-rating mt-1 ml-1">({{ service.rate_by }} rates)</span>
+            
         </VRow>
 
       </VCard>
@@ -262,12 +284,13 @@ const openProfileDialog = (user) => {
     v-model="openServiceDialog"
     scrollable
     max-width="500"
+    style="overflow-y: hidden;"
   >
 
     <!-- Dialog Content -->
     <VCard>
-      <VCardItem class="pb-3">
-        <VCardTitle>Service Details</VCardTitle>
+      <VCardItem class="pb-3 text-center">
+        <h3>Service Details</h3>
       </VCardItem>
       <VCardText style="block-size: 420px;">
         <VCarousel delimiter-icon="ri-circle-fill" height="250px" hide-delimiter-background show-arrows="hover">
@@ -275,7 +298,8 @@ const openProfileDialog = (user) => {
             <VImg :src="picture.picture_path" height="250px" object-fit="cover" class="mt-2 ml-2 mr-2" />
           </VCarouselItem>
         </VCarousel>
-       
+       <VRow class="mt-2">
+        <VCol cols="12" md="7" class="mt-4">
         <VCardTitle>
           <VIcon icon="ri-shopping-bag-4-line" />
             {{ clickedService.name }}
@@ -285,18 +309,57 @@ const openProfileDialog = (user) => {
 
           RM {{clickedService.price_per_hour}} per hour
         </VCardTitle>
+      </VCol>
+      <VCol class="mt-4 text-center" cols="12" md="5" style="cursor:not-allowed">
+        <div v-if="clickedService.rating!==null" class="box-style">
+          <h2 class="ml-4 mt-4">{{ clickedService.rating }}<span style="font-size:0.5em; font-weight: normal; ">({{ clickedService.rate_by }} rates)</span></h2>
+          
+          
+          <VRating
+            v-if="clickedService.rating !== null"
+            v-model="clickedService.rating"
+            half-increments
+            color="warning"
+            size="x-small"
+            class="ml-2"
+          />
+        </div>
+        <div v-else class="box-style">
+          <h4 class="text-center mt-4 ml-2">No ratings yet</h4>
+          <VRating
+            v-if="clickedService.rating === null"
+            v-model="clickedService.rating"
+            half-increments
+            color="warning"
+            size="x-small"
+            class="ml-2 mt-2"
+          />
+        </div>
 
-        <h3 class="mt-2">Service Provider Information</h3>
+        </VCol>
+      </VRow>
+        <h3 class="mt-3">Service Provider Information</h3>
         <VCardText  v-if="clickedService.isOwn === false" class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;cursor: pointer;" @click="openProfileDialog(clickedService.user)">
+          
         <VAvatar size="40"
             :color="clickedService.user.avatar ? '' : 'primary'"
             :class="`${!clickedService.user.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
             :variant="!clickedService.user.avatar ? 'tonal' : undefined"
             style="margin-inline-end: 8px;">
+            
             <VImg
             :src="clickedService.user.avatar"/>
         </VAvatar>
+
         <div style="display: inline-block; vertical-align: top;">
+          <VTooltip
+            location="end"
+            open-delay="500"
+            activator="parent"
+            transition="scroll-y-transition"
+          >
+            <span>Click to view profile</span>
+          </VTooltip>
           <div>{{ clickedService.user.username }}</div>
           <div style="color: #6c757d; font-size: 12px;">{{ clickedService.user.email }}</div>
         </div>
@@ -312,14 +375,20 @@ const openProfileDialog = (user) => {
             :src="clickedService.user.avatar"/>
         </VAvatar>
         <div style="display: inline-block; vertical-align: top;">
+          <VTooltip
+            location="end"
+            open-delay="500"
+            activator="parent"
+            transition="scroll-y-transition"
+          >
+            <span>You are the service provider</span>
+          </VTooltip>
           <div>{{ clickedService.user.username }}</div>
           <div style="color: #6c757d; font-size: 12px;">{{ clickedService.user.email }}</div>
         </div>
-        
-
         </VCardText>  
 
-        <h3 class="mt-2">Details</h3>
+        <h3 class="mt-3">Details</h3>
 
         <VCardText>
 
@@ -694,6 +763,25 @@ const openProfileDialog = (user) => {
 </template>
 
 <style scoped>
+.rating-box {
+  padding: 10px; /* Padding inside the box */
+  border: 1px solid #ccc; /* Border style */
+  border-radius: 8px; /* Rounded corners */
+  background-color: #f9f9f9; /* Background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 10%); /* Box shadow for a subtle effect */
+  margin-block-start: 20px; /* Top margin */
+  text-align: center; /* Center align text */
+}
+
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px
+}
+
 .item-details {
   font-size: larger;
 }
@@ -711,5 +799,9 @@ const openProfileDialog = (user) => {
 
 .detail-row span {
   margin-inline-start: 8px;
+}
+
+.small-rating {
+  font-size: 0.8em; /* Adjust the font size as needed */
 }
 </style>

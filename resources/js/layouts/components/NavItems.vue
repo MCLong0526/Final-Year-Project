@@ -57,7 +57,7 @@ getPendingServiceNotification()
     }"
   />
   <VerticalNavLink
-    v-if="isAdmin === false"
+
     :item="{
       title: 'Dashboard',
       icon: 'ri-dashboard-line',

@@ -282,6 +282,8 @@ const giveRating = (item) => {
             <span v-if="clickedItem.status=='Cancelled'">: <VChip color="secondary" size="small"><VIcon icon="ri-close-circle-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
           </div>
           <VDivider class="mt-2 mb-4"/>
+
+          <!-- Rating Part -->
           <div v-if="clickedItem.status=='Approved'">
           <div class="box-style" v-if="clickedItem.meet_dateTime < new Date().toISOString() && clickedItem.rating===null">
           <VCard elevation="2" >
@@ -327,6 +329,8 @@ const giveRating = (item) => {
             </VCard>
           </div>
           </div>
+
+          <!--Rejected Cannot Rating-->
           <div class="box-style" v-else style="cursor:not-allowed">
             <VCard elevation="2" >
               <div class="text-center">
@@ -339,6 +343,7 @@ const giveRating = (item) => {
               </div>
             </VCard>
           </div>
+          
           <VDivider class="mt-2 mb-2"/>
           <div class="detail-row">
             <strong>Item</strong>

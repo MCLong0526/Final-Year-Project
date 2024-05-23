@@ -108,7 +108,7 @@ const phoneValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number must be 
 <template>
   <VTable
     v-if="users.length > 0"
-    height="250"
+    height="310"
     fixed-header
   >
     <thead>

@@ -17,6 +17,7 @@ const emit = defineEmits(['update:clickedUser'])
 const numberOfItems = ref(0)
 const numberOfServices = ref(0)
 const numberOfFollowers = ref(0)
+const ratings = ref(0)
 const isFollowing = ref(false)
 const followDialog = ref(false)
 const unFollowDialog = ref(false)
@@ -36,6 +37,8 @@ const getUserDetails = async () => {
     numberOfServices.value = response.data.data.services_count
     numberOfFollowers.value = response.data.data.followers_count
     isFollowing.value = response.data.data.is_followed
+    ratings.value = response.data.data.ratings
+
   } catch (error) {
     console.error(error)
   }
@@ -157,7 +160,26 @@ getUserDetails()
           </VBtn>
         </VCardTitle>
         <VCardSubtitle class=" text-overline" style="font-size:12px !important">
-          <VIcon icon="ri-mail-fill" size="18" class="mr-2"></VIcon>{{ clickedUser.email }}
+          <VIcon icon="ri-mail-fill" size="18" class="mr-2"></VIcon>{{ clickedUser.email }}<br>
+          <VChip
+              v-if="ratings !== null"
+              color="secondary"
+              size="small"
+              variant="outlined"
+              class="mt-2"
+            ><VIcon icon="ri-star-fill" class="mr-1" style="color: #fbb400;"/> 
+              {{ ratings }} / 5
+            </VChip>
+            
+            <VChip
+              v-else
+              color="secondary"
+              variant="outlined"
+              class="mt-2"
+              size="small"
+            >
+              No ratings yet
+            </VChip>  
         </VCardSubtitle>
 
       </VCol>
@@ -168,7 +190,7 @@ getUserDetails()
       <VRow>
           <VBtn
             color="primary"
-            class="mt-3 mb-3"
+            class="mt-2 mb-3"
             @click="openChatDialog (clickedUser)"
             style=" margin-inline:120px 40px"
 
@@ -188,11 +210,11 @@ getUserDetails()
 
       </VRow>
       <VDivider class="mt-3" />
-      <VRow class="mb-3">
+      <VRow class="mb-3 mt-1">
       <VCol cols="12" md="4">
   
           <VCardTitle class="text-center text-overline" style="font-size:20px !important">
-            {{ numberOfItems }}
+            <b>{{ numberOfItems }}</b>
           </VCardTitle>
           <VCardSubtitle class="text-center text-overline" style="font-size:10px !important">
             <VIcon icon="ri-shopping-cart-2-fill" size="18" class="mr-2"></VIcon>Items
@@ -200,7 +222,7 @@ getUserDetails()
       </VCol>
       <VCol cols="12" md="4">
           <VCardTitle class="text-center text-overline" style="font-size:20px !important">
-            {{ numberOfServices }}
+            <b>{{ numberOfServices }}</b>
           </VCardTitle>
           <VCardSubtitle class="text-center text-overline" style="font-size:10px !important">
             <VIcon icon="ri-service-fill" size="18" class="mr-2"></VIcon>Services
@@ -208,7 +230,7 @@ getUserDetails()
       </VCol>
       <VCol cols="12" md="4">
           <VCardTitle class="text-center text-overline" style="font-size:20px !important">
-            {{ numberOfFollowers }}
+            <b>{{ numberOfFollowers }}</b>
           </VCardTitle>
           <VCardSubtitle class="text-center text-overline" style="font-size:10px !important">
             <VIcon icon="ri-user-fill" size="14" class="mr-2"></VIcon>Followers

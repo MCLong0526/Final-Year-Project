@@ -331,6 +331,7 @@ const giveRating = (service) => {
             </VCard>
           </div>
         </div>
+        
         <!--Rejected Cannot Rating-->
           <div class="box-style" v-else style="cursor:not-allowed">
             <VCard elevation="2" >

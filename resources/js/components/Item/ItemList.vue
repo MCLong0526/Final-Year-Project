@@ -47,6 +47,7 @@ const placesInUnimas = [
 const seeItem = (item) => {
   openItemDialog.value = true;
   clickedItem.value = item;
+  console.log(clickedItem.value);
 };
 
 const submitOrder = async () => {
@@ -116,7 +117,7 @@ const openProfileDialog = (user) => {
       sm="6"
 
     >
-      <VCard class="mb-4" @click="seeItem(item)">
+      <VCard class="mb-2 box-style" style="block-size:430px" @click="seeItem(item)">
         <VCarousel delimiter-icon="ri-circle-fill" height="250px" hide-delimiter-background show-arrows="hover">
           <VCarouselItem v-for="(image, index) in item.pictures" :key="index" >
             <VImg :src="image.picture_path" height="250px" object-fit="cover" class="mt-2 ml-2 mr-2" />
@@ -132,19 +133,43 @@ const openProfileDialog = (user) => {
           {{ item.type }}</VChip>
         </VCardTitle>
         <VRow class="ml-3 mt-2">
-          <VIcon icon="ri-money-dollar-circle-line" class="mr-2"/>
-
-          RM {{item.price}}
-        </VRow>
-        <VRow class="ml-3 mt-4">
           <VIcon icon="ri-shopping-bag-4-line" class="mr-2"/>
             {{ item.name }}
+        </VRow>
+        <VRow class="ml-3 mt-4">
+          
+            <VIcon icon="ri-money-dollar-circle-line" class="mr-2"/>
+
+          RM {{item.price}}
         </VRow>
         <VRow class="ml-3 mt-4 mb-4">
           <VIcon icon="ri-thumb-up-line" class="mr-2"/>
               {{ item.condition }}
             
-            </VRow>
+        </VRow>
+        <VRow class="ml-3 mt-4">
+          <VChip
+              v-if="item.rating !== null"
+              color="secondary"
+              size="small"
+              variant="outlined"
+            ><VIcon icon="ri-star-fill" class="mr-1" style="color: #fbb400;"/> 
+              {{ item.rating }} / 5
+            </VChip>
+            
+            <VChip
+              v-else
+              color="secondary"
+              variant="outlined"
+           
+              size="small"
+            >
+              No ratings yet
+            </VChip>  
+            <span class="small-rating mt-1 ml-1">({{ item.rate_by }} rates)</span>
+            
+        </VRow>
+
       </VCard>
     </VCol>
   </VRow>
@@ -170,12 +195,13 @@ const openProfileDialog = (user) => {
     v-model="openItemDialog"
     scrollable
     max-width="500"
+    style="overflow-y: hidden;"
   >
 
     <!-- Dialog Content -->
     <VCard>
-      <VCardItem class="pb-3">
-        <VCardTitle>Item Details</VCardTitle>
+      <VCardItem class="pb-3 text-center">
+        <h3>Item Details</h3>
       </VCardItem>
       <VCardText style="block-size: 420px;">
         <VCarousel delimiter-icon="ri-circle-fill" height="250px" hide-delimiter-background show-arrows="hover">
@@ -183,7 +209,9 @@ const openProfileDialog = (user) => {
             <VImg :src="image.picture_path" height="250px" object-fit="cover" class="mt-2 ml-2 mr-2" />
           </VCarouselItem>
         </VCarousel>
-       
+   
+      <VRow class="mt-2">
+        <VCol cols="12" md="7" class="mt-2">
         <VCardTitle>
           <VIcon icon="ri-shopping-bag-4-line" />
             {{ clickedItem.name }}
@@ -191,11 +219,39 @@ const openProfileDialog = (user) => {
         <VCardTitle>
           <VIcon icon="ri-money-dollar-circle-line" />
 
-          RM {{clickedItem.price}}
+          RM {{clickedItem.price}} per hour
         </VCardTitle>
+      </VCol>
+      <VCol class="mt-4 text-center" cols="12" md="5" style="cursor:not-allowed">
+        <div v-if="clickedItem.rating!==null" class="box-style">
+          <h2 class="ml-4 mt-4">{{ clickedItem.rating }}<span style="font-size:0.5em; font-weight: normal; ">({{ clickedItem.rate_by }} rates)</span></h2>
+          <VRating
+            v-if="clickedItem.rating !== null"
+            v-model="clickedItem.rating"
+            half-increments
+            color="warning"
+            size="x-small"
+            class="ml-2"
+          />
+        </div>
+        <div v-else class="box-style">
+          <h4 class="text-center mt-4 ml-2">No ratings yet</h4>
+          <VRating
+            v-if="clickedItem.rating === null"
+            v-model="clickedItem.rating"
+            half-increments
+            color="warning"
+            size="x-small"
+            class="ml-2 mt-2"
+          />
+        </div>
 
-        <h3 class="mt-2">Seller Information</h3>
-        <VCardText class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;cursor: pointer;" @click="openProfileDialog(clickedItem.user)">
+        </VCol>
+      </VRow>
+  
+
+        <h3 class="mt-3">Seller Information</h3>
+        <VCardText v-if="clickedItem.isOwn === false" class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;cursor: pointer;" @click="openProfileDialog(clickedItem.user)">
       
         <VAvatar size="40"
             :color="clickedItem.user.avatar ? '' : 'primary'"
@@ -206,13 +262,45 @@ const openProfileDialog = (user) => {
             :src="clickedItem.user.avatar"/>
         </VAvatar>
         <div style="display: inline-block; vertical-align: top;">
+          <VTooltip
+            location="end"
+            open-delay="500"
+            activator="parent"
+            transition="scroll-y-transition"
+          >
+            <span>Click to view profile</span>
+          </VTooltip>
           <div>{{ clickedItem.user.username }}</div>
           <div style="color: #6c757d; font-size: 12px;">{{ clickedItem.user.email }}</div>
         </div>
 
         </VCardText>  
+        <VCardText  v-else class="font-weight-medium text-high-emphasis text-truncate" style="display: flex; align-items: center;">
+      
+          <VAvatar size="40"
+              :color="clickedItem.user.avatar ? '' : 'primary'"
+              :class="`${!clickedItem.user.avatar ? 'v-avatar-light-bg primary--text' : ''}`"
+              :variant="!clickedItem.user.avatar ? 'tonal' : undefined"
+              style="margin-inline-end: 8px;">
+              <VImg
+              :src="clickedItem.user.avatar"/>
+          </VAvatar>
+          <div style="display: inline-block; vertical-align: top;">
+            <VTooltip
+            location="end"
+            open-delay="500"
+            activator="parent"
+            transition="scroll-y-transition"
+          >
+            <span>You are the seller</span>
+          </VTooltip>
+            <div>{{ clickedItem.user.username }}</div>
+            <div style="color: #6c757d; font-size: 12px;">{{ clickedItem.user.email }}</div>
+          </div>
+          
 
-        <h3 class="mt-2">Details</h3>
+          </VCardText>  
+        <h3 class="mt-3">Details</h3>
 
         <VCardText>
           <div class="detail-row">
@@ -513,6 +601,15 @@ const openProfileDialog = (user) => {
 </template>
 
 <style scoped>
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+  margin-block-end: 15px
+}
+
 .item-details {
   font-size: larger;
 }
@@ -530,6 +627,10 @@ const openProfileDialog = (user) => {
 
 .detail-row span {
   margin-inline-start: 8px;
+}
+
+.small-rating {
+  font-size: 0.8em; /* Adjust the font size as needed */
 }
 </style>
 
