@@ -154,13 +154,27 @@ class DashboardController extends Controller
 
     public function getAuthEarned()
     {
+        $total_earned_service = 0;
+        $number_of_approved_service = 0;
+        $number_of_pending_service = 0;
+        $number_of_rejected_service = 0;
+        $number_of_cancelled_service = 0;
+
+        $total_earned_item = 0;
+        $number_of_approved_item = 0;
+        $number_of_pending_item = 0;
+        $number_of_rejected_item = 0;
+        $number_of_cancelled_item = 0;
+
         // Get the current authenticated user
         $user = Auth::user();
 
         // Get all the services where the user_id is equal to the current authenticated user's id
         $services = Service::where('user_id', $user->user_id)->get();
+        $items = Item::where('user_id', $user->user_id)->get();
 
         $all_auth_service_user = [];
+        $all_auth_item_user = [];
 
         // Use DB to get all the service_user entries where the service's user_id is equal to the current authenticated user's id
         foreach ($services as $service) {
@@ -169,31 +183,58 @@ class DashboardController extends Controller
             if ($service_user) {
                 $all_auth_service_user[] = $service_user;
             }
-
         }
-        $total_earned = 0;
-        $number_of_approved = 0;
-        $number_of_pending = 0;
-        $number_of_rejected = 0;
+        foreach ($items as $item) {
+            $item_user = DB::table('item_user')->where('item_id', $item->item_id)->get();
+            // store all the $item_user to $all_auth_service_user, else no need to store it
+            if ($item_user) {
+                $all_auth_item_user[] = $item_user;
+            }
+        }
+
         // calculate all the approximated_price from the $all_auth_service_user, but the status must be equal "Approved" and save it to $all_auth_service_user_approved
         foreach ($all_auth_service_user as $service_user) {
             foreach ($service_user as $service_user) {
                 if ($service_user->status == 'Approved') {
-                    $total_earned += $service_user->approximated_price;
-                    $number_of_approved++;
+                    $total_earned_service += $service_user->approximated_price;
+                    $number_of_approved_service++;
                 } elseif ($service_user->status == 'Pending') {
-                    $number_of_pending++;
+                    $number_of_pending_service++;
                 } elseif ($service_user->status == 'Rejected') {
-                    $number_of_rejected++;
+                    $number_of_rejected_service++;
+                } elseif ($service_user->status == 'Cancelled') {
+                    $number_of_cancelled_service++;
+                }
+            }
+        }
+
+        // calculate all the approximated_price from the $all_auth_item_user, but the status must be equal "Approved" and save it to $all_auth_item_user_approved
+        foreach ($all_auth_item_user as $item_user) {
+            foreach ($item_user as $item_user) {
+                if ($item_user->status == 'Approved') {
+                    $total_earned_item += $item_user->approximated_price;
+                    $number_of_approved_item++;
+                } elseif ($item_user->status == 'Pending') {
+                    $number_of_pending_item++;
+                } elseif ($item_user->status == 'Rejected') {
+                    $number_of_rejected_item++;
+                } elseif ($item_user->status == 'Cancelled') {
+                    $number_of_cancelled_item++;
                 }
             }
         }
 
         return $this->success([
-            'total_earned' => $total_earned,
-            'number_of_approved' => $number_of_approved,
-            'number_of_pending' => $number_of_pending,
-            'number_of_rejected' => $number_of_rejected,
+            'total_earned_service' => $total_earned_service,
+            'number_of_approved_service' => $number_of_approved_service,
+            'number_of_pending_service' => $number_of_pending_service,
+            'number_of_rejected_service' => $number_of_rejected_service,
+            'number_of_cancelled_service' => $number_of_cancelled_service,
+            'total_earned_item' => $total_earned_item,
+            'number_of_approved_item' => $number_of_approved_item,
+            'number_of_pending_item' => $number_of_pending_item,
+            'number_of_rejected_item' => $number_of_rejected_item,
+            'number_of_cancelled_item' => $number_of_cancelled_item,
         ]);
     }
 

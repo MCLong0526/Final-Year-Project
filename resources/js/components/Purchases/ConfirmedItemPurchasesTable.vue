@@ -354,6 +354,11 @@ const giveRating = (item) => {
             <span v-if="clickedItem.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/>{{ clickedItem.meet_dateTime }}</VChip></span>
             <span v-else>: <VChip color="warning" size="small">Not Set</VChip></span>
           </div>
+          <div class="detail-row" >
+            <strong>Approximated Price</strong>
+            <span v-if="clickedItem.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/> ~ RM{{ clickedItem.approximated_price }}</VChip></span>
+            <span v-else>: <VChip color="warning" size="small"><VIcon icon="ri-close-line" class="mr-1"/>Not Set</VChip></span>
+          </div>
           <div class="detail-row" style="display: flex; align-items: flex-start;">
             <strong>Place to meet</strong>
             <span style="white-space: pre-line;">: {{ clickedItem.place_to_meet }}</span>

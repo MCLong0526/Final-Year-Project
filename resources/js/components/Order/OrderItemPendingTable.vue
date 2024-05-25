@@ -301,6 +301,17 @@ const confirmedOrder = () => {
             <strong>Remark</strong>
             <span style="white-space: pre-line;">: {{ clickedItem.remark_buyer }}</span>
           </div>
+          <div class="detail-row">
+            <strong>Approximated earn</strong>
+            <span>: <VChip
+                  color="primary"
+                  class="mr-2"
+                  size="small"
+                >
+                  <VIcon icon="ri-money-dollar-circle-line" class="mr-2"/>
+                  ~ RM {{ clickedItem.approximated_price }}
+                </VChip></span>
+          </div>
 
           <h3 class="mt-6">Customer Information</h3>
         

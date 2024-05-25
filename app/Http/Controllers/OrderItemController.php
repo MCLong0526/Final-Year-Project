@@ -60,6 +60,7 @@ class OrderItemController extends Controller
             'place_to_meet' => $request->place_to_meet,
             'order_dateTime' => $orderDateTime,
             'remark_buyer' => $request->remark_buyer,
+            'approximated_price' => $request->approximated_price,
         ]);
 
         // Retrieve the ID of the newly inserted row in the item_user pivot table
@@ -150,18 +151,18 @@ class OrderItemController extends Controller
     {
         // Get the authenticated user's ID
         $userId = Auth::id();
-
         // Get all items belongs to the user
         $itemIds = Item::where('user_id', $userId)->pluck('item_id');
+
         // Get all orders for the authenticated user
         $allOrders = DB::table('item_user')
             ->whereIn('item_id', $itemIds)
-            ->where('status', 'Approved')
-            ->orWhere('status', 'Rejected')
-            //  order by meet_dateTime in ascending order but ignore the null values
+            ->where(function ($query) {
+                $query->where('status', 'Approved')
+                    ->orWhere('status', 'Rejected')
+                    ->orWhere('status', 'Cancelled');
+            })
             ->orderByRaw('meet_dateTime IS NULL, meet_dateTime ASC')
-
-            // make sure the first one is upcoming order according to the meet_dateTime according to the current date
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
@@ -171,6 +172,7 @@ class OrderItemController extends Controller
 
             // Get the pictures for the item
             $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
+            $order->item->user = User::find($order->item->user_id);
         }
 
         // filter the orders by using the request "search" parameter, and the request search is to search the buyer's username and email, the search can also be used to filter the item's name

@@ -27,6 +27,7 @@ class CreateOrderRequest extends FormRequest
             'remarks' => 'string',
             'item_id' => 'required|exists:items,item_id',
             'status' => 'required|string',
+            'approximated_price' => 'required|numeric',
         ];
     }
 }

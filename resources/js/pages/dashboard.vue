@@ -13,11 +13,17 @@ const newServicesPercentage = ref(0);
 const totalLikes = ref(0);
 const newLikesPercentage = ref(0);
 
-const allSchedules = ref([]);
-const number_of_approved = ref(0);
-const number_of_pending = ref(0);
-const number_of_rejected = ref(0);
-const total_earned = ref(0);
+const number_of_approved_service = ref(0);
+const number_of_pending_service = ref(0);
+const number_of_rejected_service = ref(0);
+const number_of_cancelled_service = ref(0);
+const total_earned_service = ref(0);
+const total_earned_item = ref(0);
+const number_of_approved_item = ref(0);
+const number_of_pending_item = ref(0);
+const number_of_rejected_item = ref(0);
+const number_of_cancelled_item = ref(0);
+
 const ready1 = ref(false);
 
 const getAuthPostLikes = () => {
@@ -71,10 +77,16 @@ const getAuthServices = () => {
 const getAuthEarned = async () => {
   try {
     const response = await axios.get('/api/dashboard/get-auth-earned');
-    number_of_approved.value = response.data.data.number_of_approved;
-    number_of_pending.value = response.data.data.number_of_pending;
-    number_of_rejected.value = response.data.data.number_of_rejected;
-    total_earned.value = response.data.data.total_earned;
+    number_of_approved_service.value = response.data.data.number_of_approved_service;
+    number_of_pending_service.value = response.data.data.number_of_pending_service;
+    number_of_rejected_service.value = response.data.data.number_of_rejected_service;
+    number_of_cancelled_service.value = response.data.data.number_of_cancelled_service;
+    total_earned_service.value = response.data.data.total_earned_service;
+    total_earned_item.value = response.data.data.total_earned_item;
+    number_of_approved_item.value = response.data.data.number_of_approved_item;
+    number_of_pending_item.value = response.data.data.number_of_pending_item;
+    number_of_rejected_item.value = response.data.data.number_of_rejected_item;
+    number_of_cancelled_item.value = response.data.data.number_of_cancelled_item;
     ready1.value = true;
   } catch (error) {
     console.error(error);
@@ -165,10 +177,16 @@ getAuthServices();
     >
     <TotalEarnedCard
       v-if="ready1==true"
-      :number_of_approved="number_of_approved"
-      :number_of_pending="number_of_pending"
-      :number_of_rejected="number_of_rejected"
-      :total_earned="total_earned"
+      :number_of_approved_service="number_of_approved_service"
+      :number_of_pending_service="number_of_pending_service"
+      :number_of_rejected_service="number_of_rejected_service"
+      :number_of_cancelled_service="number_of_cancelled_service"
+      :total_earned_service="total_earned_service"
+      :total_earned_item="total_earned_item"
+      :number_of_approved_item="number_of_approved_item"
+      :number_of_pending_item="number_of_pending_item"
+      :number_of_rejected_item="number_of_rejected_item"
+      :number_of_cancelled_item="number_of_cancelled_item"
       />
     </VCol>
     <VCol

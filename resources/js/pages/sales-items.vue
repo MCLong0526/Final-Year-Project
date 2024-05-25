@@ -119,6 +119,8 @@ const getConfirmedOrders = debounce(() => {
         })
       })
 
+      console.log(confirmedOrders.value)
+
     })
     .catch(error => {
       console.log(error)

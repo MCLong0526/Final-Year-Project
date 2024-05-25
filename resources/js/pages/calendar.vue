@@ -1,4 +1,5 @@
 <script setup>
+import UserProfileDialog from '@/components/Profile/UserProfileDialog.vue';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
 import FullCalendar from '@fullcalendar/vue3';
@@ -18,6 +19,13 @@ const openServiceDetails = ref(false);
 const clickedItem = ref({});
 const clickedService = ref({});
 const eventSwitch = ref(false);
+const openConfirmedItemDialog = ref(false);
+const openConfirmedServiceDialog = ref(false);
+const rating = ref(0);
+const isContactDialog = ref(false);
+const clickedContactUser = ref({});
+const successRating = ref(false);
+
 
 // calendar options
 const calendarOptions = ref({
@@ -85,9 +93,12 @@ const openEventDialog = (event) => {
     const amPm = hour >= 12 ? "PM" : "AM";
     const hourStr = hour > 12 ? (hour - 12).toString() : hour.toString();
     clickedItem.value.meet_dateTime = dateTimeParts[0] + " " + hourStr + ":" + minute + " " + amPm;
-
-
-    openItemDetails.value = true;
+    console.log(clickedItem.value);
+    if(eventSwitch.value) {
+      openItemDetails.value = true;
+    } else {
+      openConfirmedItemDialog.value = true;
+    }
   } else {
     clickedService.value = allEvents.value[event._def.extendedProps.type + '_orders'].find(service => service.id === event._def.extendedProps.event_id);
 
@@ -119,8 +130,12 @@ const openEventDialog = (event) => {
     const duration = (end - start) / 1000 / 60 / 60;
     clickedService.value.duration = duration.toFixed(2);
 
+    if(eventSwitch.value) {
+      openServiceDetails.value = true;
+    } else {
+      openConfirmedServiceDialog.value = true;
+    }
 
-    openServiceDetails.value = true;
   }
 };
 
@@ -299,6 +314,64 @@ watch(eventSwitch, (newVal) => {
     filterEvents();
   }
 });
+
+// Give rating for the item
+const giveRatingItem = (item) => {
+  axios.post('/api/order-items/rate-seller', {
+    order_id: item.id,
+    rating: rating.value
+  })
+    .then(response => {
+
+      rating.value = 0
+      successRating.value = true
+
+      openConfirmedItemDialog.value = false
+      getUpComingMeetupBuyer();
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+
+// Check if the service_dateTime is past
+const isPastService = (serviceDateTime) => {
+  if (serviceDateTime === null) return false;
+  const now = new Date();
+  const serviceDate = new Date(serviceDateTime.split(' ')[0]);
+
+  return serviceDate < now;
+}
+
+// Give rating for the service
+const giveRatingService = (service) => {
+  axios.post('/api/order-services/rate-provider', {
+    order_id: service.id,
+    rating: rating.value
+  })
+    .then(response => {
+      rating.value = 0
+
+      successRating.value = true
+      openConfirmedServiceDialog.value = false
+      
+      getUpComingMeetupBuyer();
+
+
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+
+
+// Open the contact dialog
+const openContactDialog = (user) => {
+  clickedContactUser.value = user;
+  isContactDialog.value = true;
+}
+
+
 
 // get the upcoming meetups
 getUpComingMeetupBuyer();
@@ -535,6 +608,355 @@ getUpComingMeetupBuyer();
     </VCard>
   </VDialog>
 
+
+  <!-- Confirmed Order for purchases -->
+  <VDialog
+    v-model="openConfirmedItemDialog"
+    scrollable
+    max-width="500"
+  >
+
+    <!-- Dialog Content -->
+    <VCard>
+      <VCardTitle class="mt-2 mb-1">Order Details</VCardTitle>
+      <VDivider class="mb-2"/>
+        <VCardText style="max-block-size: 400px; overflow-y: auto;">
+          <div class="detail-row">
+            <strong>Order ID</strong>
+            <span>: #{{ clickedItem.id }}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Order Date Time</strong>
+            <span>: {{ clickedItem.order_dateTime }}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Seller</strong>
+            <span>: {{ clickedItem.item.user.username }}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Status</strong>
+            <span v-if="clickedItem.status=='Approved'">: <VChip color="success" size="small"><VIcon icon="ri-check-fill" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
+            <span v-if="clickedItem.status=='Rejected'">: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
+            <span v-if="clickedItem.status=='Cancelled'">: <VChip color="secondary" size="small"><VIcon icon="ri-close-circle-line" class="mr-1"/>{{ clickedItem.status }}</VChip></span>
+          </div>
+          <VDivider class="mt-2 mb-4"/>
+
+          <!-- Rating Part -->
+          <div v-if="clickedItem.status=='Approved'">
+          <div class="box-style" v-if="clickedItem.meet_dateTime < new Date().toISOString() && clickedItem.rating===null">
+          <VCard elevation="2" >
+
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-linee" />
+                  Rate The Seller 
+                  
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="rating" half-increments hover color="secondary" size="48" />
+              </div>
+    
+            <VCardActions class="justify-center">
+              
+              <VBtn color="success" @click="giveRatingItem(clickedItem)">Submit</VBtn>
+            </VCardActions>
+          </VCard>
+          </div>
+          <div class="box-style" v-else-if="clickedItem.meet_dateTime < new Date().toISOString() && clickedItem.rating!==null">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line"/>
+                  Rating Given For Seller
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedItem.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+          <div class="box-style" v-else style="cursor:not-allowed">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line" />
+                  Rating Not Available Yet
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedItem.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+          </div>
+
+          <!--Rejected Cannot Rating-->
+          <div class="box-style" v-else style="cursor:not-allowed">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line" />
+                  Rejected/Cancelled Order Cannot Be Rated
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedItem.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+          
+          <VDivider class="mt-2 mb-2"/>
+          <div class="detail-row">
+            <strong>Item</strong>
+            <span>: {{ clickedItem.item.name }}</span>
+          </div>
+          <div class="detail-row" >
+            <strong>Meet Date Time</strong>
+            <span v-if="clickedItem.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/>{{ clickedItem.meet_dateTime }}</VChip></span>
+            <span v-else>: <VChip color="warning" size="small">Not Set</VChip></span>
+          </div>
+          <div class="detail-row" >
+            <strong>Approximated Price</strong>
+            <span v-if="clickedItem.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/> ~ RM{{ clickedItem.approximated_price }}</VChip></span>
+            <span v-else>: <VChip color="warning" size="small"><VIcon icon="ri-close-line" class="mr-1"/>Not Set</VChip></span>
+          </div>
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
+            <strong>Place to meet</strong>
+            <span style="white-space: pre-line;">: {{ clickedItem.place_to_meet }}</span>
+          </div>
+          <VDivider class="mt-2 mb-2"/>
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
+            <strong>Buyer Remark</strong>
+            <span style="white-space: pre-line;">: {{ clickedItem.remark_buyer }}</span>
+          </div>
+          <div class="detail-row" style="display: flex; align-items: flex-start;"> 
+            <strong>Seller Remark</strong>
+            <span style="white-space: pre-line;">: {{ clickedItem.remark_seller }}</span>
+          </div>
+          <VDivider class="mt-2 mb-4"/>
+          
+        </VCardText>
+          
+      <VCardText class="pt-5 mt-4">
+        <VRow>
+          <VCol cols="12" md="4">
+            <VBtn
+              color="secondary"
+              @click="openConfirmedItemDialog = false"
+            >
+              <VIcon icon="ri-close-line" class="mr-1"/>
+              Close
+            </VBtn>
+          </VCol>
+          <VCol cols="12" md="4" />
+          <VCol cols="12" md="4">
+            <VBtn color="success" 
+              v-if="clickedItem.status=='Approved'"
+              @click="openContactDialog(clickedItem.item.user)"
+              
+            >
+              <VIcon icon="ri-whatsapp-line" class="mr-1"/>
+              <VTooltip
+                location="top"
+                activator="parent"
+                transition="scroll-x-transition"
+              >
+                Contact Buyer
+              </VTooltip>
+              Contact
+            </VBtn>
+          </VCol>
+            
+          </VRow>
+        
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+
+
+  <!-- Confirmed Order for purchases -->
+  <VDialog
+    v-model="openConfirmedServiceDialog"
+    scrollable
+    max-width="550"
+  >
+
+    <!-- Dialog Content -->
+    <VCard>
+      <VCardTitle class="mt-2 mb-1">Order Details</VCardTitle>
+      <VDivider class="mb-2"/>
+        <VCardText style="max-block-size: 400px; overflow-y: auto;">
+          <div class="detail-row">
+            <strong>Order ID</strong>
+            <span>: #{{ clickedService.id }}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Order Date Time</strong>
+            <span>: {{ clickedService.order_dateTime }}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Provider</strong>
+            <span>: {{ clickedService.service.user.username }}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Status</strong>
+            <span v-if="clickedService.status=='Approved'">: <VChip color="success" size="small"><VIcon icon="ri-check-fill" class="mr-1"/>{{ clickedService.status }}</VChip></span>
+            <span v-else>: <VChip color="error" size="small"><VIcon icon="ri-close-line" class="mr-1"/>{{ clickedService.status }}</VChip></span>
+          </div>
+          <VDivider class="mt-2 mb-4"/>
+
+          <!-- Rating Part -->
+          <div v-if="clickedService.status=='Approved' ">
+          <div class="box-style" v-if="isPastService(clickedService.service_dateTime) && clickedService.rating===null">
+          <VCard elevation="2" >
+
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-linee" />
+                  Rate The Provider
+                  
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="rating" half-increments hover color="secondary" size="48" />
+              </div>
+    
+            <VCardActions class="justify-center">
+              
+              <VBtn color="success" @click="giveRatingService(clickedService)">Submit</VBtn>
+            </VCardActions>
+          </VCard>
+          </div>
+          <div class="box-style" v-else-if="isPastService(clickedService.service_dateTime) && clickedService.rating!==null">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line"/>
+                  Rating Given For Provider
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedService.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+          <div class="box-style" v-else style="cursor:not-allowed">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line" />
+                  Rating Not Available Yet
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedService.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+        </div>
+        
+        <!--Rejected Cannot Rating-->
+          <div class="box-style" v-else style="cursor:not-allowed">
+            <VCard elevation="2" >
+              <div class="text-center">
+                <h4 class="headline mr-1 mt-4">
+                  <VIcon icon="ri-user-star-line" />
+                  Rejected/Cancelled Order Cannot Be Rated
+                </h4>
+                <VDivider class="mt-2 mb-2" />
+                <VRating v-model="clickedService.rating" half-increments hover color="secondary" size="48" :readonly="true" />
+              </div>
+            </VCard>
+          </div>
+
+          <VDivider class="mt-2 mb-2"/>
+          <div class="detail-row">
+            <strong>Service Name</strong>
+            <span>: {{ clickedService.service.name }}</span>
+          </div>
+          <div class="detail-row" >
+            <strong>Service Date Time</strong>
+            <span v-if="clickedService.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/>{{ clickedService.service_dateTime }}</VChip></span>
+            <span v-else>: <VChip color="warning" size="small"><VIcon icon="ri-close-line" class="mr-1"/>Not Set</VChip></span>
+          </div>
+          <div class="detail-row" >
+            <strong>Service Duration</strong>
+            <span v-if="clickedService.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/>{{ clickedService.duration }}</VChip></span>
+            <span v-else>: <VChip color="warning" size="small"><VIcon icon="ri-close-line" class="mr-1"/>Not Set</VChip></span>
+          </div>
+          <div class="detail-row" >
+            <strong>Approximated Price</strong>
+            <span v-if="clickedService.status=='Approved'">: <VChip color="warning" size="small"><VIcon icon="ri-check-double-fill" class="mr-1"/> ~ RM{{ clickedService.approximated_price }}</VChip></span>
+            <span v-else>: <VChip color="warning" size="small"><VIcon icon="ri-close-line" class="mr-1"/>Not Set</VChip></span>
+          </div>
+          <div class="detail-row">
+            <strong>Place to service</strong>
+            <span>: {{ clickedService.place_to_service }}</span>
+          </div>
+          <VDivider class="mt-2 mb-2"/>
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
+            <strong>Customer Remark</strong>
+            <span style="white-space: pre-line;">: {{ clickedService.remark_customer }}</span>
+          </div>
+          <div class="detail-row" style="display: flex; align-items: flex-start;">
+            <strong>Provider Remark</strong>
+            <span style="white-space: pre-line;">: {{ clickedService.remark_provider }}</span>
+          </div>
+          <VDivider class="mt-2 mb-4"/>
+
+        </VCardText>
+          
+      <VCardText class="pt-5 mt-4">
+        <VRow>
+          <VCol cols="12" md="4">
+            <VBtn
+              color="secondary"
+              @click="openConfirmedServiceDialog = false"
+            >
+              <VIcon icon="ri-close-line" class="mr-1"/>
+              Close
+            </VBtn>
+          </VCol>
+          <VCol cols="12" md="4" />
+          <VCol cols="12" md="4">
+            <VBtn color="success" 
+              v-if="clickedService.status=='Approved'"
+              @click="openContactDialog(clickedService.service.user)"
+              
+            >
+              <VIcon icon="ri-whatsapp-line" class="mr-1"/>
+              <VTooltip
+                location="top"
+                activator="parent"
+                transition="scroll-x-transition"
+              >
+                Contact Buyer
+              </VTooltip>
+              Contact
+            </VBtn>
+          </VCol>
+            
+          </VRow>
+        
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+  <VDialog
+    v-model="isContactDialog"
+    scrollable
+    max-width="500"
+  >
+    <UserProfileDialog
+      :clickedUser="clickedContactUser"
+    />
+  </VDialog>
+
+    <!--Snackbar-->
+    <VSnackbar
+      v-model="successRating"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+      <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+      <span>Rating submitted successfully</span>
+    </VSnackbar>
 
 </template>
 

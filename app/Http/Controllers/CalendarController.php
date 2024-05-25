@@ -7,6 +7,7 @@ use App\Models\ItemPicture;
 use App\Models\Service;
 use App\Models\ServicePicture;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -78,10 +79,12 @@ class CalendarController extends Controller
 
         // Get all items belongs to the user
         $itemIds = Item::where('user_id', $userId)->pluck('item_id');
-        // Get all orders for the authenticated user
+        $today = Carbon::now()->format('Y-m-d');
+
         $allItemOrders = DB::table('item_user')
             ->whereIn('item_id', $itemIds)
             ->where('status', 'Approved')
+            ->whereRaw("SUBSTRING_INDEX(meet_dateTime, ' ', 1) >= ?", [$today])
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
@@ -90,7 +93,8 @@ class CalendarController extends Controller
             $order->item = Item::find($order->item_id);
 
             // Get the pictures for the item
-            $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
+            $order->item->pictures = ItemPicture::where('item_id', $order->item_id);
+            $order->item->user = User::find($order->item->user_id);
         }
 
         // now get for the service_user
@@ -99,7 +103,7 @@ class CalendarController extends Controller
         $allServiceOrders = DB::table('service_user')
             ->whereIn('service_id', $serviceIds)
             ->where('status', 'Approved')
-
+            ->whereRaw("SUBSTRING_INDEX(service_dateTime, ' ', 1) >= ?", [$today])
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
@@ -108,7 +112,8 @@ class CalendarController extends Controller
             $order->service = Service::find($order->service_id);
 
             // Get the pictures for the item
-            $order->service->pictures = ServicePicture::where('service_id', $order->service_id)->get();
+            $order->service->pictures = ServicePicture::where('service_id', $order->service_id);
+            $order->service->user = User::find($order->service->user_id);
         }
 
         return $this->success(data: [
@@ -124,10 +129,12 @@ class CalendarController extends Controller
         // Get the authenticated user's ID
         $userId = Auth::id();
 
+        $today = Carbon::now()->format('Y-m-d');
         // Get all orders for the authenticated user
         $allItemOrders = DB::table('item_user')
             ->where('buyer_id', $userId)
             ->where('status', 'Approved')
+            ->whereRaw("SUBSTRING_INDEX(meet_dateTime, ' ', 1) >= ?", [$today])
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
@@ -137,12 +144,13 @@ class CalendarController extends Controller
 
             // Get the pictures for the item
             $order->item->pictures = ItemPicture::where('item_id', $order->item_id)->get();
+            $order->item->user = User::find($order->item->user_id);
         }
 
-        // Get all orders for the authenticated user
         $allServiceOrders = DB::table('service_user')
             ->where('customer_id', $userId)
             ->where('status', 'Approved')
+            ->whereRaw("SUBSTRING_INDEX(service_dateTime, ' ', 1) >= ?", [$today])
             ->get();
 
         // Get the users, items, and pictures separately based on the user_id, item_id, and item_pictures
@@ -152,6 +160,7 @@ class CalendarController extends Controller
 
             // Get the pictures for the item
             $order->service->pictures = ServicePicture::where('service_id', $order->service_id)->get();
+            $order->service->user = User::find($order->service->user_id);
         }
 
         return $this->success(data: [

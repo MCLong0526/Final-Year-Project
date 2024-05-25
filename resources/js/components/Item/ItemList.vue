@@ -30,6 +30,12 @@ const isAddAlert = ref(false);
 const placeToMeet = ref(null);
 const hasErrorAlert = ref(false);
 const errorMessages = ref('');
+const approximated_price = computed(() => {
+  if (clickedItem.value.price && quantity.value) {
+    return clickedItem.value.price * quantity.value;
+  }
+  return 0;
+});
 
 const placesInUnimas = [
   'Faculty of Cognitive Sciences and Human Development',
@@ -47,7 +53,6 @@ const placesInUnimas = [
 const seeItem = (item) => {
   openItemDialog.value = true;
   clickedItem.value = item;
-  console.log(clickedItem.value);
 };
 
 const submitOrder = async () => {
@@ -63,6 +68,7 @@ const submitOrder = async () => {
     quantity: quantity.value,
     remark_buyer: remark_buyer_dateTime.value + '\n' + remark_buyer.value,
     item_id: clickedItem.value.item_id,
+    approximated_price: approximated_price.value,
     status: 'Pending',
   };
 
@@ -478,6 +484,32 @@ const openProfileDialog = (user) => {
                   placeholder="Enter Quantity"
                   :rules="[requiredValidator]"
                 />
+              </VCol>
+            </VRow>
+          </VCol>
+
+          <!--Estimated Price-->
+          <VCol cols="12">
+            <VRow no-gutters>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <label for="firstNameHorizontalIcons">Approximated Price</label>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="9"
+              >
+                <VChip
+                  color="primary"
+                  class="mr-2"
+                  size="small"
+                >
+                  <VIcon icon="ri-money-dollar-circle-line" class="mr-2"/>
+                  ~ RM {{ approximated_price }}
+                </VChip>
               </VCol>
             </VRow>
           </VCol>

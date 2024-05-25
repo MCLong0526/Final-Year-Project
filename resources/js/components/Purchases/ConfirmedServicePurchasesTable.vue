@@ -275,7 +275,7 @@ const giveRating = (service) => {
             <span>: {{ clickedService.order_dateTime }}</span>
           </div>
           <div class="detail-row">
-            <strong>Customer</strong>
+            <strong>Provider</strong>
             <span>: {{ clickedService.service.user.username }}</span>
           </div>
           <div class="detail-row">
