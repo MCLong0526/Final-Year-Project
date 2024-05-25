@@ -1,6 +1,7 @@
 <script setup>
 import TableConfirmedOrders from "@/components/Order/OrderServiceConfirmedTable.vue";
 import TablePendingOrders from "@/components/Order/OrderServicePendingTable.vue";
+import ExportSalesServices from "@/pages/export-service.vue";
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import axios from "axios";
@@ -13,10 +14,15 @@ const search = ref('');
 const orderStatus = ref([]);
 const orderDateRange = ref(null);
 const serviceDateRange = ref(null);
+const passStatus = ref(null);
+const passOrderDateRange = ref(null);
+const passServiceDateRange = ref(null);
+const passSearch = ref(null);
 
 const orderStatusSelect = [
   { name: 'Approved', value: 'Approved' },
   { name: 'Rejected', value: 'Rejected' },
+  { name: 'Cancelled', value: 'Cancelled' },
 ];
 
 const getPendingOrders = () => {
@@ -216,6 +222,10 @@ const getConfirmedOrders = debounce(() => {
 
 watch([search, orderStatus, orderDateRange, serviceDateRange, currentTab], () => {
   getConfirmedOrders();
+  passStatus.value = orderStatus.value;
+  passOrderDateRange.value = orderDateRange.value;
+  passServiceDateRange.value = serviceDateRange.value;
+  passSearch.value = search.value;
 });
 getConfirmedOrders()
 getPendingOrders()
@@ -283,11 +293,10 @@ getPendingOrders()
       <VCardTitle class="ml-2 mr-2 mt-1"> Filter Confirmed Orders</VCardTitle>
     <VCardSubtitle class="ml-2 mr-2 mb-2" > Filter confirmed orders by order status, order date, service date and search for customer and service.</VCardSubtitle>
 
-      <VRow class="ml-2 mr-2 mb-1">
-        <VCol cols="12" md="3">
+      <VRow class="ml-2 mr-2">
+        <VCol cols="12" md="4">
           <VCombobox
             v-model="orderStatus"
-            class="mb-4 mt-2"
             chips
             return-object
             item-title="name"
@@ -299,7 +308,7 @@ getPendingOrders()
             @click:clear="orderStatus = []"
           />
           </VCol>
-          <VCol cols="12" md="3">
+          <VCol cols="12" md="4">
           <VueDatePicker
             teleport-center
             :clearable="true"
@@ -312,7 +321,7 @@ getPendingOrders()
         />
         </VCol>
 
-        <VCol cols="12" md="3">
+        <VCol cols="12" md="4">
           <VueDatePicker
             teleport-center
             :clearable="true"
@@ -324,20 +333,30 @@ getPendingOrders()
             class="mt-2"
         />
         </VCol>
-          
-        <VCol cols="12" md="3">
-          <VTextField
-            class="mb-4 mt-2"
-            v-model="search"
-            label="Search"
-            density="compact"
-            placeholder="Search for customer and service"
-            dense
-            clearable
-          />
-          </VCol>
-          
-        
+
+        </VRow>
+        <VRow class="ml-2 mr-2">
+          <VCol cols="12" md="4">
+    
+            <ExportSalesServices
+              :passStatus="passStatus"
+              :passOrderDateRange="passOrderDateRange"
+              :passServiceDateRange="passServiceDateRange"
+              :passSearch="passSearch"
+              />
+          </VCol> 
+          <VCol cols="12" md="4" />
+          <VCol cols="12" md="4">
+            <VTextField
+              class="mb-4"
+              v-model="search"
+              label="Search Customer and Service"
+              density="compact"
+              placeholder="Search for customer and service"
+              dense
+              clearable
+            />
+            </VCol> 
         </VRow>
         <div class="table-style">
           <TableConfirmedOrders

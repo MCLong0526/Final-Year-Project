@@ -26,13 +26,20 @@ const addPictureBox = ref(false);
 const images = ref([]);
 const allItems = ref([]);
 const typeSearch = ref([]);
-const sortPrice = ref(null);
+const sortItem = ref(null);
 const conditionSearch = ref(null);
 const searchValueAllItems = ref('');
 const isAddAlert = ref(false);
 const hasErrorAlert = ref(false);
 const errorMessages = ref('');
 const ownSellingItems = ref(false);
+
+const sortBy = [
+  { title: 'Price:Low to High', value: 'Price:Low to High' }, 
+  { title: 'Price:High to Low', value: 'Price:High to Low' },
+  { title:'Item name: A to Z', value: 'name: A to Z'},
+  { title:'Item name: Z to A', value: 'name: Z to A'},
+];
 
 const conditions = [
   'New',
@@ -92,11 +99,18 @@ const allItemLoad = debounce(() => {
   if(searchValueAllItems.value && searchValueAllItems.value.length > 2){
     requestURL += '&search='+searchValueAllItems.value;
   }
-  if(sortPrice.value){
-    if(sortPrice.value === 'Low to High'){
-      requestURL += '&sort_price=asc';
-    }else{
-    requestURL += '&sort_price=desc';
+  if(sortItem.value){
+    if(sortItem.value === 'Price:Low to High'){
+      requestURL += '&sort=price&order=asc';
+    }
+    else if(sortItem.value === 'Price:High to Low'){
+      requestURL += '&sort=price&order=desc';
+    }
+    else if(sortItem.value === 'name: A to Z'){
+      requestURL += '&sort=name&order=asc';
+    }
+    else if(sortItem.value === 'name: Z to A'){
+      requestURL += '&sort=name&order=desc';
     }
   }
   axios.get(requestURL).then(({data}) => {
@@ -235,7 +249,7 @@ watch([rowPerPage, currentPage, searchValue], () => {
 });
 
 // Watch for changes in all items
-watch([rowPerPageAllItems, currentPageAllItems, typeSearch, conditionSearch, searchValueAllItems, sortPrice], () => {
+watch([rowPerPageAllItems, currentPageAllItems, typeSearch, conditionSearch, searchValueAllItems, sortItem], () => {
   allItemLoad();
 });
 
@@ -296,27 +310,24 @@ allItemLoad();
         clearable
       />
     </VCol>
-    <VCol cols="12" md="4">
-      <VCombobox
-        v-model="sortPrice"
-        :items="['Low to High', 'High to Low']"
-        prepend-inner-icon="ri-price-tag-3-line"
-        placeholder="Sort by Price"
-        return-object
-        label="Sort by Price"
+    <VCol cols="12" md="4" >
+      <VTextField
+        v-model="searchValueAllItems"
+        placeholder="Search"
+        label="Search name or description of item"
         clearable
+        dense
       />
-
     </VCol>
-    
-    
   </VRow>
-  
+
+
 </div>
+
   <div class="box-style">
   <!-- Item List -->
-  <VRow class="mt-2 mr-2 mb-2">
-    <VCol cols="12" md="3" class="ml-3">
+  <VRow class="mt-2 mr-2 mb-1 ml-2">
+    <VCol cols="12" md="4" >
       <VBtn @click="ownSellingItems=true">
         <VTooltip
           location="top"
@@ -328,14 +339,26 @@ allItemLoad();
         Own Selling Items
       </VBtn>
     </VCol>
-    <VCol cols="12" md="3" class="ml-auto ">
-      <VTextField
-        v-model="searchValueAllItems"
-        placeholder="Search"
-        label="Search name or description of item"
-        clearable
-        dense
-      />
+    <VCol cols="12" md="4"/>
+    <VCol cols="12" md="4" class="d-flex justify-end">
+      <VMenu open-on-hover>
+      <template #activator="{ props }">
+        <VBtn v-bind="props" color="secondary">
+          <VIcon icon="ri-sort-desc"  class="mr-2"/>
+          Sort By
+        </VBtn>
+        </template>
+
+        <VList>
+          <VListItem
+            v-for="item in sortBy"
+            :key="item.title"
+            @click="sortItem = item.value"
+          >
+            <VListItemTitle>{{ item.title }}</VListItemTitle>
+          </VListItem>
+        </VList>
+      </VMenu>
     </VCol>
   </VRow>
     <div class="item-list-container">

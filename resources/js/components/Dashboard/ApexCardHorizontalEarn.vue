@@ -1,19 +1,97 @@
+<template>
+  <VCard>
+    <VCardItem>
+      <VCardTitle>Earnings Overview</VCardTitle>
+      <VCardSubtitle v-if="currentType === 'services'" class="ml-1">
+        Through Provide Services
+      </VCardSubtitle>
+      <VCardSubtitle v-else-if="currentType === 'items'" class="ml-1">
+        Through Selling Items
+      </VCardSubtitle>
+      <VCardSubtitle v-else class="ml-1">
+        Through Provide Services and Selling Items
+      </VCardSubtitle>
+      <template #append>
+        <MoreBtn class="me-n3 mt-n1" i/>
+        <VMenu
+          activator="parent"
+          width="240"
+          location="end"
+          offset="14px"
+        >
+          <VList>
+            <VListItem @click="filterTo('services')">
+              Provide Services
+            </VListItem>
+            <VListItem @click="filterTo('items')">
+              Selling Items
+            </VListItem>
+            <VListItem @click="filterTo('both')">
+              Both
+            </VListItem>
+          </VList>
+        </VMenu>
+      </template>
+    </VCardItem>
+
+    <VCardText>
+      <VueApexCharts
+        type="bar"
+        :options="options"
+        :series="series"
+        :height="250"
+      />
+
+      <div class="align-center mb-5 gap-x-4">
+        <h4 class="text-h4">
+          {{ isMonthly ? 'This Year' : 'This Week' }}'s Earnings
+        </h4>
+        <p v-if="isMonthly" class="mb-0">
+          Total Earnings in this year is <b>RM{{ totalEarnedYear }}</b>
+        </p>
+        <p v-else class="mb-0">
+          Total Earnings in this week is <b>RM{{ totalEarnedWeek }}</b>
+        </p>
+      </div>
+
+      <VBtn
+        v-if="!isMonthly"
+        color="primary"
+        text
+        block
+        @click="getMonthlySales"
+      >
+        View Every Month's Earnings
+      </VBtn>
+      <VBtn
+        v-else
+        color="primary"
+        text
+        block
+        @click="getWeeklyEarned"
+      >
+        View This Week's Earnings
+      </VBtn>
+    </VCardText>
+  </VCard>
+</template>
 
 <script setup>
 import { hexToRgb } from '@layouts/utils';
 import axios from 'axios';
+import { watch } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 import { useTheme } from 'vuetify';
 
-
-const vuetifyTheme = useTheme()
+const vuetifyTheme = useTheme();
+const currentType = ref('both');
 
 const options = computed(() => {
-  const currentTheme = ref(vuetifyTheme.current.value.colors)
-  const variableTheme = ref(vuetifyTheme.current.value.variables)
-  const disabledColor = `rgba(${ hexToRgb(currentTheme.value['on-surface']) },${ variableTheme.value['disabled-opacity'] })`
-  const borderColor = `rgba(${ hexToRgb(String(variableTheme.value['border-color'])) },${ variableTheme.value['border-opacity'] })`
-  
+  const currentTheme = ref(vuetifyTheme.current.value.colors);
+  const variableTheme = ref(vuetifyTheme.current.value.variables);
+  const disabledColor = `rgba(${hexToRgb(currentTheme.value['on-surface'])},${variableTheme.value['disabled-opacity']})`;
+  const borderColor = `rgba(${hexToRgb(String(variableTheme.value['border-color']))},${variableTheme.value['border-opacity']})`;
+
   return {
     chart: {
       offsetY: -10,
@@ -45,7 +123,7 @@ const options = computed(() => {
       'rgba(var(--v-theme-primary),1)',
       'rgba(var(--v-theme-primary),1)',
       'rgba(var(--v-theme-primary),1)',
-      'rgba(var(--v-theme-primary),1)'
+      'rgba(var(--v-theme-primary),1)',
     ],
     states: {
       hover: { filter: { type: 'none' } },
@@ -61,14 +139,13 @@ const options = computed(() => {
     },
     yaxis: {
       show: true,
-      tickAmount:4,
+      tickAmount: 4,
       labels: {
         style: {
           colors: disabledColor,
           fontSize: '13px',
         },
-
-        formatter: value => `RM ${ value > 999 ? `${ (value / 1000).toFixed(0) }` : value }`,
+        formatter: value => `RM ${value > 999 ? `${(value / 1000).toFixed(0)}` : value}`,
       },
     },
     responsive: [
@@ -81,25 +158,26 @@ const options = computed(() => {
         options: { plotOptions: { bar: { columnWidth: '45%' } } },
       },
     ],
-  }
-})
+  };
+});
 
 const series = ref([
   {
     name: 'Total Earned',
     data: [],
   },
-])
+]);
 const totalEarned = ref([]);
 const totalEarnedYear = ref(null);
 const totalEarnedWeek = ref(null);
 const monthlyEarned = ref([]);
 const isMonthly = ref(false);
 const category = ref([]);
+
 const getWeeklyEarned = async () => {
   isMonthly.value = false;
   try {
-    const response = await axios.get('/api/dashboard/get-weekly-earned');
+    const response = await axios.get(`/api/dashboard/get-weekly-earned?type=${currentType.value}`);
     totalEarned.value = response.data.data.total_earned;
 
     series.value[0].data = [
@@ -110,28 +188,25 @@ const getWeeklyEarned = async () => {
       totalEarned.value.Friday,
       totalEarned.value.Saturday,
       totalEarned.value.Sunday,
-    ]
+    ];
 
     totalEarnedWeek.value = response.data.data.total_earned_week;
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 
-const getMonthlySales = async () =>{
+const getMonthlySales = async () => {
   try {
-    const response = await axios.get('/api/dashboard/get-monthly-earned');
+    const response = await axios.get(`/api/dashboard/get-monthly-earned?type=${currentType.value}`);
     monthlyEarned.value = response.data.data.total_earned;
 
     totalEarnedYear.value = response.data.data.total_earned_year;
     isMonthly.value = true;
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-
-
-}
+};
 
 watch(isMonthly, (value) => {
   if (value) {
@@ -148,8 +223,8 @@ watch(isMonthly, (value) => {
       monthlyEarned.value.October,
       monthlyEarned.value.November,
       monthlyEarned.value.December,
-    ]
-    category.value = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    ];
+    category.value = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   } else {
     series.value[0].data = [
       totalEarned.value.Monday,
@@ -159,61 +234,25 @@ watch(isMonthly, (value) => {
       totalEarned.value.Friday,
       totalEarned.value.Saturday,
       totalEarned.value.Sunday,
-    ]
-    category.value = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    ];
+    category.value = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   }
-})
+});
+
+const filterTo = (type) => {
+  currentType.value = type;
+  if (isMonthly.value) {
+    getMonthlySales();
+  } else {
+    getWeeklyEarned();
+  }
+};
+
+watch(currentType, () => {
+  isMonthly.value=false;
+});
 
 onMounted(() => {
-  getWeeklyEarned()
-})
+  getWeeklyEarned();
+});
 </script>
-
-<template>
-  <VCard>
-    <VCardItem>
-      <VCardTitle>Earnings Overview</VCardTitle>
-      <VCardSubtitle>Through Provided Services</VCardSubtitle>
-    </VCardItem>
-
-    <VCardText>
-      <VueApexCharts
-        type="bar"
-        :options="options"
-        :series="series"
-        :height="250"
-      />
-
-      <div class="align-center mb-5 gap-x-4">
-        <h4 class="text-h4">
-          {{ isMonthly ? 'This Year' : 'This Week' }}'s Earnings
-        </h4>
-        <p v-if="isMonthly" class="mb-0">
-          Total Earnings in this year is <b>RM{{ totalEarnedYear }}</b>
-        </p>
-        <p v-else class="mb-0">
-          Total Earnings in this week is <b>RM{{ totalEarnedWeek }}</b>
-        </p>
-      </div>
-
-      <VBtn
-       v-if="!isMonthly"
-        color="primary"
-        text
-        block
-        @click="getMonthlySales"
-      >
-        View Every Month's Earnings
-      </VBtn>
-      <VBtn
-        v-else
-        color="primary"
-        text
-        block
-        @click="getWeeklyEarned"
-      >
-        View This Week's Earnings
-      </VBtn>
-    </VCardText>
-  </VCard>
-</template>

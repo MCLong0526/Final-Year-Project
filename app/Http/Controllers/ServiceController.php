@@ -24,8 +24,17 @@ class ServiceController extends Controller
                 $query->where('name', 'like', '%'.request('search').'%')
                     ->orWhere('description', 'like', '%'.request('search').'%');
             })
-            ->when(request()->filled('sort_price'), function ($query) {
-                $query->orderBy('price_per_hour', request('sort_price'));
+            ->when(request()->filled('sort'), function ($query) {
+                $sort = request()->input('sort');
+                $order = request()->input('order', 'desc'); // Default to 'desc' if no order is specified
+
+                // Ensure the sort and order values are safe
+                $validSortColumns = ['price_per_hour', 'name']; // Add any other valid sort columns here
+                $validOrderDirections = ['asc', 'desc'];
+
+                if (in_array($sort, $validSortColumns) && in_array($order, $validOrderDirections)) {
+                    $query->orderBy($sort, $order);
+                }
             })
             // make sure the latest services are shown first, and the don't want to show the services that are unavailable
             ->where('availability', 'available')

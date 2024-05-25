@@ -29,8 +29,17 @@ class ItemController extends Controller
                 $query->where('name', 'like', '%'.request('search').'%')
                     ->orWhere('description', 'like', '%'.request('search').'%');
             })
-            ->when(request()->filled('sort_price'), function ($query) {
-                $query->orderBy('price', request('sort_price'));
+            ->when(request()->filled('sort'), function ($query) {
+                $sort = request()->input('sort');
+                $order = request()->input('order', 'desc'); // Default to 'desc' if no order is specified
+
+                // Ensure the sort and order values are safe
+                $validSortColumns = ['price', 'name']; // Add any other valid sort columns here
+                $validOrderDirections = ['asc', 'desc'];
+
+                if (in_array($sort, $validSortColumns) && in_array($order, $validOrderDirections)) {
+                    $query->orderBy($sort, $order);
+                }
             })
             //get the availability item
             ->where('availability', 'available')

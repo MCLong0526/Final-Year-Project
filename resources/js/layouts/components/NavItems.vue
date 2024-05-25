@@ -83,7 +83,7 @@ getPendingServiceNotification()
   />
   <VerticalNavLink
     :item="{
-      title: 'Calendar',
+      title: 'Upcoming Events',
       icon: 'ri-calendar-2-line',
       to: '/calendar',
     }"

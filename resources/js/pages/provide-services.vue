@@ -18,7 +18,7 @@ const errorMessages = ref('');
 const hasErrorAlert = ref(false);
 const isAddAlert = ref(false);
 const typeSearch = ref([]);
-const sortPrice = ref(null);
+const sortService = ref(null);
 const searchValueAllServices = ref('');
 const ownServices = ref(false);
 
@@ -31,6 +31,13 @@ const allServices = ref([]);
 const rowPerPageAllServices = ref(8);
 const currentPageAllServices = ref(1);
 const totalPagesAllServices = ref(0);
+
+const sortBy = [
+  { title: 'Price:Low to High', value: 'Price:Low to High' }, 
+  { title: 'Price:High to Low', value: 'Price:High to Low' },
+  { title:'Service name: A to Z', value: 'name: A to Z'},
+  { title:'Service name: Z to A', value: 'name: Z to A'},
+];
 
 const types = [
   'Web Development',
@@ -76,11 +83,18 @@ const allServicesLoad = debounce(() => {
   if(searchValueAllServices.value && searchValueAllServices.value.length > 2){
     requestURL += '&search='+searchValueAllServices.value;
   }
-  if(sortPrice.value){
-    if(sortPrice.value === 'Low to High'){
-      requestURL += '&sort_price=asc';
-    }else{
-    requestURL += '&sort_price=desc';
+  if(sortService.value){
+    if(sortService.value === 'Price:Low to High'){
+      requestURL += '&sort=price_per_hour&order=asc';
+    }
+    else if(sortService.value === 'Price:High to Low'){
+      requestURL += '&sort=price_per_hour&order=desc';
+    }
+    else if(sortService.value === 'name: A to Z'){
+      requestURL += '&sort=name&order=asc';
+    }
+    else if(sortService.value === 'name: Z to A'){
+      requestURL += '&sort=name&order=desc';
     }
   }
   axios.get(requestURL).then(({data}) => {
@@ -201,7 +215,7 @@ watch([searchValue, rowPerPage, currentPage], () => {
   serviceLoad();
 });
 
-watch([rowPerPageAllServices, currentPageAllServices, typeSearch,  searchValueAllServices, sortPrice], () => {
+watch([rowPerPageAllServices, currentPageAllServices, typeSearch,  searchValueAllServices, sortService], () => {
   allServicesLoad();
 });
 
@@ -230,15 +244,14 @@ allServicesLoad()
 
       </VCol>
       
+      <VCol cols="12" md="4" />
       <VCol cols="12" md="4">
-        <VCombobox
-          v-model="sortPrice"
-          :items="['Low to High', 'High to Low']"
-          prepend-inner-icon="ri-price-tag-3-line"
-          placeholder="Sort by Price"
-          return-object
-          label="Sort by Price"
+        <VTextField
+          v-model="searchValueAllServices"
+          placeholder="Search"
+          label="Search name or description of service"
           clearable
+          dense
         />
       </VCol>
 
@@ -247,8 +260,8 @@ allServicesLoad()
     </VRow>
   </div>
     <div class="box-style">
-      <VRow class="mt-2 mr-2 mb-2">
-        <VCol cols="12" md="3" class="ml-3">
+      <VRow class="mt-2 mr-2 mb-1 ml-2">
+        <VCol cols="12" md="4">
           <VBtn @click="ownServices=true">
             <VTooltip
               location="top"
@@ -260,15 +273,27 @@ allServicesLoad()
             Own Services
           </VBtn>
         </VCol>
-        <VCol cols="12" md="3" class="ml-auto ">
-          <VTextField
-              v-model="searchValueAllServices"
-              placeholder="Search"
-              label="Search name or description of service"
-              clearable
-              dense
-            />
-        </VCol>
+        <VCol cols="12" md="4" />
+        <VCol cols="12" md="4" class="d-flex justify-end">
+      <VMenu open-on-hover>
+      <template #activator="{ props }">
+        <VBtn v-bind="props" color="secondary">
+          <VIcon icon="ri-sort-desc"  class="mr-2"/>
+          Sort By
+        </VBtn>
+        </template>
+
+        <VList>
+          <VListItem
+            v-for="service in sortBy"
+            :key="service.title"
+            @click="sortService = service.value"
+          >
+            <VListItemTitle>{{ service.title }}</VListItemTitle>
+          </VListItem>
+        </VList>
+      </VMenu>
+    </VCol>
       </VRow>
       
     <!-- Item List -->

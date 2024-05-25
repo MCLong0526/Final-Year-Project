@@ -238,35 +238,21 @@ class DashboardController extends Controller
         ]);
     }
 
-    // get weekly earnings by authenticated user through services
-    public function getWeeklyEarned()
+    public function getWeeklyEarned(Request $request)
     {
         // Get the current authenticated user
         $user = Auth::user();
 
-        $all_auth_service_user = [];
-
-        // Get all the services where the user_id is equal to the current authenticated user's id
-        $services = Service::where('user_id', $user->user_id)->get();
-
-        // Use DB to get all the service_user entries where the service's user_id is equal to the current authenticated user's id
-        foreach ($services as $service) {
-            $service_user = DB::table('service_user')->where('service_id', $service->service_id)->get();
-            // store all the $service_user to $all_auth_service_user, else no need to store it
-            if ($service_user) {
-                $all_auth_service_user[] = $service_user;
-            }
-
-        }
+        // Get type from request or default to 'both'
+        $type = $request->get('type', 'both');
 
         $total_earned = 0;
         $number_of_approved = 0;
-        //filter it by this week only according to the service_dateTime, it is a string so we can use the Carbon method
-        $week_start = now()->startOfWeek();
-        $week_end = now()->endOfWeek();
 
-        // calculate all the approximated_price from the $all_auth_service_user, but the status must be equal "Approved" and save it to $all_auth_service_user_approved
-        // add also the day of each service_dateTime to the total_earned, like day:monday, earned: 100, is an object in total_earned
+        //filter it by this week only according to the service_dateTime, it is a string so we can use the Carbon method
+        $week_start = Carbon::now('Asia/Kuala_Lumpur')->startOfWeek();
+        $week_end = Carbon::now('Asia/Kuala_Lumpur')->endOfWeek();
+
         // Calculate the total earned for each day of the week
         $earned_by_day = [
             'Monday' => 0,
@@ -278,13 +264,41 @@ class DashboardController extends Controller
             'Sunday' => 0,
         ];
 
-        foreach ($all_auth_service_user as $service_user) {
-            foreach ($service_user as $service_user) {
-                if ($service_user->status == 'Approved') {
-                    $service_dateTime = new Carbon($service_user->service_dateTime);
+        if ($type === 'services' || $type === 'both') {
+            // Fetch and process service data
+            $services = Service::where('user_id', $user->user_id)->get();
+            foreach ($services as $service) {
+                $service_user = DB::table('service_user')
+                    ->where('service_id', $service->service_id)
+                    ->where('status', 'Approved')
+                    ->get();
+                foreach ($service_user as $service_user) {
+                    [$date, $timeRange] = explode(' ', $service_user->service_dateTime);
+                    [$startTime, $endTime] = explode('-', $timeRange);
+
+                    $service_dateTime = new Carbon("{$date} {$startTime}");
                     if ($service_dateTime->between($week_start, $week_end)) {
                         $day_of_week = $service_dateTime->isoFormat('dddd');
                         $earned_by_day[$day_of_week] += $service_user->approximated_price;
+                        $number_of_approved++;
+                    }
+                }
+            }
+        }
+
+        if ($type === 'items' || $type === 'both') {
+            // Fetch and process item data in a similar way
+            $items = Item::where('user_id', $user->user_id)->get();
+            foreach ($items as $item) {
+                $item_user = DB::table('item_user')
+                    ->where('item_id', $item->item_id)
+                    ->where('status', 'Approved')
+                    ->get();
+                foreach ($item_user as $item_user) {
+                    $meet_dateTime = new Carbon($item_user->meet_dateTime);
+                    if ($meet_dateTime->between($week_start, $week_end)) {
+                        $day_of_week = $meet_dateTime->isoFormat('dddd');
+                        $earned_by_day[$day_of_week] += $item_user->approximated_price;
                         $number_of_approved++;
                     }
                 }
@@ -307,36 +321,23 @@ class DashboardController extends Controller
             'number_of_approved' => $number_of_approved,
             'total_earned_week' => number_format($total_earned, 2),
         ]);
-
     }
 
-    public function getMonthlyEarned()
+    public function getMonthlyEarned(Request $request)
     {
         // Get the current authenticated user
         $user = Auth::user();
 
-        $all_auth_service_user = [];
+        // Get type from request or default to 'both'
+        $type = $request->get('type', 'both');
 
-        // Get all the services where the user_id is equal to the current authenticated user's id
-        $services = Service::where('user_id', $user->user_id)->get();
-
-        // Use DB to get all the service_user entries where the service's user_id is equal to the current authenticated user's id
-        foreach ($services as $service) {
-            $service_user = DB::table('service_user')->where('service_id', $service->service_id)->get();
-            // store all the $service_user to $all_auth_service_user, else no need to store it
-            if ($service_user) {
-                $all_auth_service_user[] = $service_user;
-            }
-
-        }
-        $number_of_approved = 0;
         $total_earned = 0;
+        $number_of_approved = 0;
+
         //filter it by this year only according to the service_dateTime, it is a string so we can use the Carbon method
         $year_start = now()->startOfYear();
         $year_end = now()->endOfYear();
 
-        // calculate all the approximated_price from the $all_auth_service_user, but the status must be equal "Approved" and save it to $all_auth_service_user_approved
-        // add also the month of each service_dateTime to the total_earned, like january: 100, february: 200, etc
         // Calculate the total earned for each month of the year
         $earned_by_month = [
             'January' => 0,
@@ -353,13 +354,38 @@ class DashboardController extends Controller
             'December' => 0,
         ];
 
-        foreach ($all_auth_service_user as $service_user) {
-            foreach ($service_user as $service_user) {
-                if ($service_user->status == 'Approved') {
+        if ($type === 'services' || $type === 'both') {
+            // Fetch and process service data
+            $services = Service::where('user_id', $user->user_id)->get();
+            foreach ($services as $service) {
+                $service_user = DB::table('service_user')
+                    ->where('service_id', $service->service_id)
+                    ->where('status', 'Approved')
+                    ->get();
+                foreach ($service_user as $service_user) {
                     $service_dateTime = new Carbon($service_user->service_dateTime);
                     if ($service_dateTime->between($year_start, $year_end)) {
                         $month_of_year = $service_dateTime->isoFormat('MMMM');
                         $earned_by_month[$month_of_year] += $service_user->approximated_price;
+                        $number_of_approved++;
+                    }
+                }
+            }
+        }
+
+        if ($type === 'items' || $type === 'both') {
+            // Fetch and process item data in a similar way
+            $items = Item::where('user_id', $user->user_id)->get();
+            foreach ($items as $item) {
+                $item_user = DB::table('item_user')
+                    ->where('item_id', $item->item_id)
+                    ->where('status', 'Approved')
+                    ->get();
+                foreach ($item_user as $item_user) {
+                    $meet_dateTime = new Carbon($item_user->meet_dateTime);
+                    if ($meet_dateTime->between($year_start, $year_end)) {
+                        $month_of_year = $meet_dateTime->isoFormat('MMMM');
+                        $earned_by_month[$month_of_year] += $item_user->approximated_price;
                         $number_of_approved++;
                     }
                 }
@@ -382,6 +408,5 @@ class DashboardController extends Controller
             'number_of_approved' => $number_of_approved,
             'total_earned_year' => number_format($total_earned, 2),
         ]);
-
     }
 }
