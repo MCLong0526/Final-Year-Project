@@ -21,6 +21,8 @@ const typeSearch = ref([]);
 const sortService = ref(null);
 const searchValueAllServices = ref('');
 const ownServices = ref(false);
+const sliderValues = ref([0, 80])
+
 
 const name = ref('');
 const description = ref('');
@@ -96,6 +98,9 @@ const allServicesLoad = debounce(() => {
     else if(sortService.value === 'name: Z to A'){
       requestURL += '&sort=name&order=desc';
     }
+  }
+  if(sliderValues.value[0] !== 0 || sliderValues.value[1] !== 80){
+    requestURL += '&min_price='+sliderValues.value[0]+'&max_price='+sliderValues.value[1];
   }
   axios.get(requestURL).then(({data}) => {
     totalPagesAllServices.value = Math.ceil(data.data.total / rowPerPageAllServices.value);
@@ -220,6 +225,11 @@ watch([rowPerPageAllServices, currentPageAllServices, typeSearch,  searchValueAl
 });
 
 
+watch(sliderValues, debounce((newValue) => {
+  allServicesLoad();
+}, 1500), { immediate: true, deep: true });
+
+
 serviceLoad()
 allServicesLoad()
 </script>
@@ -244,7 +254,37 @@ allServicesLoad()
 
       </VCol>
       
-      <VCol cols="12" md="4" />
+      <VCol cols="12" md="4">
+        <VRangeSlider
+          v-model="sliderValues"
+          :min="0"
+          :max="500"
+          thumb-label="always"
+          step="10"
+          color="primary"
+          aria-label="Price range slider"
+        >
+          <template #prepend>
+            <VIcon small color="primary">mdi-currency-usd</VIcon>
+          </template>
+          <template #append>
+            <VIcon small color="primary">mdi-currency-usd</VIcon>
+          </template>
+        </VRangeSlider>
+          <p class="text-center mt-2" @click="sliderValues = [0, 80]">
+            <VTooltip
+              open-delay="500"
+              location="bottom"
+              activator="parent"
+              transition="scroll-x-transition"
+            >
+              <span>Click to reset the price range</span>
+            </VTooltip>
+            Price per hour: RM{{ sliderValues[0] }} - RM{{ sliderValues[1] }}
+          </p>
+
+      </VCol>
+
       <VCol cols="12" md="4">
         <VTextField
           v-model="searchValueAllServices"

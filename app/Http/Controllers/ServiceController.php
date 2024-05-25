@@ -24,6 +24,12 @@ class ServiceController extends Controller
                 $query->where('name', 'like', '%'.request('search').'%')
                     ->orWhere('description', 'like', '%'.request('search').'%');
             })
+            ->when(request()->filled('min_price'), function ($query) {
+                $query->where('price_per_hour', '>=', request('min_price'));
+            })
+            ->when(request()->filled('max_price'), function ($query) {
+                $query->where('price_per_hour', '<=', request('max_price'));
+            })
             ->when(request()->filled('sort'), function ($query) {
                 $sort = request()->input('sort');
                 $order = request()->input('order', 'desc'); // Default to 'desc' if no order is specified
@@ -36,6 +42,7 @@ class ServiceController extends Controller
                     $query->orderBy($sort, $order);
                 }
             })
+
             // make sure the latest services are shown first, and the don't want to show the services that are unavailable
             ->where('availability', 'available')
             ->latest()
