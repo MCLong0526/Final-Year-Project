@@ -33,6 +33,7 @@ const isAddAlert = ref(false);
 const hasErrorAlert = ref(false);
 const errorMessages = ref('');
 const ownSellingItems = ref(false);
+const sliderValues = ref([0, 200]);
 
 const sortBy = [
   { title: 'Price:Low to High', value: 'Price:Low to High' }, 
@@ -112,6 +113,9 @@ const allItemLoad = debounce(() => {
     else if(sortItem.value === 'name: Z to A'){
       requestURL += '&sort=name&order=desc';
     }
+  }
+  if(sliderValues.value[0] !== 0 || sliderValues.value[1] !== 200){
+    requestURL += '&min_price='+sliderValues.value[0]+'&max_price='+sliderValues.value[1];
   }
   axios.get(requestURL).then(({data}) => {
     totalPagesAllItems.value = Math.ceil(data.data.total / rowPerPageAllItems.value);
@@ -253,6 +257,11 @@ watch([rowPerPageAllItems, currentPageAllItems, typeSearch, conditionSearch, sea
   allItemLoad();
 });
 
+watch(sliderValues, debounce((newValue) => {
+  allItemLoad();
+}, 1500), { immediate: true, deep: true });
+
+
 
 //validations
 const priceValidator = (value) => {
@@ -282,7 +291,7 @@ allItemLoad();
 <div class="box-style">
   <h2 class="mt-3 ml-3 text-overline-4" style="font-weight: 400;">Filter Items</h2>
   <VRow class="mb-2 mt-2 ml-2 mr-2">
-    <VCol cols="12" md="4">
+    <VCol cols="12" md="3">
       <VCombobox
         v-model="typeSearch"
         multiple
@@ -298,7 +307,7 @@ allItemLoad();
 
     </VCol>
     
-    <VCol cols="12" md="4">
+    <VCol cols="12" md="3">
       <VCombobox
         v-model="conditionSearch"
         :items="conditions"
@@ -310,7 +319,37 @@ allItemLoad();
         clearable
       />
     </VCol>
-    <VCol cols="12" md="4" >
+    <VCol cols="12" md="3">
+        <VRangeSlider
+          v-model="sliderValues"
+          :min="0"
+          :max="800"
+          thumb-label="always"
+          step="10"
+          color="primary"
+          aria-label="Price range slider"
+        >
+          <template #prepend>
+            <VIcon small color="primary">mdi-currency-usd</VIcon>
+          </template>
+          <template #append>
+            <VIcon small color="primary">mdi-currency-usd</VIcon>
+          </template>
+        </VRangeSlider>
+          <p class="text-center mt-2" @click="sliderValues = [0, 200]">
+            <VTooltip
+              open-delay="500"
+              location="bottom"
+              activator="parent"
+              transition="scroll-x-transition"
+            >
+              <span>Click to reset the price range</span>
+            </VTooltip>
+            Price range: RM{{ sliderValues[0] }} - RM{{ sliderValues[1] }}
+          </p>
+
+      </VCol>
+    <VCol cols="12" md="3" >
       <VTextField
         v-model="searchValueAllItems"
         placeholder="Search"
