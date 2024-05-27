@@ -23,7 +23,7 @@ const openChatDialog = (user) => {
     lines="two"
     border
     rounded
-    style="max-block-size: 500px; overflow-y: auto;"
+    style="max-block-size: 200px; overflow-y: auto;"
   >
     <template
       v-for="(user, index) in props.followingUsers"

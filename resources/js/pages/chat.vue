@@ -1,11 +1,12 @@
 
 <script setup>
+import FollowingList from '@/components/Post/FollowingList.vue';
 import { useAuthStore } from '@/plugins/store/AuthStore';
 import axios from 'axios';
 import 'emoji-picker-element';
-
 import { debounce } from 'lodash';
 import { ref } from 'vue';
+import { errorMessages } from 'vue/compiler-sfc';
 import chatBackground from '/resources/images/avatars/chatbackground.png';
 
 const props = defineProps({
@@ -30,6 +31,9 @@ const showLoading = ref(false);
 const showEmoji = ref(false);
 const showFile = ref(false);
 const images = ref([]);
+const isError = ref(false);
+const followingUsers = ref([]);
+const openFollowedUsersDialog = ref(false);
 
 
 const addEmoji = (event) => {
@@ -38,6 +42,16 @@ const addEmoji = (event) => {
   newMessage.value += emoji;
 
 };
+
+const getFollowingUsers = () => {
+  axios.get('/api/users/get-following')
+    .then(response => {
+      followingUsers.value = response.data.data;
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
 
 
 // get the authenticated user
@@ -145,7 +159,17 @@ const latestUserMessages = computed(() => {
       userMap.set(userId, { user: message.sender.user_id !== store.user.user_id ? message.sender : message.receiver, message: message.message, created_at: message.created_at });
     }
   });
-
+  // check also whether there is a picture in the last message or not, if there is a picture, then isPicture will be true
+  messages.value.forEach(message => {
+    const userId = message.sender.user_id !== store.user.user_id ? message.sender.user_id : message.receiver.user_id;
+    if (userMap.has(userId) && message.created_at === userMap.get(userId).created_at) {
+      if(message.pictures && message.pictures.length > 0){
+        userMap.get(userId).isPicture = true;
+      }else{
+        userMap.get(userId).isPicture = false;
+      }
+    }
+  });
   return Array.from(userMap.values()); // Convert map values to array
 });
 
@@ -167,6 +191,11 @@ const getMessages = (userMessage) => {
 
 //send message
 const sendMessage = async () => {
+  if(images.value.length==0 && newMessage.value==''){
+    errorMessages.value = 'Please enter a message or upload an image';
+    isError.value=true;
+    return;
+  }
   showEmoji.value = false;
   await axios.post('/api/chat/messages', { message: newMessage.value, receiver_id: receiver.value.user_id, images: images.value});
   newMessage.value = '';
@@ -268,6 +297,7 @@ watch(searchUser, debounce(() => {
 
 fetchMessages();
 getUser();
+getFollowingUsers();
 </script>
 
 <template>
@@ -302,7 +332,28 @@ getUser();
             </VRow>
           </div>
           <VDivider />
-          <VCardTitle style="font-size: 20px; font-weight: 100" >Chats</VCardTitle>
+          <VCardTitle>
+            <VRow align="center" justify="space-between">
+              <VCol class="d-flex align-start">
+                <span style="font-size: 20px; font-weight: 100;">Chats</span>
+              </VCol>
+              <VCol class="d-flex justify-end">
+                <VTooltip
+                  open-delay="500"
+                  location="right"
+                  activator="parent"
+                  transition="scroll-x-transition"
+                >
+                  <span>Click to have a chat with your friends</span>
+                </VTooltip>
+                <VBtn
+                  icon="ri-chat-new-line"
+                  variant="text"
+                  @click="openFollowedUsersDialog = true"
+                />
+              </VCol>
+            </VRow>
+          </VCardTitle>
           <VCardText>
             <!-- Display latest message for each user -->
             <VList density="compact">
@@ -315,7 +366,10 @@ getUser();
                   </VAvatar>
                   <div class="ml-2">
                     <div style="font-size: 13px;">{{ userMessage.user.username }}</div>
-                    <div style="color: #6c757d; font-size: 12px;">{{ userMessage.message }}</div>
+                    <div v-if="userMessage.message !== null" style="color: #6c757d; font-size: 12px;">{{ userMessage.message }}</div>
+                    <div v-else-if="userMessage.isPicture && userMessage.message==null" style="color: #6c757d; font-size: 12px;"><VIcon icon="ri-camera-3-line" color="secondary"/> Photo</div>
+                    <div v-else-if="!userMessage.isPicture && userMessage.message == null" style="color: #6c757d; font-size: 12px;">No message yet</div>
+
                   </div>
                 </div>
                 <hr style="position: absolute; border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;">
@@ -357,31 +411,39 @@ getUser();
               <div v-for="(message, index) in messagesShowed" :key="message.id" :class="{'right-message': message.sender.user_id === store.user.user_id, 'left-message': message.sender.user_id !== store.user.user_id}">
                 <div v-if="message.sender.user_id !== store.user.user_id" class="message-container left-message">
                   <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
-                  <span>
+                  <span >
                     <VChip v-if="showAvatar(index)" label class="mt-1 ml-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                      <div style="flex-wrap: wrap;">
-                        <div v-if="message.pictures && message.pictures.length">
-                            <img v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}">
+                      <div style="display: inline-block; text-align: start;">
+                          <div v-if="message.pictures && message.pictures.length">
+                            <div class="mt-2"></div>
+                            <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
+                            <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                           </div>
-                        <template v-if="message.message.length > 40">
-                          <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                        </template>
-                        <template v-else>
-                          {{ message.message }}
-                        </template>
+                          <div v-if="message.message !== null">
+                            <template v-if="message.message.length > 40">
+                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                            </template>
+                              <template v-else>
+                              {{ message.message}}
+                            </template>
+                          </div>
                       </div>
                     </VChip>
                     <VChip v-else label class="mt-1 ml-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                      <div style="flex-wrap: wrap;">
+                      <div style="display: inline-block; text-align: start;">
                         <div v-if="message.pictures && message.pictures.length" >
-                            <img v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}">
+                          <div class="mt-2"></div>
+                            <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
+                            <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                         </div>
-                        <template v-if="message.message.length > 40">
-                          <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                        </template>
-                        <template v-else>
-                          {{ message.message}}
-                        </template>
+                        <div v-if="message.message !== null">
+                            <template v-if="message.message.length > 40">
+                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                            </template>
+                              <template v-else>
+                              {{ message.message}}
+                            </template>
+                          </div>
                     </div>
                     </VChip>
                   </span>
@@ -391,27 +453,35 @@ getUser();
                     <VChip v-if="showAvatar(index)" label class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                       <div style="flex-wrap: wrap;" >
                         <div v-if="message.pictures && message.pictures.length">
-                          <img v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}">
+                          <div class="mt-2"></div>
+                          <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
+                          <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                         </div>
-                        <template v-if="message.message.length > 40">
-                          <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                        </template>
-                        <template v-else>
-                          {{ message.message }}
-                        </template>
+                        <div v-if="message.message !== null">
+                            <template v-if="message.message.length > 40">
+                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                            </template>
+                              <template v-else>
+                              {{ message.message}}
+                            </template>
+                          </div>
                       </div>
                     </VChip>
                     <VChip v-else label class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                       <div style="flex-wrap: wrap;" >
                         <div v-if="message.pictures && message.pictures.length">
-                          <img v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}">
+                          <div class="mt-2"></div>
+                          <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
+                          <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                         </div>
-                        <template v-if="message.message.length > 40">
-                          <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                        </template>
-                        <template v-else>
-                          {{ message.message }}
-                        </template>
+                        <div v-if="message.message !== null">
+                            <template v-if="message.message.length > 40">
+                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                            </template>
+                              <template v-else>
+                              {{ message.message}}
+                            </template>
+                          </div>
                       </div>
                     </VChip>
                   </span>
@@ -487,10 +557,7 @@ getUser();
                   <template #append>
                     <VBtn @click="showFile = !showFile" variant="text" class="mr-1"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
                     <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
-                    
-                    
                   </template>
-                  
                   
                 </VTextField>
                 
@@ -563,46 +630,77 @@ getUser();
               <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
               <span>
                 <VChip v-if="showAvatar(index)" label class="mt-1 ml-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                  <template v-if="message.message.length > 40">
-                    <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                  </template>
-                  <template v-else>
-                    {{ message.message }}
-                  </template>
-
-
+                  <div style="display: inline-block; text-align: start;">
+                      <div v-if="message.pictures && message.pictures.length">
+                        <div class="mt-2"></div>
+                        <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
+                        <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
+                      </div>
+                      <div v-if="message.message !== null">
+                        <template v-if="message.message.length > 40">
+                            <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                        </template>
+                          <template v-else>
+                          {{ message.message}}
+                        </template>
+                      </div>
+                  </div>
                 </VChip>
                 <VChip v-else label class="mt-1 ml-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                  <template v-if="message.message.length > 40">
-                    <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                  </template>
-                  <template v-else>
-                    {{ message.message }}
-                  </template>
-
+                  <div style="display: inline-block; text-align: start;">
+                    <div v-if="message.pictures && message.pictures.length" >
+                      <div class="mt-2"></div>
+                        <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
+                        <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
+                    </div>
+                    <div v-if="message.message !== null">
+                        <template v-if="message.message.length > 40">
+                            <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                        </template>
+                          <template v-else>
+                          {{ message.message}}
+                        </template>
+                      </div>
+                </div>
                 </VChip>
               </span>
             </div>
             <div v-else class="message-container right-message">
               <span>
-                <VChip v-if="showAvatar(index)" label color="primary" class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                  <template v-if="message.message.length > 40">
-                    <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                  </template>
-                  <template v-else>
-                    {{ message.message }}
-                  </template>
-
-                </VChip>
-                <VChip v-else label color="primary" class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                  <template v-if="message.message.length > 40">
-                    <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                  </template>
-                  <template v-else>
-                    {{ message.message }}
-                  </template>
-
-                </VChip>
+                <VChip v-if="showAvatar(index)" label class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                      <div style="flex-wrap: wrap;" >
+                        <div v-if="message.pictures && message.pictures.length">
+                          <div class="mt-2"></div>
+                          <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
+                          <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
+                        </div>
+                        <div v-if="message.message !== null">
+                            <template v-if="message.message.length > 40">
+                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                            </template>
+                              <template v-else>
+                              {{ message.message}}
+                            </template>
+                          </div>
+                      </div>
+                    </VChip>
+                    <VChip v-else label class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                      <div style="flex-wrap: wrap;" >
+                        <div v-if="message.pictures && message.pictures.length">
+                          <div class="mt-2"></div>
+                          <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
+                          <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
+                        </div>
+                        <div v-if="message.message !== null">
+                            <template v-if="message.message.length > 40">
+                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                            </template>
+                              <template v-else>
+                              {{ message.message}}
+                            </template>
+                          </div>
+                      </div>
+                    </VChip>
               </span>
               <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
             </div>
@@ -622,28 +720,106 @@ getUser();
           </VCardText>
         </div>
         
-        <!-- Message input -->
-        <VRow class="mt-4 mb-0 ml-2 mr-2" style="position: absolute; inset-block-end: 0; inset-inline: 0 0;" >
-          <VCol cols="12">
-            <VTextField v-model="newMessage" label="Type your message here" @keyup.enter="sendMessageOnEnter">
-              <template #append>
-                <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
-              </template>
-            </VTextField>
-          </VCol>
-        </VRow>
+         <!-- Message input -->
+         <VRow class="mt-4 mb-0 ml-2 mr-2" style="position: absolute; inset-block-end: 0; inset-inline: 0 0;">
+              <emoji-picker
+                  v-if="showEmoji===true" 
+                  @emoji-click="addEmoji" 
+                  theme="light"
+                  :native="true"
+                  class="light ml-3"
+   
+        
+                ></emoji-picker>
+
+                <VCard v-if="showFile">
+                  <div class="upload-container ml-2 mt-2 mr-2">
+                    <input
+                      type="file"
+                      ref="fileInput"
+                      style="display: none"
+                      accept="image/*"
+                      @change="handleFileInputChange"
+                    />
+                    <div
+                      class="upload-box"
+                      @drop.prevent="handleDrop"
+                      @dragover.prevent
+                      @click="openFileInput"
+                    >
+                      <VIcon class="upload-icon">ri-image-add-line</VIcon>
+                      <p class="upload-text">Drag & Drop your images here.</p>
+                      <p class="upload-text">Click here to upload images (PNG, JPEG, JPG).</p>
+                      <div v-if="images.length > 0" class="uploaded-images">
+                        <p class="upload-text">Selected images: </p>
+                      <div v-for="(image, index) in images" :key="index" class="uploaded-image">
+                        <img :src="image.url" alt="Uploaded Image" />
+                        <VBtn @click="removeImage(index)" icon="ri-close-line" class="remove-btn"/>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                </VCard>
+               
+              <VCol cols="12">
+         
+                <VTextField 
+                  v-model="newMessage" 
+                  label="Type your message here" 
+                  @keyup.enter="sendMessageOnEnter" 
+                  :append-inner-icon="showEmoji ? 'ri-emotion-happy-line' : 'ri-emotion-happy-line'"
+                  @click:append-inner="showEmoji = !showEmoji"
+                >
+                  <template #append>
+                    <VBtn @click="showFile = !showFile" variant="text" class="mr-1"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
+                    <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
+                  </template>
+                  
+                </VTextField>
+                
+                
+              </VCol>
+              
+            </VRow>
       </VCardText> 
     </VCard>
   </VCard>
 
 
   </VContainer>
+
+  <VDialog
+    v-model="openFollowedUsersDialog"
+    width="400"
+    scrollable
+    style="max-block-size: 350px; overflow-y: auto;"
+  >
+      <VCard
+        title="Followed Users"
+      >
+        <FollowingList
+          :followingUsers="followingUsers"
+        />
+      </VCard>
+  </VDialog>
+
+  <!-- Error Snackbar -->
+  <VSnackbar
+      v-model="isError"
+      location="top end"
+      transition="scale-transition"
+      color="error"
+    >
+    <VIcon size="20" class="me-2">ri-error-warning-line</VIcon>
+    <span>{{ errorMessages.value }}</span>
+  </VSnackbar>
 </template>
 
 
 <style scoped>
 .chat-box {
   block-size: 550px; /* Set the desired height */
+  inline-size: 900px; /* Set the width to 100% */
 }
 
 .user-list {
@@ -675,8 +851,9 @@ getUser();
 }
 
 .message{
-  max-block-size: 350px; /* Set a maximum height for the message container */
+  max-block-size: 390px; /* Set a maximum height for the message container */
   overflow-y: auto; /* Enable vertical scrolling */
+  
 }
 
 .message-container {
@@ -684,7 +861,6 @@ getUser();
   flex-wrap: nowrap; /* Prevent messages from wrapping */
   margin-block-end: 5px; /* Add margin between messages */
   margin-inline: 0; /* Reset left and right margins */
-
 }
 
 
@@ -761,6 +937,7 @@ getUser();
 
 .left-message-picture {
   border-radius: 8px;
+  margin-block-end:20px;
   max-block-size: 200px; /* Adjust the size as needed */
   max-inline-size: 200px; /* Adjust the size as needed */
 }
