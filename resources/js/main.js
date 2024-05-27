@@ -13,7 +13,6 @@ import '@vuepic/vue-datepicker/dist/main.css';
 
 const app = createApp(App)
 
-
 // Register plugins
 registerPlugins(app)
 

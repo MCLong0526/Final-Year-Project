@@ -18,6 +18,11 @@ export default defineConfig({
         base: null,
         includeAbsolute: false,
       },
+      compilerOptions: {
+        // treat all tags with a dash as custom elements
+        isCustomElement: (tag) => tag.startsWith("emoji-"),
+      },
+    
     },
   }),
   vueJsx(),
