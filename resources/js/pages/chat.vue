@@ -28,6 +28,9 @@ let page = 1;
 const user = ref({});
 const showLoading = ref(false);
 const showEmoji = ref(false);
+const showFile = ref(false);
+const images = ref([]);
+
 
 const addEmoji = (event) => {
   // Access the emoji data from the event object
@@ -70,14 +73,21 @@ const fetchMessages = debounce(() => {
   axios.get(requestURL)
     .then(({data}) => {
       messages.value = data.data;
+
       messages.value.forEach(message => {
-    if (message.sender.avatar) {
-      message.sender.avatar = 'http://127.0.0.1:8000/storage/' + message.sender.avatar;
-    }
-    if (message.receiver.avatar) {
-      message.receiver.avatar = 'http://127.0.0.1:8000/storage/' + message.receiver.avatar;
-    }
-  });
+        if (message.sender.avatar) {
+          message.sender.avatar = 'http://127.0.0.1:8000/storage/' + message.sender.avatar;
+        }
+        if (message.receiver.avatar) {
+          message.receiver.avatar = 'http://127.0.0.1:8000/storage/' + message.receiver.avatar;
+        }
+        if(message.pictures){
+          message.pictures.forEach(picture => {
+            picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+          });
+        }
+        
+      });
 
   if(props.newChatUser !== null && props.newChatUser !== undefined){
       messageClicked.value = true;
@@ -158,8 +168,10 @@ const getMessages = (userMessage) => {
 //send message
 const sendMessage = async () => {
   showEmoji.value = false;
-  await axios.post('/api/chat/messages', { message: newMessage.value, receiver_id: receiver.value.user_id});
+  await axios.post('/api/chat/messages', { message: newMessage.value, receiver_id: receiver.value.user_id, images: images.value});
   newMessage.value = '';
+  images.value = [];
+  showFile.value = false;
   
   // Immediately fetch messages after sending a new message
   fetchMessages();
@@ -183,6 +195,43 @@ const fetchMoreMessage = () => {
   messagePerPage.value += 10;
 
   fetchMessages();
+};
+
+//image part:
+const handleDrop = (event) => {
+  event.preventDefault();
+  const files = event.dataTransfer.files;
+  handleFiles(files);
+};
+
+const handleFiles = (files) => {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        images.value.push({ url: e.target.result, file });
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+};
+
+const fileInput = ref(null);
+
+const openFileInput = () => {
+  if (fileInput.value) {
+    fileInput.value.click();
+  }
+};
+
+const handleFileInputChange = (event) => {
+  const files = event.target.files;
+  handleFiles(files);
+};
+
+const removeImage = (index) => {
+  images.value.splice(index, 1);
 };
 
 
@@ -297,59 +346,77 @@ getUser();
           <VCardText>
             <!-- Display messages -->
             
-            <div v-if="messagesShowed.length>0" class="message">
+            <div v-if="messagesShowed.length > 0" class="message">
               <!--button to load more message-->
               <div class="text-center">
-                <VBtn v-if="messagesShowed.length>9" variant="text" @click="fetchMoreMessage" color="primary"><VIcon class="mr-1" icon="ri-arrow-up-circle-line"/> Load more messages</VBtn>
+                <VBtn v-if="messagesShowed.length > 9" variant="text" @click="fetchMoreMessage" color="primary">
+                  <VIcon class="mr-1" icon="ri-arrow-up-circle-line" /> Load more messages
+                </VBtn>
               </div>
-              
+
               <div v-for="(message, index) in messagesShowed" :key="message.id" :class="{'right-message': message.sender.user_id === store.user.user_id, 'left-message': message.sender.user_id !== store.user.user_id}">
                 <div v-if="message.sender.user_id !== store.user.user_id" class="message-container left-message">
                   <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
                   <span>
                     <VChip v-if="showAvatar(index)" label class="mt-1 ml-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                      <template v-if="message.message.length > 40">
-                        <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                      </template>
-                      <template v-else>
-                        {{ message.message }}
-                      </template>
-
-
+                      <div style="flex-wrap: wrap;">
+                        <div v-if="message.pictures && message.pictures.length">
+                            <img v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}">
+                          </div>
+                        <template v-if="message.message.length > 40">
+                          <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                        </template>
+                        <template v-else>
+                          {{ message.message }}
+                        </template>
+                      </div>
                     </VChip>
                     <VChip v-else label class="mt-1 ml-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                      <template v-if="message.message.length > 40">
-                        <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                      </template>
-                      <template v-else>
-                        {{ message.message }}
-                      </template>
-
+                      <div style="flex-wrap: wrap;">
+                        <div v-if="message.pictures && message.pictures.length" >
+                            <img v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}">
+                        </div>
+                        <template v-if="message.message.length > 40">
+                          <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                        </template>
+                        <template v-else>
+                          {{ message.message}}
+                        </template>
+                    </div>
                     </VChip>
                   </span>
                 </div>
                 <div v-else class="message-container right-message">
                   <span>
-                    <VChip v-if="showAvatar(index)" label color="primary" class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                      <template v-if="message.message.length > 40">
-                        <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                      </template>
-                      <template v-else>
-                        {{ message.message }}
-                      </template>
-
+                    <VChip v-if="showAvatar(index)" label class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                      <div style="flex-wrap: wrap;" >
+                        <div v-if="message.pictures && message.pictures.length">
+                          <img v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}">
+                        </div>
+                        <template v-if="message.message.length > 40">
+                          <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                        </template>
+                        <template v-else>
+                          {{ message.message }}
+                        </template>
+                      </div>
                     </VChip>
-                    <VChip v-else label color="primary" class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
-                      <template v-if="message.message.length > 40">
-                        <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                      </template>
-                      <template v-else>
-                        {{ message.message }}
-                      </template>
-
+                    <VChip v-else label class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
+                      <div style="flex-wrap: wrap;" >
+                        <div v-if="message.pictures && message.pictures.length">
+                          <img v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}">
+                        </div>
+                        <template v-if="message.message.length > 40">
+                          <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                        </template>
+                        <template v-else>
+                          {{ message.message }}
+                        </template>
+                      </div>
                     </VChip>
                   </span>
                   <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
+      
                 </div>
               </div>
             </div>
@@ -378,6 +445,36 @@ getUser();
    
         
                 ></emoji-picker>
+
+                <VCard v-if="showFile">
+                  <div class="upload-container ml-2 mt-2 mr-2">
+                    <input
+                      type="file"
+                      ref="fileInput"
+                      style="display: none"
+                      accept="image/*"
+                      @change="handleFileInputChange"
+                    />
+                    <div
+                      class="upload-box"
+                      @drop.prevent="handleDrop"
+                      @dragover.prevent
+                      @click="openFileInput"
+                    >
+                      <VIcon class="upload-icon">ri-image-add-line</VIcon>
+                      <p class="upload-text">Drag & Drop your images here.</p>
+                      <p class="upload-text">Click here to upload images (PNG, JPEG, JPG).</p>
+                      <div v-if="images.length > 0" class="uploaded-images">
+                        <p class="upload-text">Selected images: </p>
+                      <div v-for="(image, index) in images" :key="index" class="uploaded-image">
+                        <img :src="image.url" alt="Uploaded Image" />
+                        <VBtn @click="removeImage(index)" icon="ri-close-line" class="remove-btn"/>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                </VCard>
+               
               <VCol cols="12">
          
                 <VTextField 
@@ -388,12 +485,15 @@ getUser();
                   @click:append-inner="showEmoji = !showEmoji"
                 >
                   <template #append>
-            
+                    <VBtn @click="showFile = !showFile" variant="text" class="mr-1"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
                     <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
+                    
                     
                   </template>
                   
+                  
                 </VTextField>
+                
                 
               </VCol>
               
@@ -582,11 +682,11 @@ getUser();
 .message-container {
   display: flex;
   flex-wrap: nowrap; /* Prevent messages from wrapping */
-  align-items: center;
-  margin-block-end: 10px; /* Add margin between messages */
+  margin-block-end: 5px; /* Add margin between messages */
   margin-inline: 0; /* Reset left and right margins */
 
 }
+
 
 .left-message .message-container {
   justify-content: flex-start;
@@ -600,5 +700,82 @@ getUser();
 .message-container.no-avatar {
   justify-content: flex-start; /* Align to the left for messages without avatars */
 }
+
+
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  block-size: 300px; /* Adjust the height as needed */
+  cursor: pointer;
+  inline-size: 400px; /* Adjust the width as needed */
+  margin-block-end: 10px;
+}
+
+.upload-icon {
+  font-size: 48px;
+}
+
+.upload-text {
+  margin-block-start: 8px;
+}
+
+.uploaded-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-block-start: 20px;
+}
+
+.uploaded-image {
+  position: relative;
+}
+
+.uploaded-image img {
+  border-radius: 8px;
+  max-block-size: 100px; /* Adjust the size as needed */
+  max-inline-size: 100px; /* Adjust the size as needed */
+}
+
+.remove-btn {
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-end: 5px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 440px;
+}
+
+
+.left-message-picture {
+  border-radius: 8px;
+  max-block-size: 200px; /* Adjust the size as needed */
+  max-inline-size: 200px; /* Adjust the size as needed */
+}
+
+.right-message-picture {
+  border-radius: 8px;
+  max-block-size: 200px; /* Adjust the size as needed */
+  max-inline-size: 200px; /* Adjust the size as needed */
+}
+
+.image-box {
+  padding: 5px; /* Add some padding to give space around the images */
+  border: 1px solid #ccc; /* You can adjust the border style and color as needed */
+  margin-block-end: 10px; /* Add margin at the bottom to separate from other content */
+}
+
 
 </style>

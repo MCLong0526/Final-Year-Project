@@ -17,4 +17,9 @@ class Message extends Model
     {
         return $this->belongsTo(User::class, 'receiver_id');
     }
+
+    public function pictures()
+    {
+        return $this->hasMany(MessagePicture::class, 'message_id');
+    }
 }
