@@ -78,9 +78,10 @@ const submitOrder = async () => {
     openItemDialog.value = false;
     props.allItemLoad();
     meetDateTime.value = '';
-    placeToMeet.value = '';
+    placeToMeet.value = null;
     quantity.value = '';
     remark_buyer.value = '';
+    remark_buyer_dateTime.value = '';
     isAddAlert.value = true;
     
   } catch (error) {
