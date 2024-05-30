@@ -190,7 +190,7 @@ getUserDetails()
       <VRow>
           <VBtn
             color="primary"
-            class="mt-2 mb-3"
+            class="mt-3 mb-3"
             @click="openChatDialog (clickedUser)"
             style=" margin-inline:120px 40px"
 

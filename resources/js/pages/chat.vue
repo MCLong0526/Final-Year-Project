@@ -7,6 +7,7 @@ import 'emoji-picker-element';
 import { debounce } from 'lodash';
 import { ref } from 'vue';
 import { errorMessages } from 'vue/compiler-sfc';
+
 import chatBackground from '/resources/images/avatars/chatbackground.png';
 
 const props = defineProps({
@@ -32,7 +33,9 @@ const showEmoji = ref(false);
 const showFile = ref(false);
 const images = ref([]);
 const isError = ref(false);
+const isSuccess = ref(false);
 const followingUsers = ref([]);
+const successMessages = ref('');
 const openFollowedUsersDialog = ref(false);
 
 
@@ -263,6 +266,277 @@ const removeImage = (index) => {
   images.value.splice(index, 1);
 };
 
+// Google Map part
+const showMapDialog = ref(false);
+const map = ref(null);
+const googleMap = ref(null);
+const initialLocation = { lat: 1.4639, lng: 110.4283 }; // Coordinates for UNIMAS, Kota Samarahan
+const searchQuery = ref('');
+const selectedLocation = ref(null); // To store the selected location
+const previousMarker = ref(null); // To store the previous red marker
+const currentMarker = ref(null); // To store the current green marker
+const infoWindow = ref(null); // To store the info window
+
+const initializeMap = () => {
+  if (map.value) {
+    const google = window.google;
+    const mapOptions = {
+      center: initialLocation,
+      zoom: 12,
+    };
+    googleMap.value = new google.maps.Map(map.value, mapOptions); // Update googleMap reference
+    previousMarker.value = new google.maps.Marker({
+      position: initialLocation,
+      map: googleMap.value,
+      icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' // Set marker color to red
+    });
+
+    infoWindow.value = new google.maps.InfoWindow();
+
+    // Add click event listener to the map
+    googleMap.value.addListener('click', (event) => {
+      const location = event.latLng;
+      selectedLocation.value = location;
+      googleMap.value.setCenter(location);
+
+      // Remove the current marker if it exists
+      if (currentMarker.value) {
+        currentMarker.value.setMap(null);
+      }
+
+      // Set the previous marker to red
+      if (previousMarker.value) {
+        previousMarker.value.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
+      }
+
+      // Add the new green marker
+      currentMarker.value = new google.maps.Marker({
+        position: location,
+        map: googleMap.value,
+        icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' // Set marker color to green
+      });
+
+      // Update the previous marker to be the current marker
+      previousMarker.value = currentMarker.value;
+
+      // Reverse geocode to get the location name
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: location }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          const locationName = results[0].formatted_address;
+
+          // Add click event listener to the marker
+          google.maps.event.addListener(currentMarker.value, 'click', () => {
+            // Get the user's current location
+            navigator.geolocation.getCurrentPosition((position) => {
+              const userLat = position.coords.latitude;
+              const userLng = position.coords.longitude;
+
+              const contentString = `
+              <div style="text-align: left; font-family: Arial, sans-serif;">
+                <p style="margin-bottom: 10px;"><strong>Selected Location:</strong> ${locationName}</p>
+                <a href="https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${location.lat()},${location.lng()}" target="_blank" style="display: inline-block; margin: 5px; text-decoration: none; color: #4285F4;">
+                  <img src="https://static-00.iconduck.com/assets.00/google-maps-icon-2048x2048-fxw1yxmx.png" alt="Google Maps" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 3px;"/>
+                  <span style="vertical-align: middle;">Open in Google Maps</span>
+                </a>
+                <br>
+                <a href="https://waze.com/ul?ll=${location.lat()},${location.lng()}&navigate=yes&from=${userLat},${userLng}" target="_blank" style="display: inline-block; margin: 5px; text-decoration: none; color: #2CB1F2;">
+                  <img src="https://i.pinimg.com/736x/e1/39/20/e139200f3e67ec44b6fa6a02d35d105d.jpg" alt="Waze" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 3px;"/>
+                  <span style="vertical-align: middle;">Open in Waze</span>
+                </a>
+                <br>
+                <button id="copyLocationButton" style="display: inline-block; margin: 5px; padding: 5px 10px; font-size: 14px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">
+                  Copy Location
+                </button>
+                <button id="sendLocationButton" style="display: inline-block; margin: 5px; padding: 5px 10px; font-size: 14px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">
+                  Send Location
+                </button>
+              </div>
+              `;
+
+              infoWindow.value.setContent(contentString);
+              infoWindow.value.open(googleMap.value, currentMarker.value);
+
+              // Add event listener to the copy button
+              setTimeout(() => {
+                document.getElementById('copyLocationButton').addEventListener('click', () => {
+                  const locationLink = `https://www.google.com/maps?q=${location.lat()},${location.lng()}`;
+                  navigator.clipboard.writeText(locationLink).then(() => {
+                    successMessages.value = 'Location link copied to clipboard!';
+                    isSuccess.value = true;
+                  }).catch((err) => {
+                    console.error('Failed to copy text: ', err);
+                  });
+                });
+              }, 0);
+
+              // Add event listener to the send button, which is to send the location to the receiver, i want the link that can be click to open the location in google map
+              setTimeout(() => {
+                document.getElementById('sendLocationButton').addEventListener('click', () => {
+                  newMessage.value = 'Location: ' + locationName + ' https://www.google.com/maps?q=' + location.lat() + ',' + location.lng();
+                  sendMessage();
+                  searchQuery.value = '';
+                  showMapDialog.value = false;
+                });
+              }, 0);
+            });
+          });
+        } else {
+          console.error('Geocode was not successful for the following reason: ' + status);
+        }
+      });
+    });
+  }
+};
+
+const searchPlace = () => {
+  const geocoder = new google.maps.Geocoder();
+  geocoder.geocode({ address: searchQuery.value }, (results, status) => {
+    if (status === 'OK') {
+      successMessages.value = 'Location found!';
+      isSuccess.value = true;
+      const location = results[0].geometry.location;
+      googleMap.value.setCenter(location); // Ensure googleMap is referenced correctly
+
+      // Remove the current marker if it exists
+      if (currentMarker.value) {
+        currentMarker.value.setMap(null);
+      }
+
+      // Set the previous marker to red
+      if (previousMarker.value) {
+        previousMarker.value.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
+      }
+
+      // Add the new green marker
+      currentMarker.value = new google.maps.Marker({
+        position: location,
+        map: googleMap.value,
+        icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' // Set marker color to green
+      });
+
+      // Update the previous marker to be the current marker
+      previousMarker.value = currentMarker.value;
+
+      // Reverse geocode to get the location name
+      geocoder.geocode({ location: location }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          const locationName = results[0].formatted_address;
+
+          // Add click event listener to the marker
+          google.maps.event.addListener(currentMarker.value, 'click', () => {
+            // Get the user's current location
+            navigator.geolocation.getCurrentPosition((position) => {
+              const userLat = position.coords.latitude;
+              const userLng = position.coords.longitude;
+
+              const contentString = `
+              <div style="text-align: left; font-family: Arial, sans-serif;">
+                <p style="margin-bottom: 10px;"><strong>Selected Location:</strong> ${locationName}</p>
+                <a href="https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${location.lat()},${location.lng()}" target="_blank" style="display: inline-block; margin: 5px; text-decoration: none; color: #4285F4;">
+                  <img src="https://static-00.iconduck.com/assets.00/google-maps-icon-2048x2048-fxw1yxmx.png" alt="Google Maps" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 3px;"/>
+                  <span style="vertical-align: middle;">Open in Google Maps</span>
+                </a>
+                <br>
+                <a href="https://waze.com/ul?ll=${location.lat()},${location.lng()}&navigate=yes&from=${userLat},${userLng}" target="_blank" style="display: inline-block; margin: 5px; text-decoration: none; color: #2CB1F2;">
+                  <img src="https://i.pinimg.com/736x/e1/39/20/e139200f3e67ec44b6fa6a02d35d105d.jpg" alt="Waze" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 3px;"/>
+                  <span style="vertical-align: middle;">Open in Waze</span>
+                </a>
+                <br>
+                <button id="copyLocationButton" style="display: inline-block; margin: 5px; padding: 5px 10px; font-size: 14px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">
+                  Copy Location
+                </button>
+                <button id="sendLocationButton" style="display: inline-block; margin: 5px; padding: 5px 10px; font-size: 14px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">
+                  Send Location
+                </button>
+              </div>
+              `;
+
+              infoWindow.value.setContent(contentString);
+              infoWindow.value.open(googleMap.value, currentMarker.value);
+
+              // Add event listener to the copy button
+              setTimeout(() => {document.getElementById('copyLocationButton').addEventListener('click', () => {
+                  const locationLink = `https://www.google.com/maps?q=${location.lat()},${location.lng()}`;
+                  navigator.clipboard.writeText(locationLink).then(() => {
+                    successMessages.value = 'Location link copied to clipboard!';
+                    isSuccess.value = true;
+                  }).catch((err) => {
+                    console.error('Failed to copy text: ', err);
+                  });
+                });
+              }, 0);
+
+              // Add event listener to the send button, which is to send the location to the receiver
+              setTimeout(() => {
+                document.getElementById('sendLocationButton').addEventListener('click', () => {
+                  newMessage.value = 'Location: <br>' + locationName + ' https://www.google.com/maps?q=' + location.lat() + ',' + location.lng();
+                  sendMessage();
+                  searchQuery.value = '';
+                  showMapDialog.value = false;
+                });
+              }, 0);
+
+
+            });
+          });
+        } else {
+          errorMessages.value = 'Location not found! Please enter more specific location details for better results.';
+          isError.value = true;
+          console.error('Geocode was not successful for the following reason: ' + status);
+        }
+      });
+    } else {
+      errorMessages.value = 'Location not found! Please enter more specific location details for better results.';
+      isError.value = true;
+      console.error('Geocode was not successful for the following reason: ' + status);
+    }
+  });
+};
+
+watch(showMapDialog, (newVal) => {
+  if (newVal) {
+    setTimeout(() => {
+      initializeMap();
+    }, 300); // Delay to ensure the dialog is fully rendered
+  }
+});
+
+
+
+
+//split message
+const splitMessage = (message) => {
+  const words = message.split(' ');
+  let lines = [];
+  let currentLine = '';
+
+  words.forEach(word => {
+    if ((currentLine + word).length <= 40) {
+      currentLine += word + ' ';
+    } else {
+      lines.push(currentLine.trim());
+      currentLine = word + ' ';
+    }
+  });
+
+  if (currentLine.length > 0) {
+    lines.push(currentLine.trim());
+  }
+
+  return makeLinksClickable(lines.join('<br>'));
+};
+
+const makeLinksClickable = (message) => {
+  const urlPattern = /https?:\/\/[^\s]+/g;
+  return message.replace(urlPattern, function(url) {
+    return `<a href="${url}" target="_blank">${url}</a>`;
+  });
+};
+
+
+
+
 
 //listen for new messages, so that the messages can be updated in real-time
 var pusher = new Pusher('bfdcd4030f09a5a101b7',{
@@ -421,10 +695,10 @@ getFollowingUsers();
                           </div>
                           <div v-if="message.message !== null">
                             <template v-if="message.message.length > 40">
-                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                              <span v-html="splitMessage(message.message)"></span>
                             </template>
-                              <template v-else>
-                              {{ message.message}}
+                            <template v-else>
+                              <span v-html="splitMessage(message.message)"></span>
                             </template>
                           </div>
                       </div>
@@ -437,13 +711,15 @@ getFollowingUsers();
                             <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                         </div>
                         <div v-if="message.message !== null">
-                            <template v-if="message.message.length > 40">
-                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                            </template>
-                              <template v-else>
-                              {{ message.message}}
-                            </template>
-                          </div>
+                          <template v-if="message.message.length > 40">
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                          <template v-else>
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                        </div>
+
+
                     </div>
                     </VChip>
                   </span>
@@ -458,13 +734,15 @@ getFollowingUsers();
                           <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                         </div>
                         <div v-if="message.message !== null">
-                            <template v-if="message.message.length > 40">
-                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                            </template>
-                              <template v-else>
-                              {{ message.message}}
-                            </template>
-                          </div>
+                          <template v-if="message.message.length > 40">
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                          <template v-else>
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                        </div>
+
+
                       </div>
                     </VChip>
                     <VChip v-else label class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
@@ -475,13 +753,13 @@ getFollowingUsers();
                           <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                         </div>
                         <div v-if="message.message !== null">
-                            <template v-if="message.message.length > 40">
-                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                            </template>
-                              <template v-else>
-                              {{ message.message}}
-                            </template>
-                          </div>
+                          <template v-if="message.message.length > 40">
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                          <template v-else>
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                        </div>
                       </div>
                     </VChip>
                   </span>
@@ -546,7 +824,6 @@ getFollowingUsers();
                 </VCard>
                
               <VCol cols="12">
-         
                 <VTextField 
                   v-model="newMessage" 
                   label="Type your message here" 
@@ -555,7 +832,8 @@ getFollowingUsers();
                   @click:append-inner="showEmoji = !showEmoji"
                 >
                   <template #append>
-                    <VBtn @click="showFile = !showFile" variant="text" class="mr-1"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
+                    <VBtn @click="showMapDialog = true" variant="text" color="success"><VIcon icon="ri-map-pin-line"/></VBtn>
+                    <VBtn @click="showFile = !showFile" variant="text" color="error"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
                     <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
                   </template>
                   
@@ -638,12 +916,13 @@ getFollowingUsers();
                       </div>
                       <div v-if="message.message !== null">
                         <template v-if="message.message.length > 40">
-                            <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
+                          <span v-html="splitMessage(message.message)"></span>
                         </template>
-                          <template v-else>
-                          {{ message.message}}
+                        <template v-else>
+                          <span v-html="splitMessage(message.message)"></span>
                         </template>
                       </div>
+
                   </div>
                 </VChip>
                 <VChip v-else label class="mt-1 ml-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
@@ -654,13 +933,14 @@ getFollowingUsers();
                         <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                     </div>
                     <div v-if="message.message !== null">
-                        <template v-if="message.message.length > 40">
-                            <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                        </template>
-                          <template v-else>
-                          {{ message.message}}
-                        </template>
-                      </div>
+                      <template v-if="message.message.length > 40">
+                        <span v-html="splitMessage(message.message)"></span>
+                      </template>
+                      <template v-else>
+                        <span v-html="splitMessage(message.message)"></span>
+                      </template>
+                    </div>
+
                 </div>
                 </VChip>
               </span>
@@ -675,13 +955,14 @@ getFollowingUsers();
                           <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                         </div>
                         <div v-if="message.message !== null">
-                            <template v-if="message.message.length > 40">
-                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                            </template>
-                              <template v-else>
-                              {{ message.message}}
-                            </template>
-                          </div>
+                          <template v-if="message.message.length > 40">
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                          <template v-else>
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                        </div>
+
                       </div>
                     </VChip>
                     <VChip v-else label class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
@@ -692,13 +973,14 @@ getFollowingUsers();
                           <hr class="mt-1 mb-1" style="border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;"/>
                         </div>
                         <div v-if="message.message !== null">
-                            <template v-if="message.message.length > 40">
-                                <span v-html="message.message.match(/.{1,40}/g).join('<br>')"></span>
-                            </template>
-                              <template v-else>
-                              {{ message.message}}
-                            </template>
-                          </div>
+                          <template v-if="message.message.length > 40">
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                          <template v-else>
+                            <span v-html="splitMessage(message.message)"></span>
+                          </template>
+                        </div>
+
                       </div>
                     </VChip>
               </span>
@@ -771,7 +1053,8 @@ getFollowingUsers();
                   @click:append-inner="showEmoji = !showEmoji"
                 >
                   <template #append>
-                    <VBtn @click="showFile = !showFile" variant="text" class="mr-1"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
+                    <VBtn @click="showMapDialog = true" variant="text" color="success"><VIcon icon="ri-map-pin-line"/></VBtn>
+                    <VBtn @click="showFile = !showFile" variant="text" color="error"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
                     <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
                   </template>
                   
@@ -794,14 +1077,53 @@ getFollowingUsers();
     scrollable
     style="max-block-size: 350px; overflow-y: auto;"
   >
-      <VCard
-        title="Followed Users"
-      >
-        <FollowingList
-          :followingUsers="followingUsers"
-        />
-      </VCard>
+    <VCard
+      title="Followed Users"
+    >
+      <FollowingList
+        :followingUsers="followingUsers"
+      />
+    </VCard>
   </VDialog>
+
+  <VDialog v-model="showMapDialog" width="800">
+  <VCard>
+    <VCardTitle class="text-center text-overline mt-3 mb-1" style="font-size: 20px !important;">
+      <span>Google Map</span>
+      <VSpacer />
+    </VCardTitle>
+    <VAlert
+      color="info"
+      icon="ri-map-pin-line"
+      variant="tonal"
+      style=" margin-block-end: 20px;margin-inline: 20px 20px;"
+    >
+      Use the search bar to find a specific place. Click on the map to select a location.
+    </VAlert>
+   
+    <VCardText>
+      <div class="box-style" ref="map" style="block-size: 400px;"></div>
+      
+      <div class="mt-4">
+        <VTextField
+          v-model="searchQuery"
+          label="Search Location"
+          @keyup.enter="searchPlace"
+          clearable
+        > 
+        <template #append>
+          <VBtn @click="searchPlace"><VIcon icon="ri-search-line"/></VBtn>
+        </template>
+        </VTextField>
+      </div>
+      <div v-if="selectedLocation">
+        <p>Selected Location: {{ selectedLocation.lat() }}, {{ selectedLocation.lng() }}</p>
+      </div>
+    </VCardText>
+    
+  </VCard>
+</VDialog>
+
 
   <!-- Error Snackbar -->
   <VSnackbar
@@ -813,10 +1135,29 @@ getFollowingUsers();
     <VIcon size="20" class="me-2">ri-error-warning-line</VIcon>
     <span>{{ errorMessages.value }}</span>
   </VSnackbar>
+
+  <VSnackbar
+      v-model="isSuccess"
+      location="top end"
+      transition="scale-transition"
+      color="success"
+    >
+    <VIcon size="20" class="me-2">ri-checkbox-circle-line</VIcon>
+    <span>{{ successMessages }}</span>
+  </VSnackbar>
 </template>
 
 
 <style scoped>
+.box-style {
+  padding: 1.5px; /* Padding around the table */
+  border: 0.4px solid #282828;
+  border-radius:10px;
+  background-color: #fff; /* White background color */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 30%); /* Drop shadow */
+  margin-block-end: 15px
+}
+
 .chat-box {
   block-size: 550px; /* Set the desired height */
   inline-size: 900px; /* Set the width to 100% */

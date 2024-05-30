@@ -8,6 +8,7 @@
     <title>UNIMAS Life Enhancement App</title>
     <link rel="stylesheet" type="text/css" href="{{ asset('loader.css') }}" />
     @vite(['resources/js/main.js'])
+
 </head>
 
 <body>
@@ -35,6 +36,8 @@
         if (primaryColor)
             document.documentElement.style.setProperty('--initial-loader-color', primaryColor)
     </script>
+    <!-- Include Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD7w1pLEK6V-VczHKkrqtWi0y4Q62N1DA&libraries=places"></script>
     <!-- Include Pusher script -->
     <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
     <!-- Include Echo script -->
