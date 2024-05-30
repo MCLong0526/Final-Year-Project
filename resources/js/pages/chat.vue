@@ -1160,7 +1160,7 @@ getFollowingUsers();
 
 .chat-box {
   block-size: 550px; /* Set the desired height */
-  inline-size: 900px; /* Set the width to 100% */
+  inline-size: 950px; /* Set the width to 100% */
 }
 
 .user-list {
