@@ -145,7 +145,7 @@ const options = computed(() => {
           colors: disabledColor,
           fontSize: '13px',
         },
-        formatter: value => `RM ${value > 999 ? `${(value / 1000).toFixed(0)}` : value}`,
+        formatter: value => `RM ${value}`,
       },
     },
     responsive: [

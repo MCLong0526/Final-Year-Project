@@ -249,6 +249,19 @@ class AuthController extends Controller
         ]);
     }
 
+    public function checkUsernameExists(Request $request)
+    {
+        $request->validate([
+            'username' => 'required',
+        ]);
+
+        $usernameExists = User::where('username', $request->username)->exists();
+
+        return response()->json([
+            'exists' => $usernameExists,
+        ]);
+    }
+
     public function register(UserRequest $request)
     {
         // Set default avatar path

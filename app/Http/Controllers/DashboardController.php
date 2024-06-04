@@ -312,8 +312,20 @@ class DashboardController extends Controller
         }
 
         // total earned in a week
+        $total_earned = 0;
+
+        // total earned in a week
         foreach ($formatted_earned_by_day as $day => $earned) {
-            $total_earned += $earned;
+            if (is_numeric($earned)) {
+                $total_earned += $earned;
+            } else {
+                // Handle non-numeric value (optional)
+                // For example, you can log an error or convert the value to a numeric type
+                // make sure it can accept the comma
+                $earned = str_replace(',', '', $earned);
+                $earned = floatval($earned); // Convert to float, or use intval for integer
+                $total_earned += $earned;
+            }
         }
 
         return $this->success([
@@ -399,8 +411,20 @@ class DashboardController extends Controller
         }
 
         // total earned in a year
+
+        // total earned in a week
         foreach ($formatted_earned_by_month as $month => $earned) {
-            $total_earned += $earned;
+            if (is_numeric($earned)) {
+                $total_earned += $earned;
+            } else {
+                // Handle non-numeric value (optional)
+                // For example, you can log an error or convert the value to a numeric type make sure it can accept the comma
+                // make sure it can accept the comma
+                $earned = str_replace(',', '', $earned);
+                $earned = floatval($earned);
+                // make sure it can accept the comma
+                $total_earned += $earned;
+            }
         }
 
         return $this->success([

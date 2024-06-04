@@ -55,7 +55,7 @@ const openChatDialog = (user) => {
 
   <VDialog
     v-model="dialogChat"
-    width="600"
+    width="900"
   >
     <Chat :newChatUser="newChatUser" />
   </VDialog>

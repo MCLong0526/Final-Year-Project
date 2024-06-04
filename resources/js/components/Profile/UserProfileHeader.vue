@@ -113,7 +113,6 @@ const getRoleColor = (role) => {
 const editDialogOpen = () => {
   authUser.value = Object.assign({}, user.value);
   editDialog.value = true;
-  console.log(user.value.user_id);
 };
 
 // edit user profile function

@@ -21,6 +21,7 @@ const correctPhoneNumber = ref(false);
 const isSeller = ref(false);
 const hasSuccessAlert = ref(false);
 const successMessages = ref('');
+const correctUsername = ref(false);
 
 const vuetifyTheme = useTheme();
 
@@ -38,6 +39,7 @@ const phoneNumberValidator = (v) => /^0[0-9]{9,10}$/.test(v) || 'Phone number mu
 
 const isPasswordVisible = ref(false);
 
+
 const checkValidations = () => {
 
   errorMessages.value = '';
@@ -47,11 +49,19 @@ const checkValidations = () => {
   if (username.value === '' || email.value === '' || phoneNumber.value === '') {
     errorMessages.value = 'Please fill in all the fields';
     hasErrorAlert.value = true;
+    return;
   }
 
-  // Check if the email field is not empty or null
-  if (email.value !== '') {
-    // Check if the email is a valid unimas email
+  if(username.value!==''&& correctUsername.value === false){
+    // Check if the username is at least 6 characters
+    if (username.value.length < 6) {
+      errorMessages.value = 'Username must be at least 6 characters';
+      hasErrorAlert.value = true;
+      return;
+    }else{
+      checkUsername();
+    }
+  }else if(email.value !== ''){
     if (emailValidator2(email.value) !== true ){
       errorMessages.value = 'Email format is invalid, please use your unimas email';
       hasErrorAlert.value = true;
@@ -60,6 +70,12 @@ const checkValidations = () => {
       checkEmail();
     }
   }
+
+    // Check if the email is a valid unimas email
+  
+
+  // Check if the email field is not empty or null
+ 
 
   // Check if the phone number field is not empty or null
   if (phoneNumber.value !== '') {
@@ -72,7 +88,7 @@ const checkValidations = () => {
     }
   }
 
-  if(correctEmail.value === true && correctPhoneNumber.value === true){
+  if(correctEmail.value === true && correctPhoneNumber.value === true && correctUsername.value === true){
     currentTab.value = 'tab-2';
   }
 
@@ -80,6 +96,8 @@ const checkValidations = () => {
 
 
 const checkEmail = () => {
+  errorMessages.value = '';
+  hasErrorAlert.value = false;
   axios.get('/api/auth/check-email-exists/', {
     params: {
       email: email.value,
@@ -95,6 +113,10 @@ const checkEmail = () => {
       hasErrorAlert.value = false;
       correctEmail.value = true;
 
+      if(correctEmail.value === true && correctPhoneNumber.value === true && correctUsername.value === true){
+        currentTab.value = 'tab-2';
+      }
+
     }
   }).catch((error) => {
     console.error('Error checking email:', error);
@@ -104,7 +126,38 @@ const checkEmail = () => {
   });
 };
 
+const checkUsername = () => {
+  errorMessages.value = '';
+  hasErrorAlert.value = false;
+  axios.get('/api/auth/check-username-exists/', {
+    params: {
+      username: username.value,
+    },
+  }).then((response) => {
+    if (response.data.exists) {
+      errorMessages.value = 'Username already exists';
+      hasErrorAlert.value = true;
+    } else {
+      // Handle case where username doesn't exist
+      // For example, clear error messages or set hasErrorAlert to false
+      errorMessages.value = '';
+      hasErrorAlert.value = false;
+      correctUsername.value = true;
+
+      if(correctEmail.value === true && correctPhoneNumber.value === true && correctUsername.value === true){
+        currentTab.value = 'tab-2';
+      }
+    }
+  }).catch((error) => {
+    console.error('Error checking username:', error);
+    // Handle error appropriately, e.g., show a generic error message to the user
+    errorMessages.value = 'An error occurred while checking username.';
+    hasErrorAlert.value = true;
+  });
+};
+
 watch(currentTab, (newValue) => {
+
   if (newValue === 'tab-2') {
     // Check email, username, and phone number validations
     checkValidations();
@@ -142,7 +195,7 @@ const register = async () => {
   }).catch((error) => {
     console.error('Error registering user:', error);
     // Handle error appropriately, e.g., show a generic error message to the user
-    errorMessages.value = 'An error occurred while registering user.';
+    errorMessages.value = error.response.data.message;
     hasErrorAlert.value = true;
   });
 };
@@ -156,6 +209,14 @@ const register = async () => {
   <div class="auth-wrapper">
     <div class="auth-content">
       <VCard class="auth-card pa-4 pt-7" max-width="448">
+        <RouterLink
+              class="text-primary ms-2"
+              to="/login"
+              @click="goToLoginPage()"
+            >
+              <VIcon class="mb-1" icon="ri-arrow-left-double-line" />
+              Go to Login
+            </RouterLink>
         <VCardItem class="justify-center">
           <template #prepend>
             <div class="d-flex">
