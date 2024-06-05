@@ -11,11 +11,16 @@ export const useAuthStore = defineStore('user', () => {
     phone_number: null,
     user_id: null,
     status: null,
+
   });
 
   const deviceToken = ref(null);
   const isLoggedIn = computed(() => !!user.value.token); // Check if token exists
   const errorMessages = ref(null);
+
+  const isAdmin = computed(() => {
+    return user.value.roles.some(role => role.name === 'Admin');
+  });
 
   function $reset() {
     user.value = {
@@ -80,5 +85,5 @@ export const useAuthStore = defineStore('user', () => {
   }
   
 
-  return { user, deviceToken, $reset, login, isLoggedIn, logout, getCurrentLoggedUser, errorMessages };
+  return { user, deviceToken, $reset, login, isLoggedIn, logout, getCurrentLoggedUser, errorMessages, isAdmin };
 });

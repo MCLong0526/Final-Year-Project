@@ -109,6 +109,16 @@ const openProfileDialog = (user) => {
   clickedUser.value = user;
 };
 
+watch(openItemDialog, (newValue) => {
+  if (!newValue) {
+    meetDateTime.value = '';
+    placeToMeet.value = null;
+    quantity.value = '';
+    remark_buyer.value = '';
+    remark_buyer_dateTime.value = '';
+  } 
+});
+
 
 </script>
 
@@ -483,7 +493,8 @@ const openProfileDialog = (user) => {
                   v-model="quantity"
                   prepend-inner-icon="ri-survey-line"
                   placeholder="Enter Quantity"
-                  :rules="[requiredValidator]"
+                  type="number"
+                  :rules="[requiredValidator, (v) => v > 0 || 'Quantity must be greater than 0']"
                 />
               </VCol>
             </VRow>
@@ -582,8 +593,9 @@ const openProfileDialog = (user) => {
             class="d-flex gap-4"
           ><VBtn
               color="secondary"
-              type="reset"
+    
               variant="tonal"
+              @click="meetDateTime = ''; placeToMeet = null; quantity = null; remark_buyer = ''; remark_buyer_dateTime = '';"
             >
               Reset
             </VBtn>

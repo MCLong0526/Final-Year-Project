@@ -597,7 +597,7 @@ getFollowingUsers();
                   class="mr-3"
                   label="Search User"
                   prepend-inner-icon="ri-search-line"
-                  placeholder="Placeholder Text"
+                  placeholder="Search User"
                   rounded
                   density="compact"
 
@@ -829,11 +829,11 @@ getFollowingUsers();
                   label="Type your message here" 
                   @keyup.enter="sendMessageOnEnter" 
                   :append-inner-icon="showEmoji ? 'ri-emotion-happy-line' : 'ri-emotion-happy-line'"
-                  @click:append-inner="showEmoji = !showEmoji"
+                  @click:append-inner="(showEmoji = !showEmoji, showFile = false, showMapDialog = false)"
                 >
                   <template #append>
-                    <VBtn @click="showMapDialog = true" variant="text" color="success"><VIcon icon="ri-map-pin-line"/></VBtn>
-                    <VBtn @click="showFile = !showFile" variant="text" color="error"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
+                    <VBtn @click="(showMapDialog = true,showEmoji =false,showFile =false)" variant="text" color="success"><VIcon icon="ri-map-pin-line"/></VBtn>
+                    <VBtn @click="(showFile = !showFile, showEmoji=false, showMapDialog=false)" variant="text" color="error"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
                     <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
                   </template>
                   
@@ -991,7 +991,7 @@ getFollowingUsers();
 
         <div v-else class="text-center" style=" margin-block:40px 40px">
           <VCardTitle>Messages</VCardTitle>
-          <VImg :src="chatBackground" style=" block-size: auto;inline-size: 100px; margin-block-start: 20px;margin-inline-start:220px"/>
+          <VImg :src="chatBackground" style=" block-size: auto;inline-size: 100px; margin-block-start: 20px;margin-inline-start:370px"/>
           <VCardTitle class="text-overline">You guys are friends on UNIMAS Web Application</VCardTitle>
           <VCardText>
             <VList>
@@ -1050,11 +1050,11 @@ getFollowingUsers();
                   label="Type your message here" 
                   @keyup.enter="sendMessageOnEnter" 
                   :append-inner-icon="showEmoji ? 'ri-emotion-happy-line' : 'ri-emotion-happy-line'"
-                  @click:append-inner="showEmoji = !showEmoji"
+                  @click:append-inner="(showEmoji = !showEmoji, showFile = false, showMapDialog = false)"
                 >
                   <template #append>
-                    <VBtn @click="showMapDialog = true" variant="text" color="success"><VIcon icon="ri-map-pin-line"/></VBtn>
-                    <VBtn @click="showFile = !showFile" variant="text" color="error"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
+                    <VBtn @click="(showMapDialog = true,showEmoji =false,showFile =false)" variant="text" color="success"><VIcon icon="ri-map-pin-line"/></VBtn>
+                    <VBtn @click="(showFile = !showFile, showEmoji=false, showMapDialog=false)" variant="text" color="error"><VIcon :icon="showFile ? 'ri-close-line' : 'ri-attachment-line'"/></VBtn>
                     <VBtn @click="sendMessage"><VIcon icon="ri-send-plane-fill"/></VBtn>
                   </template>
                   
@@ -1116,9 +1116,9 @@ getFollowingUsers();
         </template>
         </VTextField>
       </div>
-      <div v-if="selectedLocation">
+      <!-- <div v-if="selectedLocation">
         <p>Selected Location: {{ selectedLocation.lat() }}, {{ selectedLocation.lng() }}</p>
-      </div>
+      </div> -->
     </VCardText>
     
   </VCard>

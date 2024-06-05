@@ -313,7 +313,7 @@ getUserDetails()
 
   <VDialog
     v-model="dialogChat"
-    width="800"
+    width="900"
   >
     <Chat :newChatUser="newChatUser" />
   </VDialog>

@@ -107,9 +107,9 @@ const sendTemporaryPassword = async () => {
   }
 };
 
-const goToLoginPage = () => {
-  router.push({ path: '/login', query: { forceReload: true } }).catch(() => {});
-};
+// const goToLoginPage = () => {
+//   router.push({ path: '/login', query: { forceReload: true } }).catch(() => {});
+// };
 
 // customize validator
 const codeValidator = (v) => {

@@ -56,15 +56,7 @@ getPendingServiceNotification()
       heading: 'Apps & Pages',
     }"
   />
-  <VerticalNavLink
-
-    :item="{
-      title: 'Dashboard',
-      icon: 'ri-dashboard-line',
-      to: '/dashboard',
-    }"
-  />
-
+  
   <VerticalNavLink
      v-if="isAdmin === true" 
     :item="{
@@ -73,6 +65,15 @@ getPendingServiceNotification()
       to: '/admin-dashboard',
     }"
   />
+  <VerticalNavLink
+    v-else
+    :item="{
+      title: 'Dashboard',
+      icon: 'ri-dashboard-line',
+      to: '/dashboard',
+    }"
+  />
+
   <VerticalNavLink
    v-if="isAdmin === true" 
     :item="{

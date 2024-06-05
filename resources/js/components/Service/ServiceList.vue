@@ -197,6 +197,19 @@ const openProfileDialog = (user) => {
   clickedUser.value = user;
 };
 
+watch(openServiceDialog, (value) => {
+  if (!value) {
+    remark_buyer.value = '';
+    remark_buyer_dateTime.value = '';
+    serviceDate.value = null;
+    serviceStartTime.value = null;
+    serviceEndTime.value = null;
+    placeToService.value = null;
+    estimatedDuration.value = '';
+    estimatedPrice.value = 0;
+  }
+});
+
 
 
 </script>
@@ -478,13 +491,16 @@ const openProfileDialog = (user) => {
               >
                 <VueDatePicker
                   teleport-center
-                  :clearable="true"
                   :min-date="new Date()"
                   v-model="serviceDate"
                   placeholder="Select Date"
                   :enable-time-picker="false"
                   required
-                />
+                >
+                <template #clear-icon="{ clear }">
+                    <VIcon class="mr-2" icon="ri-close-line" @click="clear" />
+                </template>
+                </VueDatePicker>
               </VCol>
             </VRow>
           </VCol>
@@ -505,7 +521,6 @@ const openProfileDialog = (user) => {
               >
                 <VueDatePicker
                   teleport-center
-                  :clearable="true"
                   time-picker
                   :max-time="{ hours: maxTime.hours, minutes: maxTime.minutes }"
                   v-model="serviceStartTime"
@@ -513,7 +528,11 @@ const openProfileDialog = (user) => {
                   placeholder="Select Time"
                   
                   required
-                />
+                >
+                <template #clear-icon="{ clear }">
+                    <VIcon class="mr-2" icon="ri-close-line" @click="clear" />
+                </template>
+                </VueDatePicker>
               </VCol>
             </VRow>
           </VCol>
@@ -534,7 +553,7 @@ const openProfileDialog = (user) => {
               >
                 <VueDatePicker
                   teleport-center
-                  :clearable="true"
+    
                   time-picker
                   :min-time="{ hours: minTime.hours, minutes: minTime.minutes}"
                   v-model="serviceEndTime"
@@ -542,7 +561,11 @@ const openProfileDialog = (user) => {
                   
                   :disabled="endTimeEnabled"
                   required
-                />
+                >
+                <template #clear-icon="{ clear }">
+                    <VIcon class="mr-2" icon="ri-close-line" @click="clear" />
+                </template>
+                </VueDatePicker>
               </VCol>
             </VRow>
           </VCol>
@@ -710,8 +733,9 @@ const openProfileDialog = (user) => {
             class="d-flex gap-4"
           ><VBtn
               color="secondary"
-              type="reset"
+          
               variant="tonal"
+              @click="remark_buyer_dateTime = 'Preferable Service Date and Time: • ', serviceDate = null, serviceStartTime = null, serviceEndTime = null, placeToService = null, estimatedDuration = '', estimatedPrice = 0, startTimeEnabled = true, endTimeEnabled = true, remark_buyer = ''"
             >
               Reset
             </VBtn>
