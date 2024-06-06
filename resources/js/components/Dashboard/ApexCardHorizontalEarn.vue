@@ -79,7 +79,7 @@
 <script setup>
 import { hexToRgb } from '@layouts/utils';
 import axios from 'axios';
-import { watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 import { useTheme } from 'vuetify';
 
@@ -145,8 +145,9 @@ const options = computed(() => {
           colors: disabledColor,
           fontSize: '13px',
         },
-        formatter: value => `RM ${value}`,
+        formatter: value => `RM${value}`,
       },
+   
     },
     responsive: [
       {
@@ -174,23 +175,29 @@ const monthlyEarned = ref([]);
 const isMonthly = ref(false);
 const category = ref([]);
 
+// Parse the data to number
+const parseEarningsData = (data) => {
+  return Object.values(data).map(value => Number(String(value).replace(/,/g, '')));
+};
+
 const getWeeklyEarned = async () => {
   isMonthly.value = false;
   try {
     const response = await axios.get(`/api/dashboard/get-weekly-earned?type=${currentType.value}`);
     totalEarned.value = response.data.data.total_earned;
 
-    series.value[0].data = [
-      totalEarned.value.Monday,
-      totalEarned.value.Tuesday,
-      totalEarned.value.Wednesday,
-      totalEarned.value.Thursday,
-      totalEarned.value.Friday,
-      totalEarned.value.Saturday,
-      totalEarned.value.Sunday,
-    ];
+    series.value[0].data = parseEarningsData({
+      Monday: totalEarned.value.Monday,
+      Tuesday: totalEarned.value.Tuesday,
+      Wednesday: totalEarned.value.Wednesday,
+      Thursday: totalEarned.value.Thursday,
+      Friday: totalEarned.value.Friday,
+      Saturday: totalEarned.value.Saturday,
+      Sunday: totalEarned.value.Sunday,
+    });
 
     totalEarnedWeek.value = response.data.data.total_earned_week;
+    
   } catch (error) {
     console.log(error);
   }
@@ -210,31 +217,31 @@ const getMonthlySales = async () => {
 
 watch(isMonthly, (value) => {
   if (value) {
-    series.value[0].data = [
-      monthlyEarned.value.January,
-      monthlyEarned.value.February,
-      monthlyEarned.value.March,
-      monthlyEarned.value.April,
-      monthlyEarned.value.May,
-      monthlyEarned.value.June,
-      monthlyEarned.value.July,
-      monthlyEarned.value.August,
-      monthlyEarned.value.September,
-      monthlyEarned.value.October,
-      monthlyEarned.value.November,
-      monthlyEarned.value.December,
-    ];
+    series.value[0].data = parseEarningsData({
+      January: monthlyEarned.value.January,
+      February: monthlyEarned.value.February,
+      March: monthlyEarned.value.March,
+      April: monthlyEarned.value.April,
+      May: monthlyEarned.value.May,
+      June: monthlyEarned.value.June,
+      July: monthlyEarned.value.July,
+      August: monthlyEarned.value.August,
+      September: monthlyEarned.value.September,
+      October: monthlyEarned.value.October,
+      November: monthlyEarned.value.November,
+      December: monthlyEarned.value.December,
+    });
     category.value = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   } else {
-    series.value[0].data = [
-      totalEarned.value.Monday,
-      totalEarned.value.Tuesday,
-      totalEarned.value.Wednesday,
-      totalEarned.value.Thursday,
-      totalEarned.value.Friday,
-      totalEarned.value.Saturday,
-      totalEarned.value.Sunday,
-    ];
+    series.value[0].data = parseEarningsData({
+      Monday: totalEarned.value.Monday,
+      Tuesday: totalEarned.value.Tuesday,
+      Wednesday: totalEarned.value.Wednesday,
+      Thursday: totalEarned.value.Thursday,
+      Friday: totalEarned.value.Friday,
+      Saturday: totalEarned.value.Saturday,
+      Sunday: totalEarned.value.Sunday,
+    });
     category.value = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   }
 });
@@ -247,6 +254,7 @@ const filterTo = (type) => {
     getWeeklyEarned();
   }
 };
+
 
 watch(currentType, () => {
   isMonthly.value=false;

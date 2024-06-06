@@ -13,7 +13,7 @@ export const routes = [
       {
         path:'admin-dashboard',
         component: () => import('@/pages/admin-dashboard.vue'),
-        meta: { requiresAuth: true},
+        meta: { requiresAuth: true, requiresAdmin: true },
       },
       {
         path: 'chat',
@@ -29,7 +29,7 @@ export const routes = [
       {
         path: 'user-management',
         component: () => import('@/pages/user-management.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, requiresAdmin: true },
       },
       {
         path: 'life-moment-post/:relatedId?',

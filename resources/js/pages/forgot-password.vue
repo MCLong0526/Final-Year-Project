@@ -235,7 +235,7 @@ const codeValidator = (v) => {
             <RouterLink
               class="text-primary ms-2"
               to="/login"
-              @click="goToLoginPage()"
+        
             >
               <VIcon class="mb-1" icon="ri-arrow-left-double-line" />
               Go to Login
