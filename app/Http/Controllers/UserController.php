@@ -325,4 +325,17 @@ class UserController extends Controller
 
         return $this->success(data: $user, message: 'User details retrieved successfully');
     }
+
+    // public function saveToken(Request $request)
+    // {
+    //     $user = Auth::user();
+    //     if ($user) {
+    //         $user->device_token = $request->token;
+    //         $user->save();
+
+    //         return response()->json(['success' => true], 200);
+    //     }
+
+    //     return response()->json(['success' => false, 'message' => 'User not authenticated'], 401);
+    // }
 }

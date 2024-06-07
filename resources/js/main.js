@@ -1,4 +1,5 @@
 import App from '@/App.vue';
+import '@/plugins/firebase';
 import { registerPlugins } from '@core/utils/plugins';
 import { createApp } from 'vue';
 

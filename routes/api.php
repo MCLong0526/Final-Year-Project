@@ -33,10 +33,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', 'index');
         Route::get('/get-following', 'getFollowing');
         Route::get('/get-user-details/{user_id}', 'getUserDetails');
+        Route::post('/save-token', 'saveToken');
         Route::post('/check-password', 'checkPassword');
         Route::post('/store', 'store');
         Route::post('/follow-user/{user_id}', 'followUser');
         Route::post('/unfollow-user/{user_id}', 'unfollowUser');
+
         Route::delete('/delete/{user_id}', 'destroy');
         Route::put('/update/{user_id}', 'update');
         Route::put('/update-profile/{user_id}', 'editProfile');

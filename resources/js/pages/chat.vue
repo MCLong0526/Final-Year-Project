@@ -37,6 +37,7 @@ const isSuccess = ref(false);
 const followingUsers = ref([]);
 const successMessages = ref('');
 const openFollowedUsersDialog = ref(false);
+const currentUserID = ref('');
 
 
 const addEmoji = (event) => {
@@ -73,6 +74,8 @@ const getUser = async () => {
     });
 
     user.value = response.data.user;
+    currentUserID.value = user.value.user_id;
+  
     
   } catch (error) {
 
@@ -546,6 +549,11 @@ var channel = pusher.subscribe('my-channel');
     channel.bind('MessageSent', function(data) {
       fetchMessages();
       app.messages.push(JSON.stringify(data));
+
+      //can push a alert here to notify the user that there is a new message
+      if(data.message.receiver_id == currentUserID.value){
+        alert('You have a new message');
+      }
     });
 
 const app = {
