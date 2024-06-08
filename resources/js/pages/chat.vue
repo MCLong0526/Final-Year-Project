@@ -38,6 +38,8 @@ const followingUsers = ref([]);
 const successMessages = ref('');
 const openFollowedUsersDialog = ref(false);
 const currentUserID = ref('');
+const hasNewMessage = ref(false);
+let notRead = false;
 
 
 const addEmoji = (event) => {
@@ -176,11 +178,24 @@ const latestUserMessages = computed(() => {
       }
     }
   });
+
+  // Check also whether there is a "Location: " in the last message or not, if there is a "Location: ", then isLocation will be true
+  messages.value.forEach(message => {
+    const userId = message.sender.user_id !== store.user.user_id ? message.sender.user_id : message.receiver.user_id;
+    if (userMap.has(userId) && message.created_at === userMap.get(userId).created_at) {
+      if(message.message && message.message.includes('Location:')){
+        userMap.get(userId).isLocation = true;
+      }else{
+        userMap.get(userId).isLocation = false;
+      }
+    }
+  });
   return Array.from(userMap.values()); // Convert map values to array
 });
 
 // get the messages of the clicked user
 const getMessages = (userMessage) => {
+  notRead = false;
   messageClicked.value = true;
   clickedMessage.value = userMessage;    // so that can know which user is clicked
   const userId = userMessage.user.user_id;
@@ -552,7 +567,9 @@ var channel = pusher.subscribe('my-channel');
 
       //can push a alert here to notify the user that there is a new message
       if(data.message.receiver_id == currentUserID.value){
-        alert('You have a new message');
+        hasNewMessage.value = true;
+        notRead = true;
+
       }
     });
 
@@ -639,24 +656,52 @@ getFollowingUsers();
           <VCardText>
             <!-- Display latest message for each user -->
             <VList density="compact">
-              
-              <VListItem v-for="userMessage in latestUserMessages" :key="userMessage.user_id" @click="getMessages(userMessage)"
-                class="font-weight-medium text-high-emphasis text-truncate">
-                <div class="d-flex align-items-center">
-                  <VAvatar v-if="userMessage.user.avatar" size="35">
-                    <VImg :src="userMessage.user.avatar" />
-                  </VAvatar>
-                  <div class="ml-2">
-                    <div style="font-size: 13px;">{{ userMessage.user.username }}</div>
-                    <div v-if="userMessage.message !== null" style="color: #6c757d; font-size: 12px;">{{ userMessage.message }}</div>
-                    <div v-else-if="userMessage.isPicture && userMessage.message==null" style="color: #6c757d; font-size: 12px;"><VIcon icon="ri-camera-3-line" color="secondary"/> Photo</div>
-                    <div v-else-if="!userMessage.isPicture && userMessage.message == null" style="color: #6c757d; font-size: 12px;">No message yet</div>
-
+              <VListItem 
+                v-for="userMessage in latestUserMessages" 
+                :key="userMessage.user_id" 
+                @click="getMessages(userMessage)"
+                class="font-weight-medium text-high-emphasis text-truncate"
+        
+              >
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center">
+                    <VAvatar v-if="userMessage.user.avatar" size="35">
+                      <VImg :src="userMessage.user.avatar" />
+                    </VAvatar>
+                    <div class="ml-2">
+                      <div style="font-size: 13px;">{{ userMessage.user.username }}</div>
+                      <div 
+                        v-if="userMessage.message !== null && userMessage.isLocation == false" 
+                        style="color: #6c757d; font-size: 12px;"
+                      >
+                        {{ userMessage.message }}
+                      </div>
+                      <div 
+                        v-else-if="userMessage.isPicture && userMessage.message == null" 
+                        style="color: #6c757d; font-size: 12px;"
+                      >
+                        <VIcon icon="ri-camera-3-line" color="secondary" /> Photo
+                      </div>
+                      <div 
+                        v-else-if="userMessage.message !== null & userMessage.isLocation" 
+                        style="color: #6c757d; font-size: 12px;"
+                      >
+                        <VIcon icon="ri-map-pin-line" color="success" /> Location
+                      </div>
+                      <div 
+                        v-else-if="!userMessage.isPicture && userMessage.message == null" 
+                        style="color: #6c757d; font-size: 12px;"
+                      >
+                        No message yet
+                      </div>
+                    </div>
                   </div>
+                  <VIcon v-if="notRead==true" icon="ri-circle-fill" size="12px" color="error" />
                 </div>
                 <hr style="position: absolute; border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;">
               </VListItem>
             </VList>
+
           </VCardText>
 
         </VCard>
@@ -1142,6 +1187,16 @@ getFollowingUsers();
     >
     <VIcon size="20" class="me-2">ri-error-warning-line</VIcon>
     <span>{{ errorMessages.value }}</span>
+  </VSnackbar>
+
+  <VSnackbar
+      v-model="hasNewMessage"
+      location="top end"
+      transition="scale-transition"
+      color="info"
+    >
+    <VIcon size="20" class="me-2">ri-chat-1-fill</VIcon>
+    <span>There is a new message</span>
   </VSnackbar>
 
   <VSnackbar

@@ -44,6 +44,7 @@
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
     "laravel-echo": "^1.16.1",
+    "mitt": "^3.0.1",
     "papaparse": "^5.4.1",
     "pinia": "^2.1.7",
     "prismjs": "^1.29.0",
