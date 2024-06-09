@@ -1,6 +1,7 @@
 <script setup>
 import { requiredValidator } from '@/@core/utils/validators';
 import axios from 'axios';
+import 'emoji-picker-element';
 import { VForm } from 'vuetify/components/VForm';
 
 const props = defineProps({
@@ -31,11 +32,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits('update:posts');
-
-
 const addCommentDialog = ref(false)
 const selectedComment = ref(null); // Initialize as null or with a default value
-
+const showEmoji = ref(false);
 const comments = ref([])
 const newComment = ref('')
 const selectedPost = ref(null) 
@@ -56,6 +55,12 @@ const isFollowErrorAlert = ref(false)
 const isFollowSuccessAlert = ref(false)
 const followingUsersInPost = ref([])
 const isTagging = ref(false)
+
+// Function to add an emoji to the comment
+const addEmoji = (event) => {
+  const emoji = event.detail.unicode;
+  newComment.value += emoji
+};
 
 // get the authenticated user
 const getUser = async () => {
@@ -402,6 +407,14 @@ const tagUser = (user) => {
 //end tagging users in post
 
 
+watch(addCommentDialog, (value) => {
+  if (!value) {
+    clearSelectedComment();
+    newComment.value = '';
+    showEmoji.value = false;
+  }
+});
+
 
 getUser();
 </script>
@@ -579,9 +592,10 @@ getUser();
   max-width="600"
   scrollable
   >
+  
     <!-- Dialog Content -->
     <VCard title="Comments">
-
+      
       <VCardText v-if="comments.length >0" class="comment-scrollable">
         <!-- Display all comments -->
         <template v-for="comment in comments" :key="comment.id">
@@ -626,18 +640,24 @@ getUser();
           </div>
         </template>
       </VCardText>
+      
       <VCardText v-else>
         <div class="text-center"><VAlert icon="ri-discuss-line" variant="outlined" color="primary">No comments yet, be the first to comment! </VAlert></div>
       </VCardText>
-
+      
         <!-- Add new comment -->
         <VDivider />
+        
         <div class="mb-2 ml-2 mt-2">
+          
         <VForm ref="refForm" @submit.prevent >
+          
           <VTextField
             v-model="newComment"
             :label="selectedComment ? 'Replying to ' + selectedComment.user.username : 'New Comment'"
             required
+            :append-inner-icon="showEmoji ? 'ri-emotion-happy-line' : 'ri-emotion-happy-line'"
+            @click:append-inner="showEmoji = !showEmoji"
             outlined
           >
           
@@ -647,6 +667,14 @@ getUser();
               </VBtn>
             </template>
           </VTextField>
+          <emoji-picker
+            v-if="showEmoji"
+            @emoji-click="addEmoji"
+            theme="light"
+            :native="true"
+            class="light emoji-picker"
+          ></emoji-picker>
+          
           <VList 
             v-if="isTagging && followingUsers.length > 0"  
             style="max-block-size: 80px; overflow-y: auto;"
@@ -670,8 +698,12 @@ getUser();
           </VList>
         </VForm>
       </div>
+      
     </VCard>
+    
+    
   </VDialog>
+  
 
 
   <!--Create New Post-->
@@ -1000,6 +1032,14 @@ getUser();
   border-radius:10px;
   background-color: #fff; /* White background color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 15%); /* Drop shadow */
+}
+
+.emoji-picker {
+  position: fixed;
+  z-index: 1000;
+  inset-block-start: 70px; /* Adjust this value to position the emoji picker correctly */
+  inset-inline-start: 50%; /* Adjust this value to position the emoji picker correctly */
+  transform: translateX(-15%); /* Center the picker horizontally */
 }
 
 </style>

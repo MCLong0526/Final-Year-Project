@@ -63,6 +63,10 @@ class CommentController extends Controller
         if (! empty($matches[1])) {
             foreach ($matches[1] as $match) {
                 $mentionedUser = User::where('username', $match)->first();
+                //if mentioned user and auth user are same, skip creating notification
+                if ($mentionedUser->user_id === auth()->user()->user_id) {
+                    continue;
+                }
                 if ($mentionedUser) {
                     $notification = new Notification();
                     $notification->receiver_id = $mentionedUser->user_id;
@@ -106,6 +110,7 @@ class CommentController extends Controller
             $notification = new Notification();
             $notification->receiver_id = $comment->replier_id;
             $notification->sender_id = auth()->user()->user_id;
+
             $notification->type = 'post';
             $notification->related_id = $comment->post_id;
             $notification->status = 'Unread';
