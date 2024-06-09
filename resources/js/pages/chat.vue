@@ -6,6 +6,7 @@ import axios from 'axios';
 import 'emoji-picker-element';
 import { debounce } from 'lodash';
 import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { errorMessages } from 'vue/compiler-sfc';
 
 import chatBackground from '/resources/images/avatars/chatbackground.png';
@@ -17,6 +18,7 @@ const props = defineProps({
   }
 });
 
+const route = useRoute();
 const store = useAuthStore();
 const newMessage = ref('');
 const messages = ref([]);
@@ -39,7 +41,6 @@ const successMessages = ref('');
 const openFollowedUsersDialog = ref(false);
 const currentUserID = ref('');
 const hasNewMessage = ref(false);
-let notRead = false;
 
 
 const addEmoji = (event) => {
@@ -190,25 +191,53 @@ const latestUserMessages = computed(() => {
       }
     }
   });
+
+  //check also whether the message is read or not through the status of the message, if the status is 'unread', then notRead will be true and calculate the number of unread messages
+  // make sure the notRead message is belong to the receiver side only, not the sender side
+  messages.value.forEach(message => {
+    const userId = message.sender.user_id !== store.user.user_id ? message.sender.user_id : message.receiver.user_id;
+    if (userMap.has(userId) && message.created_at === userMap.get(userId).created_at) {
+      if(message.status === 'unread' && message.receiver.user_id === store.user.user_id){
+        userMap.get(userId).notRead = true;
+      }else{
+        userMap.get(userId).notRead = false;
+      }
+    }
+  });
   return Array.from(userMap.values()); // Convert map values to array
 });
 
-// get the messages of the clicked user
 const getMessages = (userMessage) => {
-  notRead = false;
   messageClicked.value = true;
-  clickedMessage.value = userMessage;    // so that can know which user is clicked
+  clickedMessage.value = userMessage; // so that can know which user is clicked
   const userId = userMessage.user.user_id;
   receiver.value = userMessage.user;
   messagesShowed.value = messages.value.filter(message => message.sender.user_id === userId || message.receiver.user_id === userId);
-  if(messagesShowed.value.length < 1){
+
+  if (messagesShowed.value.length < 1) {
     newMessage.value = 'Hi, I am ' + store.user.username + '. Let\'s start chatting';
   }
+
+  // Send request to mark messages as read
+  axios.post('/api/chat/mark-messages-as-read', {
+    sender_id: store.user.user_id,
+    receiver_id: userId
+  }).then(response => {
+    fetchMessages();
+
+  }).catch(error => {
+    console.error('Error marking messages as read', error);
+  });
+
+
   setTimeout(() => {
     const chat = document.querySelector('.message');
-    chat.scrollTop = chat.scrollHeight;
+    if(chat!==null){
+      chat.scrollTop = chat.scrollHeight;
+    }
   }, 100);
 };
+
 
 //send message
 const sendMessage = async () => {
@@ -228,7 +257,9 @@ const sendMessage = async () => {
   
   setTimeout(() => {
     const chat = document.querySelector('.message');
-    chat.scrollTop = chat.scrollHeight;
+    if(chat!==null){
+      chat.scrollTop = chat.scrollHeight;
+    }
   }, 100);
 };
 
@@ -555,27 +586,54 @@ const makeLinksClickable = (message) => {
 
 
 
-
-//listen for new messages, so that the messages can be updated in real-time
-var pusher = new Pusher('bfdcd4030f09a5a101b7',{
+// Initialize Pusher
+var pusher = new Pusher('bfdcd4030f09a5a101b7', {
   cluster: 'ap1'
 });
+
+// Subscribe to the channel
 var channel = pusher.subscribe('my-channel');
-    channel.bind('MessageSent', function(data) {
-      fetchMessages();
-      app.messages.push(JSON.stringify(data));
 
-      //can push a alert here to notify the user that there is a new message
-      if(data.message.receiver_id == currentUserID.value){
-        hasNewMessage.value = true;
-        notRead = true;
+// Check if notifications are supported
+if (window.Notification) {
+  // Request permission to show notifications
+  Notification.requestPermission().then(function(permission) {
+    if (permission === 'granted') {
+      // Bind to the event
+      channel.bind('MessageSent', function(data) {
+        // console.log('MessageSent event triggered', data); 
 
-      }
-    });
+        fetchMessages(); // Fetch the updated messages
 
+        // Update the messages array
+        app.messages.push(data);
+
+        // Check if the received message is for the current user
+        if (data.message.receiver_id == currentUserID.value) {
+          hasNewMessage.value = true;
+
+          // Show an alert if the user is not on the chat page
+          if (route.name !== 'Chat') {
+            new Notification('New Message', {
+              body: 'You have a new message, please check your chat box',
+              icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/message-4737170-3934375.png'
+            });
+          }
+        }
+      });
+    } else {
+      // console.log('Notification permission denied.');
+    }
+  });
+} else {
+  alert('Notifications aren\'t supported on your browser! :(');
+}
+
+// Your app structure
 const app = {
   messages: []
 };
+
 
 //watch for changes in the search input
 watch(searchUser, debounce(() => {
@@ -665,6 +723,7 @@ getFollowingUsers();
               >
                 <div class="d-flex align-items-center justify-content-between">
                   <div class="d-flex align-items-center">
+                
                     <VAvatar v-if="userMessage.user.avatar" size="35">
                       <VImg :src="userMessage.user.avatar" />
                     </VAvatar>
@@ -696,7 +755,7 @@ getFollowingUsers();
                       </div>
                     </div>
                   </div>
-                  <VIcon v-if="notRead==true" icon="ri-circle-fill" size="12px" color="error" />
+                  <VIcon v-if="userMessage.notRead==true" icon="ri-circle-fill" size="12px" class="ml-1" color="error" />
                 </div>
                 <hr style="position: absolute; border-block-start: 0 solid; inset-block-end: 0; inset-inline: 0 0;">
               </VListItem>

@@ -17,6 +17,7 @@ export const routes = [
       },
       {
         path: 'chat',
+        name: 'Chat',
         component: () => import('@/pages/chat.vue'),
         
       },

@@ -97,4 +97,20 @@ class ChatsController extends Controller
         return ['status' => 'Pictures saved!'];
 
     }
+
+    public function markMessagesAsRead(Request $request)
+    {
+        $sender_id = $request->sender_id;
+        $receiver_id = $request->receiver_id;
+
+        Message::where('sender_id', $sender_id)
+            ->where('receiver_id', $receiver_id)
+            ->orWhere(function ($query) use ($sender_id, $receiver_id) {
+                $query->where('sender_id', $receiver_id)
+                    ->where('receiver_id', $sender_id);
+            })
+            ->update(['status' => 'read']);
+
+        return response()->json(['status' => 'success'], 200);
+    }
 }

@@ -147,7 +147,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::controller(ChatsController::class)->prefix('chat')->group(function () {
         Route::get('/messages', 'fetchMessages');
-
+        Route::post('/mark-messages-as-read', 'markMessagesAsRead');
         Route::post('/messages', 'sendMessage');
     });
 
