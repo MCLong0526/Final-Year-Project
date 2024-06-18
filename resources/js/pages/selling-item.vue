@@ -80,6 +80,13 @@ const getUser = async () => {
     });
 
     user.value = response.data.user;
+    // check if the user has a role name of Seller, if yes, assign isSeller to true
+    user.value.roles.forEach((role) => {
+      if(role.name === 'Seller'){
+        user.value.isSeller = true;
+      }
+    });
+
   } catch (error) {
 
     //go to error page
@@ -366,7 +373,10 @@ allItemLoad();
   <div class="box-style">
   <!-- Item List -->
   <VRow class="mt-2 mr-2 mb-1 ml-2">
-    <VCol cols="12" md="4" >
+    <VCol 
+      v-if="user.isSeller"
+      cols="12" md="4" 
+    >
       <VBtn @click="ownSellingItems=true">
         <VTooltip
           location="top"
@@ -378,6 +388,7 @@ allItemLoad();
         Own Selling Items
       </VBtn>
     </VCol>
+    <VCol v-else cols="12" md="4"/>
     <VCol cols="12" md="4"/>
     <VCol cols="12" md="4" class="d-flex justify-end">
       <VMenu open-on-hover>

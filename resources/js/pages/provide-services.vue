@@ -24,6 +24,7 @@ const ownServices = ref(false);
 const sliderValues = ref([0, 80])
 
 
+
 const name = ref('');
 const description = ref('');
 const type = ref(null);
@@ -33,6 +34,7 @@ const allServices = ref([]);
 const rowPerPageAllServices = ref(8);
 const currentPageAllServices = ref(1);
 const totalPagesAllServices = ref(0);
+const user = ref([]);  
 
 const sortBy = [
   { title: 'Price:Low to High', value: 'Price:Low to High' }, 
@@ -53,6 +55,38 @@ const types = [
   'IT Support',
   'Consulting Services',
 ];
+
+const getUser = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Token not found');
+    }
+
+    const response = await axios.get('/api/auth/get-user-by-token', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    user.value = response.data.user;
+    // check if the user has a role name of Seller, if yes, assign isSeller to true
+    user.value.roles.forEach((role) => {
+      if(role.name === 'Seller'){
+        user.value.isSeller = true;
+      }
+    });
+  } catch (error) {
+
+    //go to error page
+    router.push('/error-unauthorized');
+
+    console.error(error);
+  }
+};
+
+getUser();
 
 
 const serviceLoad = debounce(() => {
@@ -301,7 +335,9 @@ allServicesLoad()
   </div>
     <div class="box-style">
       <VRow class="mt-2 mr-2 mb-1 ml-2">
-        <VCol cols="12" md="4">
+        <VCol 
+          v-if="user.isSeller"
+          cols="12" md="4">
           <VBtn @click="ownServices=true">
             <VTooltip
               location="top"
@@ -313,6 +349,7 @@ allServicesLoad()
             Own Services
           </VBtn>
         </VCol>
+        <VCol v-else cols="12" md="4" />
         <VCol cols="12" md="4" />
         <VCol cols="12" md="4" class="d-flex justify-end">
       <VMenu open-on-hover>

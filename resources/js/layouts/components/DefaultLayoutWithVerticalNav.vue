@@ -5,6 +5,8 @@ import UserProfile from '@/layouts/components/UserProfile.vue';
 import UnimasLogo from '@images/logos/logo2.png';
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
+const showDialog = ref(false);
+
 
 </script>
 
@@ -27,7 +29,7 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
           style="user-select: none;"
         >
           <!-- 👉 Search Trigger button -->
-          <IconBtn>
+          <IconBtn @click="showDialog = true">
             <VIcon icon="ri-search-line" />
           </IconBtn>
 
@@ -85,6 +87,20 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
     
   </VerticalNavLayout>
 
+  <VDialog 
+    v-model="showDialog"
+    width="800px"
+    height="550px"
+    
+  > 
+    <VCard>
+   
+    <navItem @close-dialog="showDialog = false" />
+  </VCard>
+  </VDialog>
+
+  
+
 </template>
 
 <style lang="scss" scoped>
@@ -109,5 +125,4 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
     text-transform: uppercase;
   }
 } 
-
 </style>
