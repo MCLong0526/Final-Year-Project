@@ -265,7 +265,7 @@ class AuthController extends Controller
     public function register(UserRequest $request)
     {
         // Set default avatar path
-        $defaultAvatarPath = 'images/avatars/avatar-1.png';
+        $defaultAvatarPath = 'images/avatars/avatar-20.png';
 
         $data = $request->validated();
 
