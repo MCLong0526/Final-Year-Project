@@ -130,7 +130,8 @@ const allItemLoad = debounce(() => {
 
     allItems.value.forEach((item) => {
       item.pictures.forEach((picture) => {
-        picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+        // picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+        picture.picture_path = '/storage/' + picture.picture_path;
       });
     });
 
@@ -173,7 +174,8 @@ const itemsLoad = debounce(() => {
     items.value = data.data.data;
     items.value.forEach((item) => {
       item.pictures.forEach((picture) => {
-        picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+        // picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+        picture.picture_path = '/storage/' + picture.picture_path;
       });
     });
 
