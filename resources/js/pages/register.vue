@@ -176,7 +176,7 @@ const register = async () => {
     hasErrorAlert.value = true;
     return;
   }
-  await axios.post('/api/auth/user-register/', {
+  await axios.post('/api/auth/user-register', {
     username: username.value,
     email: email.value,
     phone_number: phoneNumber.value,
