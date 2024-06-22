@@ -99,14 +99,14 @@ const fetchMessages = debounce(() => {
 
       messages.value.forEach(message => {
         if (message.sender.avatar) {
-          message.sender.avatar = 'http://127.0.0.1:8000/storage/' + message.sender.avatar;
+          message.sender.avatar = '/storage/' + message.sender.avatar;
         }
         if (message.receiver.avatar) {
-          message.receiver.avatar = 'http://127.0.0.1:8000/storage/' + message.receiver.avatar;
+          message.receiver.avatar = '/storage/' + message.receiver.avatar;
         }
         if(message.pictures){
           message.pictures.forEach(picture => {
-            picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+            picture.picture_path = '/storage/' + picture.picture_path;
           });
         }
         

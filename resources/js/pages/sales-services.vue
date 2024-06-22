@@ -51,7 +51,7 @@ const getPendingOrders = () => {
       // change the service picture path to http://127.0.0.1:8000/storage/
       pendingOrders.value.forEach((service) => {
         service.service.pictures.forEach((picture) => {
-          picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path
+          picture.picture_path = '/storage/' + picture.picture_path
         })
       })
 
@@ -177,7 +177,7 @@ const getConfirmedOrders = debounce(() => {
       // change the item picture path to http://127.0.0.1:8000/storage/
       confirmedOrders.value.forEach((service) => {
         service.service.pictures.forEach((picture) => {
-          picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path
+          picture.picture_path = '/storage/' + picture.picture_path
         })
       })
 

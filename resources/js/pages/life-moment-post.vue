@@ -131,14 +131,14 @@ const getPosts = debounce(() => {
       // Change the user's avatar of the new posts by adding the http://127.0.0.1:8000/storage/
       newPosts.forEach(post => {
         if (post.user.avatar) {
-          post.user.avatar = 'http://127.0.0.1:8000/storage/' + post.user.avatar;
+          post.user.avatar = '/storage/' + post.user.avatar;
         }
       });
 
       // Change also the new posts' picture by adding the http://
       newPosts.forEach(post => {
         if (post.picture) {
-          post.picture = 'http://127.0.0.1:8000/storage/' + post.picture;
+          post.picture = '/storage/' + post.picture;
         }
       });
 
@@ -177,14 +177,14 @@ const getPosts = debounce(() => {
         // Change also the new posts' picture by adding the http://
         taggedPost.value.forEach(post => {
           if (post.picture) {
-            post.picture = 'http://127.0.0.1:8000/storage/' + post.picture;
+            post.picture = '/storage/' + post.picture;
           }
         });
 
         //make sure the post.user.avatar is in full path
         taggedPost.value.forEach(post => {
           if (post.user.avatar) {
-            post.user.avatar = 'http://127.0.0.1:8000/storage/' + post.user.avatar;
+            post.user.avatar = '/storage/' + post.user.avatar;
           }
         });
 

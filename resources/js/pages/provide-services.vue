@@ -101,7 +101,7 @@ const serviceLoad = debounce(() => {
       services.value = data.data.data;
       services.value.forEach((service) => {
       service.pictures.forEach((picture) => {
-        picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+        picture.picture_path = '/storage/' + picture.picture_path;
       });
     });
       
@@ -143,7 +143,7 @@ const allServicesLoad = debounce(() => {
 
     allServices.value.forEach((service) => {
       service.pictures.forEach((picture) => {
-        picture.picture_path = 'http://127.0.0.1:8000/storage/' + picture.picture_path;
+        picture.picture_path = '/storage/' + picture.picture_path;
       });
     });
     

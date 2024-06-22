@@ -51,7 +51,7 @@ const usersLoad = debounce(() =>{
     users.value = data.data.data;
     
     users.value.forEach((user) => {
-      user.avatar = 'http://127.0.0.1:8000/storage/' + user.avatar;
+      user.avatar = '/storage/' + user.avatar;
     });
     
     //console.log(users.value);
