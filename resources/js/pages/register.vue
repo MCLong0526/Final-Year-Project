@@ -280,7 +280,7 @@ const register = async () => {
           </VWindowItem>
 
           <VWindowItem value="tab-2">
-            <VForm ref="refForm">
+            <VForm ref="refForm" @submit.prevent>
             <!-- password -->
             <VCol cols="12">
               <VTextField v-model="password" label="Password" placeholder="············" :rules="[requiredValidator, passwordValidator]" :type="isPasswordVisible ? 'text' : 'password'" :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'" @click:append-inner="isPasswordVisible = !isPasswordVisible" />
@@ -307,7 +307,7 @@ const register = async () => {
             Next
             <VIcon icon="ri-arrow-right-line" end class="flip-in-rtl" />
           </VBtn>
-          <VBtn v-else @click="$refs.refForm.validate().then((isValid) => { if (isValid) register(); })" @submit.prevent>
+          <VBtn v-else @click="$refs.refForm.validate().then((isValid) => { if (isValid) register(); })">
             Register
           </VBtn>
         </div>
