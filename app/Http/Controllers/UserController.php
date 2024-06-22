@@ -62,7 +62,7 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         // Set default avatar path
-        $defaultAvatarPath = 'images/avatars/avatar-20.png';
+        $defaultAvatarPath = 'images/avatars/avatar-20.jpg';
 
         // Validate request data
         $validatedData = $request->validated();
