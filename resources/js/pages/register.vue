@@ -307,7 +307,7 @@ const register = async () => {
             Next
             <VIcon icon="ri-arrow-right-line" end class="flip-in-rtl" />
           </VBtn>
-          <VBtn v-else @click="$refs.refForm.validate().then((isValid) => { if (isValid) register(); })">
+          <VBtn v-else @click="$refs.refForm.validate().then((isValid) => { if (isValid) register(); })" @submit.prevent>
             Register
           </VBtn>
         </div>
