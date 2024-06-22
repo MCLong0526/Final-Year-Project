@@ -1,1 +1,0 @@
-import{_ as o,f as t,c,o as n,z as a}from"./main-BkB1wmBc.js";const r={},s={class:"layout-wrapper layout-blank"};function _(l,p){const e=a("RouterView");return n(),t("div",s,[c(e)])}const i=o(r,[["render",_]]);export{i as default};

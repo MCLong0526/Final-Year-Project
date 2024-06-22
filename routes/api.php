@@ -163,7 +163,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::post('/forgot-password', 'forgotPassword');
     Route::post('/verify-code', 'verifyCode');
     Route::post('/check-verification-code', 'checkVerificationCode');
-    Route::post('/register', 'register');
+    Route::post('/user-register', 'userRegister');
     Route::get('/check-email-exists', 'checkEmailExists');
     Route::get('/check-username-exists', 'checkUsernameExists');
     Route::post('/register-seller', 'registerSeller');

@@ -262,7 +262,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function register(UserRequest $request)
+    public function userRegister(UserRequest $request)
     {
         // Set default avatar path
         $defaultAvatarPath = 'images/avatars/avatar-20.png';
