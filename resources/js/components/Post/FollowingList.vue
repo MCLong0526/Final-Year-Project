@@ -20,12 +20,14 @@ const openChatDialog = (user) => {
 
 <template>
   <VList
+    v-if="props.followingUsers.length > 0"
     lines="two"
     border
     rounded
     style="max-block-size: 250px; overflow-y: auto;"
   >
     <template
+      
       v-for="(user, index) in props.followingUsers"
       :key="index"
     > 
@@ -51,7 +53,19 @@ const openChatDialog = (user) => {
       </VListItem>
       <VDivider v-if="index !== props.followingUsers.length - 1" />
     </template>
+    
   </VList>
+  <VList v-else style=" background-color: transparent;max-inline-size: 2000px; overflow-x: hidden;">
+      <VAlert  
+        variant="tonal"
+        type="warning"
+        class="mt-2 text-center"
+        color="primary"
+        dense
+      >
+        No following users found
+      </VAlert>
+    </VList>
 
   <VDialog
     v-model="dialogChat"
