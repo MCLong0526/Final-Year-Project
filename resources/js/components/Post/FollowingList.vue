@@ -55,11 +55,12 @@ const openChatDialog = (user) => {
     </template>
     
   </VList>
-  <VList v-else style=" background-color: transparent;max-inline-size: 2000px; overflow-x: hidden;">
+  <VList v-else>
+    <VDivider />
       <VAlert  
         variant="tonal"
         type="warning"
-        class="mt-2 text-center"
+        class="mt-2 mb-2 ml-2 mr-2 text-center"
         color="primary"
         dense
       >

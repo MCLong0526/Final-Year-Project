@@ -3,33 +3,13 @@ import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTit
 import { useAuthStore } from '@/plugins/store/AuthStore';
 import VerticalNavGroup from '@layouts/components/VerticalNavGroup.vue';
 import VerticalNavLink from '@layouts/components/VerticalNavLink.vue';
-import axios from 'axios';
 
 const store = useAuthStore();
 const purchasesNotification = ref(0);
 const orderItemNotification = ref(0);
 const orderServiceNotification = ref(0);
 
-const getPendingItemNotification = () => {
-  axios.get('/api/order-items/count-pending-orders')
-    .then(response => {
-      orderItemNotification.value = response.data.data
 
-    })
-    .catch(error => {
-      console.log(error)
-    })
-}
-const getPendingServiceNotification = () => {
-  axios.get('/api/order-services/count-pending-orders')
-    .then(response => {
-      orderServiceNotification.value = response.data.data
-
-    })
-    .catch(error => {
-      console.log(error)
-    })
-}
 
 const isAdmin = computed(() => {
   return store.user.roles.some(role => role.name === 'Admin');
@@ -44,8 +24,6 @@ const isBuyer = computed(() => {
 });
 
 
-getPendingItemNotification()
-getPendingServiceNotification()
 
 </script>
 
@@ -66,7 +44,7 @@ getPendingServiceNotification()
     }"
   />
   <VerticalNavLink
-    v-else
+    v-if="isBuyer === true || isSeller === true"
     :item="{
       title: 'Dashboard',
       icon: 'ri-dashboard-line',
@@ -137,36 +115,18 @@ getPendingServiceNotification()
       icon: 'ri-shopping-bag-2-line',
     }"
   >
+
   <VerticalNavLink
-    v-if="orderItemNotification > 0"
-    :item="{
-      title: 'Sales Items',
-      badgeContent: orderItemNotification,
-      badgeClass: 'bg-error',
-      icon: 'ri-shopping-cart-2-fill',
-      to: '/sales-items',
-    }"
-  />
-  <VerticalNavLink
-    v-else
+
     :item="{
       title: 'Sales Items',
       icon: 'ri-shopping-cart-2-fill',
       to: '/sales-items',
     }"
   />
+
   <VerticalNavLink
-    v-if="orderServiceNotification > 0"
-    :item="{
-      title: 'Sales Services',
-      badgeContent: orderServiceNotification,
-      badgeClass: 'bg-error',
-      icon: 'ri-service-fill',
-      to: '/sales-services',
-    }"
-  />
-  <VerticalNavLink
-    v-else
+ 
     :item="{
       title: 'Sales Services',
       icon: 'ri-service-fill',
@@ -183,18 +143,8 @@ getPendingServiceNotification()
     }"
   >
 
+
   <VerticalNavLink
-    v-if="purchasesNotification > 0"
-    :item="{
-      title: 'Purchase Items',
-      badgeContent: purchasesNotification,
-      badgeClass: 'bg-error',
-      icon: 'ri-shopping-cart-2-fill',
-      to: '/purchase-items',
-    }"
-  />
-  <VerticalNavLink
-    v-else
     :item="{
       title: 'Purchase Items',
       icon: 'ri-shopping-cart-2-fill',

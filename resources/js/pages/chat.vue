@@ -554,27 +554,33 @@ watch(showMapDialog, (newVal) => {
 
 
 
-//split message
 const splitMessage = (message) => {
-  const words = message.split(' ');
-  let lines = [];
-  let currentLine = '';
+  const lines = [];
+  const maxLineLength = 40; // Maximum characters per line
 
-  words.forEach(word => {
-    if ((currentLine + word).length <= 40) {
-      currentLine += word + ' ';
-    } else {
+  // Split message into words and process line by line
+  message.split('\n').forEach(line => {
+    let currentLine = '';
+    const words = line.split(' ');
+
+    words.forEach(word => {
+      if ((currentLine + word).length <= maxLineLength) {
+        currentLine += word + ' ';
+      } else {
+        lines.push(currentLine.trim());
+        currentLine = word + ' ';
+      }
+    });
+
+    if (currentLine.length > 0) {
       lines.push(currentLine.trim());
-      currentLine = word + ' ';
     }
   });
 
-  if (currentLine.length > 0) {
-    lines.push(currentLine.trim());
-  }
-
-  return makeLinksClickable(lines.join('<br>'));
+  // Make links clickable and join lines with <br> tag
+  return lines.map(makeLinksClickable).join('<br>');
 };
+
 
 const makeLinksClickable = (message) => {
   const urlPattern = /https?:\/\/[^\s]+/g;
@@ -584,6 +590,64 @@ const makeLinksClickable = (message) => {
 };
 
 
+// Function to check if a message is a location message
+const isLocationMessage = (message) => {
+  if (typeof message !== 'string') return false;
+  return message.startsWith('Location:');
+};
+
+// Function to extract location from a message
+const extractLocation = (message) => {
+  if (typeof message !== 'string') return '';
+  const locationStart = message.indexOf('Location:') + 9; // Skip the "Location:" part
+  let locationEnd = message.length;
+  if (message.includes('https://')) {
+    locationEnd = message.indexOf('https://');
+  }
+  let location = message.slice(locationStart, locationEnd).trim();
+  location = location.replace(/<br>/g, '').replace(/\n/g, ', ');
+  return location;
+};
+
+// Function to generate map URL
+const generateMapUrl = (message) => {
+  const location = extractLocation(message);
+  const encodedLocation = encodeURIComponent(location);
+  return `https://maps.googleapis.com/maps/api/staticmap?center=${encodedLocation}&zoom=14&size=400x300&key=AIzaSyBRDrW49mVJIhRfieUOI3mQCouk7wexOQ4`;
+};
+
+// Function to generate Google Maps link
+const generateMapLink = (message) => {
+  const linkStart = message.indexOf('https://');
+  return message.slice(linkStart).trim(); // Extracts the link part
+};
+
+// Function to open Google Maps with directions from user's current location
+const openDirections = (message) => {
+  const locationLink = generateMapLink(message);
+  const coordinatesMatch = locationLink.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (!coordinatesMatch || coordinatesMatch.length < 3) {
+    console.error('Invalid location link format.');
+    return;
+  }
+
+  const destinationLat = parseFloat(coordinatesMatch[1]);
+  const destinationLng = parseFloat(coordinatesMatch[2]);
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const originLat = position.coords.latitude;
+      const originLng = position.coords.longitude;
+
+      const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destinationLat},${destinationLng}`;
+      window.open(directionsUrl, '_blank');
+    }, (error) => {
+      console.error('Error getting current position:', error);
+    });
+  } else {
+    console.error('Geolocation is not supported by this browser.');
+  }
+};
 
 
 // Initialize Pusher
@@ -800,6 +864,24 @@ getFollowingUsers();
                   <span >
                     <VChip v-if="showAvatar(index)" label class="mt-1 ml-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                       <div style="display: inline-block; text-align: start;">
+                        <!-- Small map display -->
+                        <div v-if="isLocationMessage(message.message)">
+                          <VTooltip
+                            open-delay="500"
+                            location="top"
+                            activator="parent"
+                            transition="scroll-y-transition"
+                          >
+                            <span>Click to know the distance from your current location</span>
+                          </VTooltip>
+                          <div class="map-container" @click="openDirections(message.message)">
+                            <img 
+                              :src="generateMapUrl(message.message)" 
+                              alt="Location Map" 
+                              class="map-image"
+                            >
+                          </div>
+                        </div>
                           <div v-if="message.pictures && message.pictures.length">
                             <div class="mt-2"></div>
                             <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
@@ -817,6 +899,24 @@ getFollowingUsers();
                     </VChip>
                     <VChip v-else label class="mt-1 ml-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                       <div style="display: inline-block; text-align: start;">
+                        <!-- Small map display -->
+                        <div v-if="isLocationMessage(message.message)">
+                          <div class="map-container" @click="openDirections(message.message)">
+                            <VTooltip
+                              open-delay="500"
+                              location="top"
+                              activator="parent"
+                              transition="scroll-y-transition"
+                            >
+                              <span>Click to know the distance from your current location</span>
+                            </VTooltip>
+                            <img 
+                              :src="generateMapUrl(message.message)" 
+                              alt="Location Map" 
+                              class="map-image"
+                            >
+                          </div>
+                        </div>
                         <div v-if="message.pictures && message.pictures.length" >
                           <div class="mt-2"></div>
                             <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
@@ -840,6 +940,24 @@ getFollowingUsers();
                   <span>
                     <VChip v-if="showAvatar(index)" label class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                       <div style="flex-wrap: wrap;" >
+                        <!-- Small map display -->
+                        <div v-if="isLocationMessage(message.message)">
+                          <div class="map-container" @click="openDirections(message.message)">
+                            <VTooltip
+                              open-delay="500"
+                              location="top"
+                              activator="parent"
+                              transition="scroll-y-transition"
+                            >
+                              <span>Click to know the distance from your current location</span>
+                            </VTooltip>
+                            <img 
+                              :src="generateMapUrl(message.message)" 
+                              alt="Location Map" 
+                              class="map-image"
+                            >
+                          </div>
+                        </div>
                         <div v-if="message.pictures && message.pictures.length">
                           <div class="mt-2"></div>
                           <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
@@ -859,6 +977,24 @@ getFollowingUsers();
                     </VChip>
                     <VChip v-else label class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                       <div style="flex-wrap: wrap;" >
+                        <!-- Small map display -->
+                        <div v-if="isLocationMessage(message.message)">
+                          <div class="map-container" @click="openDirections(message.message)">
+                            <VTooltip
+                              open-delay="500"
+                              location="top"
+                              activator="parent"
+                              transition="scroll-y-transition"
+                            >
+                              <span>Click to know the distance from your current location</span>
+                            </VTooltip>
+                            <img 
+                              :src="generateMapUrl(message.message)" 
+                              alt="Location Map" 
+                              class="map-image"
+                            >
+                          </div>
+                        </div>
                         <div v-if="message.pictures && message.pictures.length">
                           <div class="mt-2"></div>
                           <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
@@ -878,6 +1014,7 @@ getFollowingUsers();
                   <img v-if="showAvatar(index)" :src="message.sender.avatar" alt="Avatar" class="avatar">
       
                 </div>
+                
               </div>
             </div>
 
@@ -975,7 +1112,8 @@ getFollowingUsers();
             <VList>
               <VListItem>
                 <VListItemTitle class="text-overline">If you haven't followed anyone,</VListItemTitle>
-                <VListItemTitle class="text-overline"><b> you can follow someone in the Life Moment Post page</b></VListItemTitle>
+                <VListItemTitle class="text-overline"><b> you can follow someone in the Life Moment Post / </b></VListItemTitle>
+                <VListItemTitle class="text-overline"><b>Selling Item / Service page </b></VListItemTitle>
               
               </VListItem>
             </VList>
@@ -1021,6 +1159,23 @@ getFollowingUsers();
               <span>
                 <VChip v-if="showAvatar(index)" label class="mt-1 ml-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                   <div style="display: inline-block; text-align: start;">
+                    <div v-if="isLocationMessage(message.message)">
+                        <div class="map-container" @click="openDirections(message.message)">
+                          <VTooltip
+                            open-delay="500"
+                            location="top"
+                            activator="parent"
+                            transition="scroll-y-transition"
+                          >
+                            <span>Click to know the distance from your current location</span>
+                          </VTooltip>
+                          <img 
+                            :src="generateMapUrl(message.message)" 
+                            alt="Location Map" 
+                            class="map-image"
+                          >
+                        </div>
+                      </div>
                       <div v-if="message.pictures && message.pictures.length">
                         <div class="mt-2"></div>
                         <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
@@ -1039,6 +1194,23 @@ getFollowingUsers();
                 </VChip>
                 <VChip v-else label class="mt-1 ml-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                   <div style="display: inline-block; text-align: start;">
+                    <div v-if="isLocationMessage(message.message)">
+                      <div class="map-container" @click="openDirections(message.message)">
+                        <VTooltip
+                            open-delay="500"
+                            location="top"
+                            activator="parent"
+                            transition="scroll-y-transition"
+                          >
+                            <span>Click to know the distance from your current location</span>
+                          </VTooltip>
+                        <img 
+                          :src="generateMapUrl(message.message)" 
+                          alt="Location Map" 
+                          class="map-image"
+                        >
+                      </div>
+                    </div>
                     <div v-if="message.pictures && message.pictures.length" >
                       <div class="mt-2"></div>
                         <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
@@ -1061,6 +1233,23 @@ getFollowingUsers();
               <span>
                 <VChip v-if="showAvatar(index)" label class="mt-1 mr-2 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                       <div style="flex-wrap: wrap;" >
+                        <div v-if="isLocationMessage(message.message)">
+                          <div class="map-container" @click="openDirections(message.message)">
+                            <VTooltip
+                              open-delay="500"
+                              location="top"
+                              activator="parent"
+                              transition="scroll-y-transition"
+                            >
+                              <span>Click to know the distance from your current location</span>
+                            </VTooltip>
+                            <img 
+                              :src="generateMapUrl(message.message)" 
+                              alt="Location Map" 
+                              class="map-image"
+                            >
+                          </div>
+                        </div>
                         <div v-if="message.pictures && message.pictures.length">
                           <div class="mt-2"></div>
                           <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
@@ -1079,6 +1268,23 @@ getFollowingUsers();
                     </VChip>
                     <VChip v-else label class="mt-1 mr-11 mb-1" dense :style="{ height: 'auto', 'min-height': '32px', 'line-height': '16px' }">
                       <div style="flex-wrap: wrap;" >
+                        <div v-if="isLocationMessage(message.message)">
+                          <div class="map-container" @click="openDirections(message.message)">
+                            <VTooltip
+                              open-delay="500"  
+                              location="top"
+                              activator="parent"
+                              transition="scroll-y-transition"
+                            >
+                              <span>Click to know the distance from your current location</span>
+                            </VTooltip>
+                            <img 
+                              :src="generateMapUrl(message.message)" 
+                              alt="Location Map" 
+                              class="map-image"
+                            >
+                          </div>
+                        </div>
                         <div v-if="message.pictures && message.pictures.length">
                           <div class="mt-2"></div>
                           <VImg v-for="picture in message.pictures" :key="picture.picture_id" :src="picture.picture_path" alt="Message Image" class="mb-2" :class="{'right-message-picture': message.sender.user_id === store.user.user_id, 'left-message-picture': message.sender.user_id !== store.user.user_id}" style=" block-size: auto;inline-size: 200px;" />
@@ -1417,5 +1623,16 @@ getFollowingUsers();
   margin-block-end: 10px; /* Add margin at the bottom to separate from other content */
 }
 
+.map-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px; /* Adjust margins as needed */
+  cursor: pointer;
+}
 
+.map-image {
+  inline-size: 100%;
+  max-inline-size: 300px;
+}
 </style>

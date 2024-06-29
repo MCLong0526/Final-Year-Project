@@ -5,6 +5,7 @@ import UserProfile from '@/layouts/components/UserProfile.vue';
 import UnimasLogo from '@images/logos/logo2.png';
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue';
 
+
 const showDialog = ref(false);
 
 
@@ -35,15 +36,13 @@ const showDialog = ref(false);
 
           <span class="d-none d-md-flex align-center text-disabled">
             <span class="me-3">Search</span>
-            <span class="meta-key">&#8984;K</span>
+            
           </span>
         </div>
 
         <VSpacer />
 
         <Notification />
-
-        <!-- <NavbarThemeSwitcher class="me-2" /> -->
 
 
         <UserProfile />

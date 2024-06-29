@@ -397,6 +397,7 @@ const giveRating = (service) => {
           <VCol cols="12" md="4" />
           <VCol cols="12" md="4">
             <VBtn color="success" 
+              class="ml-4"
               v-if="clickedService.status=='Approved'"
               @click="openContactDialog(clickedService.service.user)"
               

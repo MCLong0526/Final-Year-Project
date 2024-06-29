@@ -11,6 +11,8 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const isAuthenticated = true; // Replace with your authentication logic
   let isAdmin = false;
+  let isSeller = false;
+  let isBuyer = false;
 
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!isAuthenticated) {
@@ -30,6 +32,8 @@ router.beforeEach(async (to, from, next) => {
       });
 
       isAdmin = response.data.user.roles.some(role => role.name === 'Admin');
+      isSeller = response.data.user.roles.some(role => role.name === 'Seller');
+      isBuyer = response.data.user.roles.some(role => role.name === 'Buyer');
     } catch (error) {
       console.error('Error fetching user:', error);
       return next('/error-unauthorized');
@@ -39,7 +43,7 @@ router.beforeEach(async (to, from, next) => {
       return next('/error-unauthorized');
     }
 
-    if (to.path === '/dashboard' && isAdmin) {
+    if (to.path === '/dashboard' && !isBuyer) {
       return next('/error-unauthorized');
     }
     

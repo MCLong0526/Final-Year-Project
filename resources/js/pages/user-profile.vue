@@ -106,6 +106,10 @@ const registerSeller = () => {
 
       // go to tab security
       currentTab.value = 'security';
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     })
     .catch(error => {
       console.log(error);

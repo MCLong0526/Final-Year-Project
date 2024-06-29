@@ -1,6 +1,5 @@
 <script setup>
 import { useAuthStore } from '@/plugins/store/AuthStore';
-import axios from 'axios';
 import { computed, defineEmits, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -9,28 +8,6 @@ const emit = defineEmits(['close-dialog']);
 const router = useRouter();
 
 const store = useAuthStore();
-const purchasesNotification = ref(0);
-const orderItemNotification = ref(0);
-const orderServiceNotification = ref(0);
-
-const getPendingItemNotification = () => {
-  axios.get('/api/order-items/count-pending-orders')
-    .then(response => {
-      orderItemNotification.value = response.data.data;
-    })
-    .catch(error => {
-      console.log(error);
-    });
-}
-const getPendingServiceNotification = () => {
-  axios.get('/api/order-services/count-pending-orders')
-    .then(response => {
-      orderServiceNotification.value = response.data.data;
-    })
-    .catch(error => {
-      console.log(error);
-    });
-}
 
 const isAdmin = computed(() => {
   return store.user.roles.some(role => role.name === 'Admin');
@@ -44,11 +21,21 @@ const isBuyer = computed(() => {
   return store.user.roles.some(role => role.name === 'Buyer');
 });
 
-getPendingItemNotification();
-getPendingServiceNotification();
+// const appsAndPages = [
+//   { title: isAdmin.value ? 'Admin Dashboard' : 'Dashboard', icon: isAdmin.value ? 'ri-dashboard-fill' : 'ri-dashboard-line', to: isAdmin.value ? '/admin-dashboard' : '/dashboard' },
+//   { title: 'Upcoming Events', icon: 'ri-calendar-2-line', to: '/calendar' },
+//   { title: 'Chat', icon: 'ri-chat-1-line', to: '/chat' },
+//   { title: 'Life Moment Post', icon: 'ri-chat-smile-line', to: '/life-moment-post' },
+// ]
 
 const appsAndPages = [
-  { title: isAdmin.value ? 'Admin Dashboard' : 'Dashboard', icon: isAdmin.value ? 'ri-dashboard-fill' : 'ri-dashboard-line', to: isAdmin.value ? '/admin-dashboard' : '/dashboard' },
+  ...(isAdmin.value ? [
+    { title: 'Admin Dashboard', icon: 'ri-dashboard-fill', to: '/admin-dashboard' },
+    
+  ] : []),  
+  ...(isBuyer.value || isSeller.value ? [
+    { title: 'Dashboard', icon: 'ri-dashboard-line', to: '/dashboard' },
+  ] : []),
   { title: 'Upcoming Events', icon: 'ri-calendar-2-line', to: '/calendar' },
   { title: 'Chat', icon: 'ri-chat-1-line', to: '/chat' },
   { title: 'Life Moment Post', icon: 'ri-chat-smile-line', to: '/life-moment-post' },
@@ -60,11 +47,13 @@ const productsAndServices = [
 ]
 
 const orderInformation = [
-  { title: 'Sales Items', icon: 'ri-shopping-cart-2-fill', to: '/sales-items', notification: orderItemNotification },
-  { title: 'Sales Services', icon: 'ri-service-fill', to: '/sales-services', notification: orderServiceNotification },
-  { title: 'Purchase Items', icon: 'ri-shopping-cart-2-fill', to: '/purchase-items', notification: purchasesNotification },
+  ...(isSeller.value ? [
+    { title: 'Sales Items', icon: 'ri-shopping-cart-2-fill', to: '/sales-items' },
+    { title: 'Sales Services', icon: 'ri-service-fill', to: '/sales-services' },
+  ] : []),
+  { title: 'Purchase Items', icon: 'ri-shopping-cart-2-fill', to: '/purchase-items' },
   { title: 'Purchase Services', icon: 'ri-service-fill', to: '/purchase-services' },
-]
+];
 
 const searchQuery = ref('');
 

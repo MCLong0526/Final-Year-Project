@@ -132,7 +132,7 @@ getUser();
             <VListItemTitle>Profile</VListItemTitle>
           </VListItem>
 
-          <!-- 👉 Settings -->
+          <!-- 👉 Settings
           <VListItem link>
             <template #prepend>
               <VIcon
@@ -143,7 +143,7 @@ getUser();
             </template>
 
             <VListItemTitle>Settings</VListItemTitle>
-          </VListItem>
+          </VListItem> -->
 
           <!-- Divider -->
           <VDivider class="my-2" />
