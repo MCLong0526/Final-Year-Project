@@ -366,7 +366,6 @@ const unFollowUser = () => {
       unFollowDialog.value = false;
       //pass back to update the following status
       props.getFollowingUsers();
-
       props.getPosts();
       
     })

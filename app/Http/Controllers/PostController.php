@@ -64,6 +64,38 @@ class PostController extends Controller
         ], 'Posts retrieved successfully');
     }
 
+    public function getFollowsPosts()
+    {
+        $postPerPage = request()->input('per_page', 10);
+        $search = request()->input('search');
+        $authUserId = auth()->id();
+
+        // Get the list of user IDs that the authenticated user follows
+        $followingUserIds = auth()->user()->following->pluck('user_id');
+
+        // Query for posts created by users that the authenticated user follows
+        $followsPosts = Post::with('user', 'comments', 'likes')
+            ->when($search, function ($query) use ($search) {
+                $query->where('content', 'like', '%'.$search.'%');
+            })
+            ->whereIn('user_id', $followingUserIds)
+            ->withCount('comments', 'likes')
+            ->orderBy('created_at', 'desc')
+            ->paginate($postPerPage);
+
+        // assign is_following to each post
+        $followsPosts->map(function ($post) {
+            $isFollowing = auth()->user()->following->contains($post->user_id);
+            $post->is_following = $isFollowing;
+
+            return $post;
+        });
+
+        return $this->success([
+            'follows_posts' => $followsPosts,
+        ], 'Posts retrieved successfully');
+    }
+
     /**
      * Show the form for creating a new resource.
      */

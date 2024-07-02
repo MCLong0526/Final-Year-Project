@@ -3,6 +3,7 @@ import { requiredValidator } from '@/@core/utils/validators';
 import FollowingList from '@/components/Post/FollowingList.vue';
 import ShowPosts from '@/components/Post/ShowPosts.vue';
 import { useAuthStore } from '@/plugins/store/AuthStore';
+import { p } from '@antfu/utils';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { watch } from 'vue';
@@ -27,7 +28,9 @@ const showLoading = ref(false)
 const content = ref('')
 const picture = ref([])
 const posts = ref([])
+const postsFollow = ref([])
 const searchPost = ref('')
+const searchPostFollow = ref('')
 const typePosts = ref('all')
 const isPostSuccessAlert = ref(false)
 const followingUsers = ref([])
@@ -35,6 +38,7 @@ const followingUsersInPost = ref([])
 const isTagging = ref(false)
 const taggedPost = ref({})
 const isTaggedPostDialog = ref(false)
+const currentTab = ref('tab-1')
 
 // get the authenticated user
 const getUser = async () => {
@@ -163,12 +167,23 @@ const getPosts = debounce(() => {
         post.is_liked = post.likes.some(like => like.user_id === store.user.user_id);
       });
 
+      // Update isFollowing status for each tagged post based on API data
+      posts.value.forEach(post => {
+        if (followingUsers.value.some(user => user.user_id === post.user.user_id)) {
+          post.is_following = true;
+        } else {
+          post.is_following = false;
+        }
+      });
+
       posts.value = [...posts.value, ...newPosts];
 
       // make sure there is no duplicate post, check by post_id, if got duplicate, remove the first one, keep the last one (for update the following status)
       posts.value = posts.value.reverse().filter((post, index, self) =>
         index === self.findIndex((t) => t.post_id === post.post_id)
       ).reverse();
+
+      console.log(posts.value);
 
       // Check if the related post is not empty
       if(props.relatedId){
@@ -219,6 +234,75 @@ const getPosts = debounce(() => {
 }, 500);
 
 
+// get posts
+const getFollowPosts = debounce(() => {
+  let requestURL = '/api/posts/follows?page='+page+'&per_page='+postPerPage.value;
+  if (searchPostFollow.value && searchPostFollow.value.length > 2 && searchPostFollow.value !== null) {
+    requestURL += '&search=' + searchPostFollow.value;
+  }
+
+  axios.get(requestURL)
+    .then(({data}) => {
+      const newPostsFollow = data.data.follows_posts.data;
+      // Change the user's avatar of the new posts by adding the http://127.0.0.1:8000/storage/
+      newPostsFollow.forEach(post => {
+        if (post.user.avatar) {
+          post.user.avatar = '/storage/' + post.user.avatar;
+        }
+      });
+
+      // Change also the new posts' picture by adding the http://
+      newPostsFollow.forEach(post => {
+        if (post.picture) {
+          post.picture = '/storage/' + post.picture;
+        }
+      });
+
+      // Change the created_at date format to a readable format, and remove seconds
+      newPostsFollow.forEach(post => {
+        post.created_at = new Date(post.created_at).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+        });
+      });
+
+      // Count the number of likes of each new post
+      newPostsFollow.forEach(post => {
+        post.likes_count = post.likes.length;
+      });
+
+      // Check if the new post is liked by the user
+      newPostsFollow.forEach(post => {
+        post.is_liked = post.likes.some(like => like.user_id === store.user.user_id);
+      });
+
+      // Update isFollowing status for each tagged post based on API data
+      postsFollow.value.forEach(post => {
+        if (followingUsers.value.some(user => user.user_id === post.user.user_id)) {
+          post.is_following = true;
+        } else {
+          post.is_following = false;
+        }
+      });
+
+      postsFollow.value = [...postsFollow.value, ...newPostsFollow];
+
+      // make sure there is no duplicate post, check by post_id, if got duplicate, remove the first one, keep the last one (for update the following status)
+      postsFollow.value = postsFollow.value.reverse().filter((post, index, self) =>
+        index === self.findIndex((t) => t.post_id === post.post_id)
+      ).reverse();
+      
+    })
+    .catch(error => {
+      console.log(error);
+    });
+}, 500);
+
+
+
 // Check if the user has reached the bottom of the page
 const isBottomOfPage = () => {
   return window.innerHeight + window.scrollY <= document.body.offsetHeight;
@@ -234,7 +318,12 @@ const fetchPostsIfAtBottom = () => {
     
     showLoading.value = true; // Show loading indicator
     setTimeout(() => {
-      getPosts(); // Fetch posts
+      if(currentTab.value === 'tab-1'){
+        getPosts(); // Fetch posts
+      } else {
+        getFollowPosts(); // Fetch posts
+      }
+
       fetching = false; // Reset fetching flag once posts are fetched
       showLoading.value = false; // Hide loading indicator
     }, 1500);
@@ -244,7 +333,11 @@ const fetchPostsIfAtBottom = () => {
 
 const getNextPosts = () => {
   page += 1;
-  getPosts();
+  if(currentTab.value === 'tab-1'){
+    getPosts();
+  } else {
+    getFollowPosts();
+  }
 };
 
 const getFollowingUsers = () => {
@@ -263,6 +356,12 @@ watch(searchPost, debounce(() => {
   page = 1;
   posts.value = [];
   getPosts();
+}, 500));
+
+watch(searchPostFollow, debounce(() => {
+  page = 1;
+  postsFollow.value = [];
+  getFollowPosts();
 }, 500));
 
 // Tagging users in post
@@ -307,8 +406,17 @@ watch(() => props.relatedId, (value) => {
   }
 });
 
+watch(() => currentTab, (value) => {
+  if (value === 'tab-1') {
+    getPosts();
+  } else {
+    getFollowPosts();
+  }
+});
+
 
 getPosts();
+getFollowPosts();
 getUser();
 getFollowingUsers();
 
@@ -465,41 +573,103 @@ getFollowingUsers();
       </div>
       
       <div class="box-style">
-        <VRow class="mt-2 ml-2 mr-2">
-          <VCol cols="12" md="7" >
-            
-            <VBtn 
-             @click="getNextPosts()"
-              color="primary"
-              class="mb-2"
-            >
-              <VIcon icon="ri-arrow-down-s-line" size="20" />
-              <span class="ml-2">Load More</span>
-            </VBtn>
-
-            
-          </VCol>
-          <VCol cols="12" md="5" >
-            <VTextField
-              v-model="searchPost"
-              label="Search"
-              clearable
-              prepend-inner-icon="ri-search-line"
-              placeholder="Placeholder Text"
-            />
-          </VCol>
-        </VRow>
         
-        <!--All Posts-->
-          <ShowPosts 
-            :posts="posts"
-            :getPosts="getPosts"
-            :getFollowingUsers="getFollowingUsers"
-            :showLoading="showLoading"
-            :typePosts="typePosts"
-            :followingUsers="followingUsers"
-            
-          />
+
+        <VTabs
+          v-model="currentTab"
+          grow
+          stacked
+        >
+          <VTab value="tab-1">
+            <VIcon
+              icon="ri-message-2-line"
+              class="mb-2"
+            />
+            <span>All Posts</span>
+          </VTab>
+
+          <VTab value="tab-2">
+            <VIcon
+              icon="ri-chat-heart-line"
+              class="mb-2"
+            />
+            <span>Followed Users Posts</span>
+          </VTab>
+          </VTabs>
+
+        <VWindow
+          v-model="currentTab"
+          class="mt-5"
+        >
+          <VWindowItem
+            value="tab-1"
+          >
+            <VRow class="mt-1 ml-2 mr-2">
+              <VCol cols="12" md="7" >
+                
+                <VBtn 
+                  @click="getNextPosts()"
+                  color="primary"
+                  class="mb-2"
+                >
+                  <VIcon icon="ri-arrow-down-s-line" size="20" />
+                  <span class="ml-2">Load More</span>
+                </VBtn>
+
+                
+              </VCol>
+              <VCol cols="12" md="5" >
+                <VTextField
+                  v-model="searchPost"
+                  label="Search"
+                  clearable
+                  prepend-inner-icon="ri-search-line"
+                  placeholder="Placeholder Text"
+                />
+              </VCol>
+            </VRow>
+            <!--All Posts-->
+            <ShowPosts 
+              :posts="posts"
+              :getPosts="getPosts"
+              :getFollowingUsers="getFollowingUsers"
+              :showLoading="showLoading"
+              :typePosts="typePosts"
+              :followingUsers="followingUsers"
+              
+            />
+
+          </VWindowItem>
+          <VWindowItem
+            value="tab-2"
+          >
+            <VRow class="mt-1 ml-2 mr-2">
+              <VCol cols="12" md="7" />
+              
+              <VCol cols="12" md="5" >
+                <VTextField
+                  v-model="searchPostFollow"
+                  label="Search"
+                  clearable
+                  prepend-inner-icon="ri-search-line"
+                  placeholder="Placeholder Text"
+                />
+              </VCol>
+            </VRow>
+            <!--All Posts-->
+            <ShowPosts 
+              :posts="postsFollow"
+              :getPosts="getFollowPosts"
+              :getFollowingUsers="getFollowingUsers"
+              :showLoading="showLoading"
+              :typePosts="typePosts"
+              :followingUsers="followingUsers"
+              
+            />
+          </VWindowItem>
+        </VWindow>
+        
+        
         </div>
 
     </VCol>

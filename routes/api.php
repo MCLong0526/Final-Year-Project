@@ -102,6 +102,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(PostController::class)->prefix('posts')->group(function () {
         Route::post('/store', 'store');
         Route::get('/', 'index');
+        Route::get('/follows', 'getFollowsPosts');
         Route::get('/get-auth-posts', 'getAuthPosts');
         Route::get('/get-post-by-id/{post_id}', 'getPostById');
         Route::put('/update/{post_id}', 'update');
