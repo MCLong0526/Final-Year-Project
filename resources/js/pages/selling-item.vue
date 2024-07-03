@@ -200,8 +200,8 @@ const createItem = () => {
     name.value = '';
     description.value = '';
     price.value = '';
-    condition.value = '';
-    type.value = '';
+    condition.value = null;
+    type.value = null;
     addNewDialog.value = false;
     images.value = [];
     addPictureBox.value = false;

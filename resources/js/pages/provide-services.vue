@@ -54,6 +54,11 @@ const types = [
   'Social Media Management',
   'IT Support',
   'Consulting Services',
+  'Cleaning Services',
+  'Delivery Services',
+  'Event Planning',
+  'Photography',
+  'Other',
 ];
 
 const getUser = async () => {
