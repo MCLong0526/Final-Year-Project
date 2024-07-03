@@ -665,13 +665,16 @@ getUser();
                 <VIcon :icon="selectedComment ? 'ri-chat-new-line' : 'ri-send-plane-2-line'" />
               </VBtn>
             </template>
+            
           </VTextField>
           <emoji-picker
+
             v-if="showEmoji"
             @emoji-click="addEmoji"
             theme="light"
             :native="true"
             class="light emoji-picker"
+            style="margin-inline-start: 290px;"
           ></emoji-picker>
           
           <VList 
