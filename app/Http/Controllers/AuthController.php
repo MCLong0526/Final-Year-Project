@@ -93,6 +93,8 @@ class AuthController extends Controller
                 'user' => $user,
                 'token' => $token,
             ]);
+        } else {
+            return response()->json(['error' => 'Incorrect email or password.'], 401);
         }
 
         return response()->json(['error' => 'Incorrect email or password.'], 401);

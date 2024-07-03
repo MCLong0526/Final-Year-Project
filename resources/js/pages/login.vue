@@ -130,7 +130,7 @@ const isPasswordVisible = ref(false)
                 v-if="hasErrorAlert"
                 type="error"
                 variant="tonal"
-                closable
+       
                 class="mt-2"
               >
              
