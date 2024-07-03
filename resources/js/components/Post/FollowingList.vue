@@ -8,6 +8,7 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits('update:followingUsers');
 const newChatUser = ref({});
 const dialogChat = ref(false);
 

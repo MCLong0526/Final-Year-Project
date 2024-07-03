@@ -37,6 +37,7 @@ declare module 'vue' {
     ServiceTable: typeof import('./resources/js/components/Service/ServiceTable.vue')['default']
     ShowPosts: typeof import('./resources/js/components/Post/ShowPosts.vue')['default']
     ThemeSwitcher: typeof import('./resources/js/@core/components/ThemeSwitcher.vue')['default']
+    UserList: typeof import('./resources/js/components/Post/UserList.vue')['default']
     UserProfileDialog: typeof import('./resources/js/components/Profile/UserProfileDialog.vue')['default']
     UserProfileHeader: typeof import('./resources/js/components/Profile/UserProfileHeader.vue')['default']
     UserTable: typeof import('./resources/js/components/User/UserTable.vue')['default']

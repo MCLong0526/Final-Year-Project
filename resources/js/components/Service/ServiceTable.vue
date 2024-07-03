@@ -62,7 +62,7 @@ const openEditDialog = (service) => {
 
   // change the picture_path to base64 format
   clickedService.value.pictures.forEach((picture, index) => {
-    if (picture.picture_path.startsWith('http') || picture.picture_path.startsWith('localhost://')) {
+    if (picture.picture_path.startsWith('/storage')) {
       fetch(picture.picture_path)
         .then((response) => response.blob())
         .then((blob) => {
@@ -75,7 +75,7 @@ const openEditDialog = (service) => {
           };
           reader.readAsDataURL(blob);
         });
-    } else if (picture.picture_path.startsWith('localhost')) {
+    } else if (picture.picture_path.startsWith('/storage')) {
       // Update the picture_path if it starts with 'localhost'
       picture.picture_path = 'data:image;base64,' + picture.picture_path;
     }
@@ -161,7 +161,7 @@ const handleFiles = (files) => {
         if (hasExistingImages) {
           const existingImages = clickedService.value.pictures.filter(image => !image.isNew);
           existingImages.forEach((existingImage, index) => {
-            if (existingImage.picture_path.startsWith('http') || existingImage.picture_path.startsWith('localhost://')) {
+            if (existingImage.picture_path.startsWith('/storage')) {
               fetch(existingImage.picture_path)
                 .then((response) => response.blob())
                 .then((blob) => {
@@ -174,7 +174,7 @@ const handleFiles = (files) => {
                   };
                   reader.readAsDataURL(blob);
                 });
-            } else if (existingImage.picture_path.startsWith('localhost')) {
+            } else if (existingImage.picture_path.startsWith('/storage')) {
               // Update the picture_path if it starts with 'localhost'
               existingImage.picture_path = 'data:image;base64,' + base64Data;
             }

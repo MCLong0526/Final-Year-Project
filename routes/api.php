@@ -33,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', 'index');
         Route::get('/get-following', 'getFollowing');
         Route::get('/get-user-details/{user_id}', 'getUserDetails');
+        Route::get('/search-new-users', 'searchNewUsers');
+
         Route::post('/save-token', 'saveToken');
         Route::post('/check-password', 'checkPassword');
         Route::post('/store', 'store');
@@ -66,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/update-statusinfo/{item_id}', 'updateStatusInfo');
         Route::post('/store', 'store');
         Route::post('/save-item-pictures/{item_id}', 'saveItemPictures');
+
         Route::delete('/delete/{item_id}', 'destroy');
     });
     Route::controller(OrderItemController::class)->prefix('order-items')->group(function () {

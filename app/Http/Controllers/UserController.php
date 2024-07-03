@@ -326,6 +326,25 @@ class UserController extends Controller
         return $this->success(data: $user, message: 'User details retrieved successfully');
     }
 
+    public function searchNewUsers(Request $request)
+    {
+        $search = $request->input('search');
+
+        if ($search) {
+            $users = User::where('username', 'like', '%'.$search.'%')
+                ->get();
+
+            // if the current user is following the user, set is_following to true
+            $users->map(function ($user) {
+                $user->is_following = auth()->user()->following->contains($user->user_id);
+            });
+        } else {
+            $users = [];
+        }
+
+        return response()->json(['data' => $users], 200);
+    }
+
     // public function saveToken(Request $request)
     // {
     //     $user = Auth::user();

@@ -55,7 +55,7 @@ const openEditDialog = (item) => {
 
   // change the picture_path to base64 format
   clickedItem.value.pictures.forEach((image, index) => {
-    if (image.picture_path.startsWith('http') || image.picture_path.startsWith('localhost://')) {
+    if (image.picture_path.startsWith('/storage')) {
       fetch(image.picture_path)
         .then((response) => response.blob())
         .then((blob) => {
@@ -68,7 +68,7 @@ const openEditDialog = (item) => {
           };
           reader.readAsDataURL(blob);
         });
-    } else if (image.picture_path.startsWith('localhost')) {
+    } else if (image.picture_path.startsWith('/storage')) {
       // Update the picture_path if it starts with 'localhost'
       image.picture_path = 'data:image;base64,' + image.picture_path;
     }
@@ -147,7 +147,7 @@ const handleFiles = (files) => {
         if (hasExistingImages) {
           const existingImages = clickedItem.value.pictures.filter(image => !image.isNew);
           existingImages.forEach((existingImage, index) => {
-            if (existingImage.picture_path.startsWith('http') || existingImage.picture_path.startsWith('localhost://')) {
+            if (existingImage.picture_path.startsWith('/storage')) {
               fetch(existingImage.picture_path)
                 .then((response) => response.blob())
                 .then((blob) => {
@@ -160,7 +160,7 @@ const handleFiles = (files) => {
                   };
                   reader.readAsDataURL(blob);
                 });
-            } else if (existingImage.picture_path.startsWith('localhost')) {
+            } else if (existingImage.picture_path.startsWith('/storage')) {
               // Update the picture_path if it starts with 'localhost'
               existingImage.picture_path = 'data:image;base64,' + base64Data;
             }
@@ -508,8 +508,17 @@ const priceValidator = (value) => {
 
     <tbody>
       <tr>
-        <td class="text-center" colspan="7">
-          No items found.
+        <td class="text-center" colspan="5">
+          <VAlert  
+            variant="tonal"
+            type="warning"
+            class="mt-2"
+            color="primary"
+            closable
+            dense
+          >
+            No item available. Please add new item.
+          </VAlert>
         </td>
       </tr>
     </tbody>

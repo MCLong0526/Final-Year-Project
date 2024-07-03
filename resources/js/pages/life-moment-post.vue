@@ -2,12 +2,15 @@
 import { requiredValidator } from '@/@core/utils/validators';
 import FollowingList from '@/components/Post/FollowingList.vue';
 import ShowPosts from '@/components/Post/ShowPosts.vue';
+import UserList from '@/components/Post/UserList.vue';
 import { useAuthStore } from '@/plugins/store/AuthStore';
 import { p } from '@antfu/utils';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { watch } from 'vue';
 import { VForm } from 'vuetify/components/VForm';
+
+import findNewUsersBackground from '/resources/images/avatars/Find.png';
 
 //define props relatedId from other component
 const props = defineProps({
@@ -39,6 +42,8 @@ const isTagging = ref(false)
 const taggedPost = ref({})
 const isTaggedPostDialog = ref(false)
 const currentTab = ref('tab-1')
+const openFindUserDialog = ref(false)
+const searchUsername = ref('')
 
 // get the authenticated user
 const getUser = async () => {
@@ -182,8 +187,6 @@ const getPosts = debounce(() => {
       posts.value = posts.value.reverse().filter((post, index, self) =>
         index === self.findIndex((t) => t.post_id === post.post_id)
       ).reverse();
-
-      console.log(posts.value);
 
       // Check if the related post is not empty
       if(props.relatedId){
@@ -343,6 +346,7 @@ const getNextPosts = () => {
 const getFollowingUsers = () => {
   axios.get('/api/users/get-following')
     .then(response => {
+    
       followingUsers.value = response.data.data;
     })
     .catch(error => {
@@ -392,6 +396,26 @@ const tagUser = (user) => {
 
 //end tagging users in post
 
+const newUsers = ref([]);
+
+const searchNewUsers = debounce(() => {
+  axios.get('/api/users/search-new-users?search=' + searchUsername.value)
+    .then(response => {
+      newUsers.value = response.data.data;
+    })
+    .catch(error => {
+      console.log(error);
+    });
+}, 500);
+
+watch(() => searchUsername.value, () => {
+  if (searchUsername.value.length > 2) {
+    searchNewUsers();
+  } else {
+    newUsers.value = [];
+  }
+});
+
 // watch when props.relatedId is change, then get the posts
 watch(() => props.relatedId, (value) => {
   if (value) {
@@ -411,6 +435,16 @@ watch(() => currentTab, (value) => {
     getPosts();
   } else {
     getFollowPosts();
+  }
+});
+
+watch(() => openFindUserDialog.value, (value) => {
+  // if the openFindUserDialog is false, then reset the followingUsers array and run the getFollowingUsers function
+  if (!value) {
+    followingUsers.value = [];
+    getFollowingUsers();
+    searchUsername.value = '';
+    newUsers.value = [];
   }
 });
 
@@ -674,16 +708,81 @@ getFollowingUsers();
 
     </VCol>
     <VCol cols="12" md="4">
-      <VCard
-        title="Followed Users"
-      >
-        <FollowingList
-          :followingUsers="followingUsers"
-        />
+      <VCard>
+        <VCardTitle>
+          <VRow class="d-flex align-center justify-space-between">
+            <VCol>
+              <span>Followed Users</span>
+            </VCol>
+            <VCol class="d-flex justify-end">
+              <VBtn icon="ri-user-search-line" variant="text" @click="openFindUserDialog=true"/>
+            </VCol>
+          </VRow>
+        </VCardTitle>
+
+        <FollowingList :followingUsers="followingUsers" />
       </VCard>
+      
     </VCol>
+    
   </VRow>
 
+
+  <VDialog
+    v-model="openFindUserDialog"
+    max-width="450"
+  >
+    <VCard class="mt-2">
+      <VCardTitle>
+        <VRow class="d-flex align-center justify-space-between">
+          <VCol>
+            <span>Find New Users</span>
+          </VCol>
+          <VCol class="d-flex justify-end">
+            <VTextField
+              v-model="searchUsername"
+              label="Search New Users"
+              append-inner-icon="ri-user-search-line"
+        
+              placeholder="Enter username"
+            />
+          </VCol>
+        </VRow>
+      </VCardTitle>
+      <VDivider />
+      <div class="dialog-content" style="max-block-size: 400px; overflow-y: auto;">
+        <VRow v-if="newUsers.length > 0">
+            <UserList :newUsers="newUsers" :searchNewUsers="searchNewUsers" />
+        </VRow>
+        <VRow v-else-if="newUsers.length===0 && searchUsername.length>2">
+          <VAlert  
+            variant="tonal"
+            type="warning"
+            class="mt-2 mb-2 ml-2 mr-2 text-center"
+            color="primary"
+            dense
+          >
+            No new users found
+          </VAlert>
+        </VRow>
+        <VRow v-else-if="newUsers.length===0 && searchUsername.length<=2">
+          <VCol cols="12" md="3">
+            <VImg :src="findNewUsersBackground" style="block-size: auto; inline-size: 600px; margin-block-start: 65px; margin-inline-start: 50px;" />
+          </VCol>
+          <VCol cols="12" md="9">
+            <div class="text-center" style="margin-block: 70px 70px">
+              <VCardTitle>
+                <span>Find New Users</span>
+              </VCardTitle>
+              <VCardText>
+                <span>Find new users to follow and connect with them.</span>
+              </VCardText>
+            </div>
+          </VCol>
+        </VRow>
+      </div>
+    </VCard>
+  </VDialog>
 
 
   <!--Create New Post-->
@@ -928,5 +1027,16 @@ getFollowingUsers();
   margin-block-end: 15px
 }
 
+.dialog-content {
+  max-block-size: 400px; /* Adjust the height as needed */
+  overflow-y: auto;
+}
+
+.background-image {
+  block-size: auto;
+  inline-size: 600px;
+  margin-block-start: 50px;
+  margin-inline-start: 50px;
+}
 </style>
 
