@@ -508,7 +508,7 @@ const priceValidator = (value) => {
 
     <tbody>
       <tr>
-        <td class="text-center" colspan="5">
+        <td class="text-center" colspan="7">
           <VAlert  
             variant="tonal"
             type="warning"
