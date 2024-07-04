@@ -236,7 +236,7 @@ watch(openItemDialog, (newValue) => {
         <VCardTitle>
           <VIcon icon="ri-money-dollar-circle-line" />
 
-          RM {{clickedItem.price}} per hour
+          RM {{clickedItem.price}} 
         </VCardTitle>
       </VCol>
       <VCol class="mt-4 text-center" cols="12" md="5" style="cursor:not-allowed">
