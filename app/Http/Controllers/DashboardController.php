@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\Message;
 use App\Models\Post;
 use App\Models\Service;
 use App\Models\User;
@@ -94,23 +95,18 @@ class DashboardController extends Controller
         return response()->json(['total_likes' => $totalLikes, 'new_likes_percentage' => $newLikesPercentage]);
     }
 
-    public function getNumberOfPosts()
+    public function getNumberOfUnseenMessages()
     {
         $user = Auth::user();
-        $posts = Post::where('user_id', $user->user_id)->get();
-        $count = $posts->count();
+        $messages = Message::where('receiver_id', $user->user_id)->get();
 
-        //calculate the percentage of new added posts in the this month
-        $newPosts = $posts->where('created_at', '>=', now()->startOfMonth());
-        $newPostsCount = $newPosts->count();
-        //get only two decimal points, make it can more than 100%
-        if ($count > 0) {
-            $newPostsPercentage = number_format(($newPostsCount / $count) * 100, 2);
-        } else {
-            $newPostsPercentage = 0;
-        }
+        $unseenMessages = $messages->where('status', 'unread');
 
-        return response()->json(['number_of_posts' => $count, 'new_posts_percentage' => $newPostsPercentage]);
+        $newMessagesCount = $unseenMessages->count();
+
+        $newPostsPercentage = 0;
+
+        return response()->json(['number_of_unseen_messages' => $newMessagesCount, 'new_posts_percentage' => $newPostsPercentage]);
     }
 
     public function getNumberOfItems()

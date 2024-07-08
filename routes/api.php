@@ -133,7 +133,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/get-schedules', 'getSchedules');
         Route::get('/get-auth-earned', 'getAuthEarned');
         Route::get('/get-number-of-items', 'getNumberOfItems');
-        Route::get('/get-number-of-posts', 'getNumberOfPosts');
+        Route::get('/get-number-of-unseen-messages', 'getNumberOfUnseenMessages');
         Route::get('/get-number-of-services', 'getNumberOfServices');
         Route::get('/get-number-of-likes', 'getNumberOfLikes');
         Route::get('/get-weekly-earned', 'getWeeklyEarned');

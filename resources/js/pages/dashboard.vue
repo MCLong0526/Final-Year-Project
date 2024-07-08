@@ -6,12 +6,12 @@ import TotalEarnedCard from '/resources/js/components/Dashboard/EarnWeeklyCard.v
 
 const numberOfItems = ref(0);
 const newItemsPercentage = ref(0);
-const numberOfPosts = ref(0);
 const newPostsPercentage = ref(0);
 const numberOfServices = ref(0);
 const newServicesPercentage = ref(0);
 const totalLikes = ref(0);
 const newLikesPercentage = ref(0);
+const numberOfMessages = ref(0);
 
 const number_of_approved_service = ref(0);
 const number_of_pending_service = ref(0);
@@ -51,9 +51,10 @@ const getAuthItems = () => {
 }
 
 const getAuthPosts = () => {
-  axios.get('/api/dashboard/get-number-of-posts')
+  axios.get('/api/dashboard/get-number-of-unseen-messages')
     .then(response => {
-      numberOfPosts.value = response.data.number_of_posts
+      console.log(response.data)
+      numberOfMessages.value = response.data.number_of_unseen_messages
       newPostsPercentage.value = response.data.new_posts_percentage;
       
     })
@@ -126,10 +127,10 @@ getAuthServices();
     >
     <CardStatisticsHorizantal
       v-bind="{
-        title: 'Total Posts',
+        title: 'Total Unseen Messages',
         color: 'secondary',
-        icon: 'ri-chat-smile-line',
-        stats: numberOfPosts,
+        icon: 'ri-message-2-line',
+        stats: numberOfMessages,
         change: parseFloat(newPostsPercentage),
 
       }"
