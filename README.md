@@ -6,10 +6,10 @@ This template should help get you started developing with Vue 3 in Vite.
 
 You can access the deployed project [here](https://unimaswebapp.me/login).
 
-### Login Credentials
+### Login Credentials for normal user
 
-- **Email:** 11111@siswa.unimas.my
-- **Password:** Test12345!
+- **Email:** 22222@siswa.unimas.my
+- **Password:** Test54321!
 
 ## Recommended IDE Setup
 
