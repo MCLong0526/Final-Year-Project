@@ -4,7 +4,7 @@ This template should help get you started developing with Vue 3 in Vite.
 
 ## Deployed Project
 
-You can access the deployed project [here](https://unimaswebapp.me/login).
+You can access the deployed project [here](https://unimaswebapp.me/login) or copy and paste this url : https://unimaswebapp.me/login
 
 ### Login Credentials for normal user
 
